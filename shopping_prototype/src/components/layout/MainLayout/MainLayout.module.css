@@ -1,0 +1,283 @@
+/* Main Layout with CSS Grid */
+.mainLayout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  grid-template-rows: 1fr auto;
+  grid-template-areas:
+    "chat cart"
+    "panel panel";
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Statistics Layout */
+.mainLayout[aria-label="Statistics Dashboard"] {
+  display: block;
+  grid-template-columns: none;
+  grid-template-rows: none;
+  grid-template-areas: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Purchase History Layout */
+.mainLayout[aria-label="Purchase History Dashboard"] {
+  display: block;
+  grid-template-columns: none;
+  grid-template-rows: none;
+  grid-template-areas: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Chat Area */
+.chatArea {
+  grid-area: chat;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #ffffff;
+  border-right: 1px solid #e5e7eb;
+  position: relative;
+}
+
+/* Cart Sidebar */
+.cartSidebar {
+  grid-area: cart;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #ffffff;
+  border-left: 1px solid #e5e7eb;
+  width: 320px;
+  min-width: 320px;
+}
+
+/* Dynamic Panel Area */
+.panelArea {
+  grid-area: panel;
+  position: relative;
+  background: var(--bg-accent);
+  border-top: 1px solid var(--border-color);
+  overflow: hidden;
+  transition: height var(--duration-normal) var(--ease-out);
+  z-index: var(--z-sticky);
+}
+
+/* Panel States */
+.panelArea.collapsed {
+  height: 0;
+  min-height: 0;
+}
+
+.panelArea.expanded {
+  height: var(--panel-height, 300px);
+  min-height: var(--panel-min-height);
+  max-height: var(--panel-max-height);
+}
+
+.panelArea.animating {
+  pointer-events: none;
+}
+
+/* Panel Content Container */
+.panelContent {
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+  padding: var(--spacing-lg);
+}
+
+/* Responsive Breakpoints */
+
+/* Tablet Layout */
+@media (max-width: 1023px) {
+  .mainLayout {
+    grid-template-columns: 1fr 280px;
+    grid-template-areas:
+      "chat cart"
+      "panel panel";
+  }
+
+  .cartSidebar {
+    width: 280px;
+    min-width: 280px;
+  }
+}
+
+/* Mobile Layout */
+@media (max-width: 767px) {
+  .mainLayout {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto auto;
+    grid-template-areas:
+      "chat"
+      "cart"
+      "panel";
+  }
+
+  .chatArea {
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .cartSidebar {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    min-width: unset;
+    border-left: none;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  /* Cart can be collapsed on mobile */
+  .cartSidebar.mobileCollapsed {
+    height: 60px;
+    overflow: hidden;
+  }
+
+  /* Panel becomes overlay on mobile when expanded */
+  .panelArea.mobileOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 100vh;
+    max-height: 100vh;
+    z-index: var(--z-modal);
+    background: var(--bg-primary);
+  }
+
+  .panelArea.mobileOverlay .panelContent {
+    padding-top: calc(var(--spacing-xl) + 40px); /* Space for close button */
+  }
+}
+
+/* Loading States */
+.mainLayout.loading {
+  pointer-events: none;
+}
+
+.mainLayout.loading::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  z-index: var(--z-modal-backdrop);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Error States */
+.mainLayout.error {
+  background: var(--bg-tertiary);
+}
+
+.errorMessage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: var(--color-error);
+  font-size: var(--font-size-lg);
+  z-index: var(--z-modal);
+}
+
+/* Animation Keyframes */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+/* Panel Animation Classes */
+.panelArea.slideUp {
+  animation: slideUp var(--duration-normal) var(--ease-out);
+}
+
+.panelArea.slideDown {
+  animation: slideDown var(--duration-normal) var(--ease-in);
+}
+
+/* Accessibility Improvements */
+@media (prefers-reduced-motion: reduce) {
+  .panelArea,
+  .mainLayout.loading::before {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* Focus Management */
+.mainLayout:focus-within .chatArea,
+.mainLayout:focus-within .cartSidebar,
+.mainLayout:focus-within .panelArea {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .chatArea,
+  .cartSidebar,
+  .panelArea {
+    border-width: 2px;
+    border-color: var(--text-primary);
+  }
+}
+
+/* Print Styles */
+@media print {
+  .mainLayout {
+    display: block;
+    height: auto;
+    overflow: visible;
+  }
+
+  .cartSidebar,
+  .panelArea {
+    display: none;
+  }
+
+  .chatArea {
+    border: none;
+    overflow: visible;
+  }
+}

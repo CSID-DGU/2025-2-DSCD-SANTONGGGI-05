@@ -1,0 +1,48 @@
+.searchResultsPanel {
+  padding: var(--spacing-md);
+}
+
+.header {
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.query {
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.count {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.resultCard {
+  padding: var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  background: var(--color-surface);
+}
+
+.price {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.description {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.emptyState {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--color-text-secondary);
+}
