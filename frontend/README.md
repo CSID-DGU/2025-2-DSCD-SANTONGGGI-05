@@ -127,7 +127,7 @@ src/
 ```bash
 # 저장소 클론
 git clone [repository-url]
-cd shopping_prototype
+cd frontend
 
 # 의존성 설치
 npm install
