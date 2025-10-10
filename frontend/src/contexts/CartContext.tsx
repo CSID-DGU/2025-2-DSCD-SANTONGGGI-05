@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import { CartState, CartContextValue, CartItem, CartSummary, CartItemCustomization } from '../types/cart';
 import { cartApi } from '../services/api/cart';
 import { useAuth } from './AuthContext';
@@ -17,7 +17,8 @@ const sampleCartItems: CartItem[] = [
       images: [{ url: 'https://cdn.pixabay.com/photo/2016/10/22/20/34/bottles-1761613_1280.jpg', alt: '미네랄 워터' }],
       brand: { id: '1', name: '에비안' },
       category: { id: '1', name: '음료' },
-      availability: { inStock: true, quantity: 100 }
+      availability: { inStock: true, quantity: 100 },
+      url: 'https://www.coupang.com/vp/products/6305358952'
     },
     quantity: 6,
     unitPrice: 1500,
@@ -37,7 +38,8 @@ const sampleCartItems: CartItem[] = [
       images: [{ url: 'https://cdn.pixabay.com/photo/2020/04/28/20/12/toilet-paper-5106638_1280.jpg', alt: '화장지' }],
       brand: { id: '2', name: '크리넥스' },
       category: { id: '2', name: '생활용품' },
-      availability: { inStock: true, quantity: 50 }
+      availability: { inStock: true, quantity: 50 },
+      url: 'https://search.shopping.naver.com/catalog/35126752621'
     },
     quantity: 2,
     unitPrice: 15000,
@@ -57,7 +59,8 @@ const sampleCartItems: CartItem[] = [
       images: [{ url: 'https://cdn.pixabay.com/photo/2020/03/24/12/46/soap-4963471_1280.jpg', alt: '주방세제' }],
       brand: { id: '3', name: '참그린' },
       category: { id: '2', name: '생활용품' },
-      availability: { inStock: true, quantity: 30 }
+      availability: { inStock: true, quantity: 30 },
+      url: 'https://www.coupang.com/vp/products/7234567890'
     },
     quantity: 3,
     unitPrice: 3500,
@@ -204,13 +207,40 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   // Load cart data when user is authenticated
   useEffect(() => {
-    if (isAuthenticated && user) {
-      loadCartData();
-    } else {
-      // Load cart from localStorage for guest users
-      loadGuestCart();
-    }
-  }, [isAuthenticated, user]);
+    const loadData = async () => {
+      if (isAuthenticated && user) {
+        try {
+          dispatch({ type: 'SET_LOADING', payload: true });
+          const response = await cartApi.getCart();
+          dispatch({
+            type: 'SET_CART_DATA',
+            payload: {
+              items: response.data.items,
+              summary: response.data.summary,
+            },
+          });
+        } catch (error: any) {
+          dispatch({ type: 'SET_ERROR', payload: error.message });
+        } finally {
+          dispatch({ type: 'SET_LOADING', payload: false });
+        }
+      } else {
+        // Load cart from localStorage for guest users
+        const guestCart = storageService.getGuestCart();
+        if (guestCart) {
+          dispatch({
+            type: 'SET_CART_DATA',
+            payload: {
+              items: guestCart.items,
+              summary: guestCart.summary,
+            },
+          });
+        }
+      }
+    };
+
+    loadData();
+  }, [isAuthenticated, user?.id]); // Use user.id instead of user object
 
   // Auto-save cart to localStorage for guest users
   useEffect(() => {
@@ -221,10 +251,10 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         lastUpdated: state.lastUpdated,
       });
     }
-  }, [state.items, state.summary, isAuthenticated]);
+  }, [state.items.length, isAuthenticated]); // Use items.length instead of items array
 
   // Load cart data from API
-  const loadCartData = async () => {
+  const loadCartData = useCallback(async () => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
       const response = await cartApi.getCart();
@@ -240,10 +270,10 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
-  };
+  }, []);
 
   // Load guest cart from localStorage
-  const loadGuestCart = () => {
+  const loadGuestCart = useCallback(() => {
     const guestCart = storageService.getGuestCart();
     if (guestCart) {
       dispatch({
@@ -254,7 +284,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         },
       });
     }
-  };
+  }, []);
 
   // Calculate cart summary
   const calculateSummary = (items: CartItem[]): CartSummary => {
@@ -276,7 +306,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   };
 
   // Add item to cart
-  const addItem = async (productId: string, quantity: number = 1, variantId?: string) => {
+  const addItem = useCallback(async (productId: string, quantity: number = 1, variantId?: string) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
 
@@ -307,8 +337,9 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
         dispatch({ type: 'ADD_ITEM', payload: newItem });
 
-        // Recalculate summary
-        const newSummary = calculateSummary([...state.items, newItem]);
+        // Recalculate summary using current state.items from closure
+        const currentItems = state.items;
+        const newSummary = calculateSummary([...currentItems, newItem]);
         dispatch({ type: 'UPDATE_SUMMARY', payload: newSummary });
       }
     } catch (error: any) {
@@ -317,7 +348,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
-  };
+  }, [isAuthenticated]);
 
   // Remove item from cart
   const removeItem = async (itemId: string) => {
@@ -467,42 +498,43 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   };
 
   // Refresh cart data
-  const refreshCart = async () => {
+  const refreshCart = useCallback(async () => {
     if (isAuthenticated) {
       await loadCartData();
     } else {
       loadGuestCart();
     }
-  };
+  }, [isAuthenticated, loadCartData, loadGuestCart]);
 
   // Add simplified methods for component compatibility
-  const addToCart = async (item: { id: string; name: string; price: number; image?: string; quantity: number }) => {
+  const addToCart = useCallback(async (item: { id: string; name: string; price: number; image?: string; quantity: number }) => {
     // Simplified addToCart that matches component expectations
     try {
       await addItem(item.id, item.quantity);
     } catch (error) {
       console.error('Failed to add to cart:', error);
     }
-  };
+  }, [addItem]);
 
   // Simplified getters for component compatibility
-  const items = state.items.map(item => ({
+  const items = useMemo(() => state.items.map(item => ({
     id: item.id,
     name: item.product?.name || `Product ${item.productId}`,
     price: item.unitPrice,
     image: item.product?.images?.[0]?.url,
     quantity: item.quantity,
-    variant: item.variant?.name
-  }));
+    variant: item.variant?.name,
+    url: item.product?.url
+  })), [state.items]);
 
-  const total = state.summary.total;
-  const itemCount = state.summary.itemCount;
-
-  const contextValue: CartContextValue = {
-    ...state,
+  const contextValue: CartContextValue = useMemo(() => ({
     items,
-    total,
-    itemCount,
+    summary: state.summary,
+    isLoading: state.isLoading,
+    error: state.error,
+    lastUpdated: state.lastUpdated,
+    total: state.summary.total,
+    itemCount: state.summary.itemCount,
     addItem,
     addToCart,
     removeItem,
@@ -514,7 +546,16 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     getItemByProductId,
     getTotalQuantity,
     refreshCart,
-  };
+  }), [
+    items,
+    state.summary,
+    state.isLoading,
+    state.error,
+    state.lastUpdated,
+    addItem,
+    addToCart,
+    refreshCart,
+  ]);
 
   return (
     <CartContext.Provider value={contextValue}>

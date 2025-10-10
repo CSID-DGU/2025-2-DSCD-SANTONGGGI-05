@@ -4,6 +4,7 @@ export * from './chat';
 export * from './cart';
 export * from './panel';
 export * from './api';
+export * from './modal';
 
 // Common utility types
 export interface BaseEntity {

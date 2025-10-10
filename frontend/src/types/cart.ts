@@ -16,6 +16,7 @@ export interface Product extends BaseEntity {
   tags?: string[];
   attributes?: ProductAttribute[];
   variants?: ProductVariant[];
+  url?: string; // 외부 쇼핑몰 URL (쿠팡, 네이버쇼핑 등)
 }
 
 export interface ProductImage {
@@ -155,6 +156,7 @@ export interface CartItemType {
   image?: string;
   quantity: number;
   variant?: string;
+  url?: string; // 외부 쇼핑몰 URL (쿠팡, 네이버쇼핑 등)
 }
 
 export interface Category {
@@ -174,4 +176,5 @@ export interface Product {
   image?: string;
   badge?: string;
   rating?: number;
+  url?: string; // 외부 쇼핑몰 URL (쿠팡, 네이버쇼핑 등)
 }

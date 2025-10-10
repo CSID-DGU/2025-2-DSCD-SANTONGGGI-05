@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styles from './ProductRecommendations.module.css';
 import { recommendationsApi, RecommendedProduct } from '../../../services/api/recommendations';
 import { LoadingSpinner } from '../../ui/LoadingSpinner';
+import { useModal } from '../../../contexts/AppProvider';
 
 interface ProductRecommendationsProps {
   className?: string;
@@ -15,6 +16,7 @@ export const ProductRecommendations: React.FC<ProductRecommendationsProps> = ({
   const [products, setProducts] = useState<RecommendedProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { openProductModal } = useModal();
 
   const recommendationsClasses = [
     styles.productRecommendations,
@@ -53,8 +55,19 @@ export const ProductRecommendations: React.FC<ProductRecommendationsProps> = ({
   };
 
   const handleViewProduct = (product: RecommendedProduct) => {
-    console.log('Viewing product:', product.name);
-    // TODO: Navigate to product detail
+    // Open product detail modal with iframe
+    openProductModal({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      originalPrice: product.originalPrice,
+      image: product.image,
+      category: product.category,
+      discount: product.discount,
+      rating: product.rating,
+      reviewCount: product.reviewCount,
+      url: product.url,
+    });
   };
 
   const handleRefresh = () => {

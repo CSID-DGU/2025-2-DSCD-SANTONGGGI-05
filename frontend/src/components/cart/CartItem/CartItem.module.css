@@ -43,6 +43,27 @@
   background: var(--color-background);
 }
 
+/* Clickable Elements */
+.clickable {
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.1s ease;
+  user-select: none;
+}
+
+.clickable:hover {
+  opacity: 0.8;
+}
+
+.clickable:active {
+  opacity: 0.6;
+  transform: scale(0.98);
+}
+
+.clickable:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
 /* Product Details */
 .details {
   flex: 1;

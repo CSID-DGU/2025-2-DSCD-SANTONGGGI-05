@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CartItemType } from '../../../types';
 import styles from './CartItem.module.css';
+import { useModal } from '../../../contexts/AppProvider';
 
 interface CartItemProps {
   item: CartItemType;
@@ -16,6 +17,7 @@ export const CartItem: React.FC<CartItemProps> = ({
   isLoading = false
 }) => {
   const [isUpdating, setIsUpdating] = useState(false);
+  const { openProductModal } = useModal();
 
   const handleQuantityChange = async (newQuantity: number) => {
     if (newQuantity < 1 || newQuantity === item.quantity || isLoading) {
@@ -44,6 +46,18 @@ export const CartItem: React.FC<CartItemProps> = ({
   const itemTotal = item.price * item.quantity;
   const isDisabled = isLoading || isUpdating;
 
+  const handleProductClick = () => {
+    if (item.url) {
+      openProductModal({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        image: item.image,
+        url: item.url,
+      });
+    }
+  };
+
   return (
     <div
       className={`${styles.cartItem} ${isDisabled ? styles.disabled : ''}`}
@@ -51,7 +65,19 @@ export const CartItem: React.FC<CartItemProps> = ({
       aria-label={`${item.name} - ${item.quantity} items`}
     >
       {/* Product Image */}
-      <div className={styles.imageContainer}>
+      <div
+        className={`${styles.imageContainer} ${item.url ? styles.clickable : ''}`}
+        onClick={item.url ? handleProductClick : undefined}
+        role={item.url ? 'button' : undefined}
+        tabIndex={item.url ? 0 : undefined}
+        onKeyDown={item.url ? (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleProductClick();
+          }
+        } : undefined}
+        aria-label={item.url ? `${item.name} 상세보기` : undefined}
+      >
         {item.image ? (
           <img
             src={item.image}
@@ -69,7 +95,19 @@ export const CartItem: React.FC<CartItemProps> = ({
       {/* Product Details */}
       <div className={styles.details}>
         <div className={styles.productInfo}>
-          <h3 className={styles.productName} title={item.name}>
+          <h3
+            className={`${styles.productName} ${item.url ? styles.clickable : ''}`}
+            title={item.name}
+            onClick={item.url ? handleProductClick : undefined}
+            role={item.url ? 'button' : undefined}
+            tabIndex={item.url ? 0 : undefined}
+            onKeyDown={item.url ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleProductClick();
+              }
+            } : undefined}
+          >
             {item.name}
           </h3>
 

@@ -13,6 +13,7 @@ export interface RecommendedProduct {
   rating?: number;
   reviewCount?: number;
   inStock: boolean;
+  url?: string; // 외부 쇼핑몰 URL (쿠팡, 네이버쇼핑 등)
 }
 
 export interface RecommendationContext {
@@ -52,7 +53,8 @@ export const recommendationsApi = {
         reason: '자주 구매하는 생활용품',
         rating: 4.8,
         reviewCount: 256,
-        inStock: true
+        inStock: true,
+        url: 'https://www.coupang.com/vp/products/6305358952'
       },
       {
         id: 'rec-stat-2',
@@ -63,7 +65,8 @@ export const recommendationsApi = {
         reason: '청소용품 재구매 시기',
         rating: 4.6,
         reviewCount: 189,
-        inStock: true
+        inStock: true,
+        url: 'https://search.shopping.naver.com/catalog/34739644906'
       },
       {
         id: 'rec-stat-3',
@@ -76,7 +79,8 @@ export const recommendationsApi = {
         reason: '정기 구매 상품',
         rating: 4.9,
         reviewCount: 432,
-        inStock: true
+        inStock: true,
+        url: 'https://www.coupang.com/vp/products/1234567890'
       },
       {
         id: 'rec-stat-4',
