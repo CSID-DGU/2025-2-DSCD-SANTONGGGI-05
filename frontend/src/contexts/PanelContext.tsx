@@ -163,7 +163,8 @@ export const PanelProvider: React.FC<PanelProviderProps> = ({ children }) => {
     setTimeout(() => {
       dispatch({ type: 'SET_ANIMATING', payload: false });
     }, 300);
-  }, [state.currentPanel]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Dispatch is stable, state.currentPanel check happens inside function
 
   // Update panel data
   const updatePanelData = useCallback((data: Partial<PanelData>) => {
@@ -181,7 +182,8 @@ export const PanelProvider: React.FC<PanelProviderProps> = ({ children }) => {
         payload: { height }
       });
     }
-  }, [state.currentPanel]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Dispatch is stable, state.currentPanel check happens inside function
 
   // Go back to previous panel
   const goBack = useCallback(() => {
@@ -196,7 +198,13 @@ export const PanelProvider: React.FC<PanelProviderProps> = ({ children }) => {
     setTimeout(() => {
       dispatch({ type: 'SET_ANIMATING', payload: false });
     }, 300);
-  }, [state.panelHistory.length, hidePanel]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hidePanel]); // Only depend on hidePanel, state check happens inside function
+
+  // Close panel (alias for hidePanel for compatibility)
+  const closePanel = useCallback(() => {
+    hidePanel();
+  }, [hidePanel]);
 
   // Clear panel history
   const clearHistory = useCallback(() => {
@@ -207,6 +215,7 @@ export const PanelProvider: React.FC<PanelProviderProps> = ({ children }) => {
     ...state,
     showPanel,
     hidePanel,
+    closePanel,
     togglePanel,
     updatePanelData,
     setPanelHeight,

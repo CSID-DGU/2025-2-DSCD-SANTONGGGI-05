@@ -26,7 +26,8 @@ export const ProductRecommendations: React.FC<ProductRecommendationsProps> = ({
   // Load recommendations on mount
   useEffect(() => {
     loadRecommendations();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // loadRecommendations is intentionally called only on mount
 
   const loadRecommendations = async () => {
     try {

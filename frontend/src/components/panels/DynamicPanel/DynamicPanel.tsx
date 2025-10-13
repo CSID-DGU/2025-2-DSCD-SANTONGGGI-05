@@ -24,16 +24,17 @@ export const DynamicPanel: React.FC<DynamicPanelProps> = ({
 
   // Handle escape key to close panel
   useEffect(() => {
+    if (!isMobileOverlay) return;
+
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         closePanel();
       }
     };
 
-    if (isMobileOverlay) {
-      document.addEventListener('keydown', handleKeyDown);
-      return () => document.removeEventListener('keydown', handleKeyDown);
-    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+    // closePanel is now stable from PanelContext after our fixes
   }, [isMobileOverlay, closePanel]);
 
   // Auto-focus panel for accessibility
@@ -49,8 +50,8 @@ export const DynamicPanel: React.FC<DynamicPanelProps> = ({
         return (
           <ProductListPanel
             products={panelData.data?.products || []}
-            title={panelData.title}
-            metadata={panelData.metadata}
+            {...(panelData.title ? { title: panelData.title } : {})}
+            {...(panelData.metadata ? { metadata: panelData.metadata } : {})}
           />
         );
 
@@ -67,8 +68,8 @@ export const DynamicPanel: React.FC<DynamicPanelProps> = ({
         return (
           <RecommendationsPanel
             recommendations={panelData.data?.recommendations || []}
-            title={panelData.title}
-            metadata={panelData.metadata}
+            {...(panelData.title ? { title: panelData.title } : {})}
+            {...(panelData.metadata ? { metadata: panelData.metadata } : {})}
           />
         );
 

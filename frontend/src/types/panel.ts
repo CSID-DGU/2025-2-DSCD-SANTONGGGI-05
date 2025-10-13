@@ -1,17 +1,28 @@
 import { AnimationConfig } from './index';
 import { Product } from './cart';
 
-export type PanelType = 'coupang' | 'statistics' | 'productGrid' | 'comparison' | 'reviews';
+export type PanelType =
+  | 'coupang'
+  | 'statistics'
+  | 'productGrid'
+  | 'comparison'
+  | 'reviews'
+  | 'product-list'
+  | 'product-detail'
+  | 'recommendations'
+  | 'search-results'
+  | 'category';
 
 export interface PanelData {
   type: PanelType;
-  data: CoupangData | StatisticsData | ProductGridData | ComparisonData | ReviewsData;
+  data?: CoupangData | StatisticsData | ProductGridData | ComparisonData | ReviewsData | any;
   height?: number;
   title?: string;
   subtitle?: string;
   animationConfig?: AnimationConfig;
   expandable?: boolean;
   dismissible?: boolean;
+  metadata?: any;
 }
 
 export interface CoupangData {
@@ -157,6 +168,7 @@ export interface PanelState {
 export interface PanelContextValue extends PanelState {
   showPanel: (panelData: PanelData) => void;
   hidePanel: () => void;
+  closePanel: () => void;
   togglePanel: () => void;
   updatePanelData: (data: Partial<PanelData>) => void;
   setPanelHeight: (height: number) => void;

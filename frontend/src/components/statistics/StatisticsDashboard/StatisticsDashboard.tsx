@@ -28,7 +28,8 @@ export const StatisticsDashboard: React.FC<StatisticsDashboardProps> = ({
   // Load statistics data on mount
   useEffect(() => {
     loadStatisticsData();
-  }, [selectedPeriod]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPeriod]); // loadStatisticsData is intentionally not in deps to avoid re-creation loop
 
   const loadStatisticsData = async () => {
     try {

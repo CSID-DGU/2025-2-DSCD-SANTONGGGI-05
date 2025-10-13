@@ -210,7 +210,8 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     if (isAuthenticated && user) {
       loadChatSessions();
     }
-  }, [isAuthenticated, user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, user?.id]); // loadChatSessions is intentionally not in deps
 
   // Load chat sessions
   const loadChatSessions = async () => {

@@ -21,8 +21,8 @@ interface NavigationProviderProps {
 
 export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children }) => {
   const [navigationState, setNavigationState] = useState<NavigationState>({
-    currentPage: 'chat',
-    previousPage: undefined
+    currentPage: 'chat'
+    // previousPage is intentionally omitted - optional property
   });
 
   const navigateTo = (page: PageType) => {
