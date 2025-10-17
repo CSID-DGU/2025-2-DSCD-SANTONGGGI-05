@@ -1,104 +1,101 @@
 import { ApiResponse } from '../../types';
 
-// Statistics API Types
-export interface KPIData {
-  id: string;
-  title: string;
-  value: string;
-  change: number;
-  icon: string;
-  color: 'green' | 'blue' | 'orange' | 'red';
+// CLAUDE.md ERD 기반 Statistics API
+// ERD: purchase_history { id, user_id, date(YYYY-MM-DD), platform_name, price }
+// ERD: products { product_id, price, platform_name, category, review }
+
+// 1. GET /api/statistics/main - 전체 통계 대시보드
+interface PlatformStat {
+  platform_name: string;
+  order_count: number;
+  total_spent: number;
 }
 
-export interface WeeklyData {
-  day: string;
-  dayKor: string;
-  amount: number;
-}
-
-export interface CategoryData {
-  id: string;
-  name: string;
-  percentage: number;
-  amount: number;
-  color: string;
-}
-
-export interface StatisticsData {
-  kpis: KPIData[];
-  weeklyData: WeeklyData[];
-  categoryData: CategoryData[];
-  totalSpending: number;
+interface MainStatisticsResponse {
+  user_id: number;
   period: string;
+  total_spending: number;
+  total_orders: number;
+  average_order_value: number;
+  most_purchased_category: string;
+  platform_breakdown: PlatformStat[];
 }
 
-export interface StatisticsApiResponse {
-  statistics: StatisticsData;
-  lastUpdated: string;
+// 2. GET /api/statistics/list - 결제 통계 리스트
+interface Transaction {
+  id: number;
+  date: string; // ISO 8601
+  platform_name: string;
+  price: number;
+  category?: string;
+}
+
+interface StatisticsListResponse {
+  transactions: Transaction[];
+  pagination: {
+    current_page: number;
+    total_pages: number;
+    total_items: number;
+  };
+}
+
+// 3. GET /api/statistics/weekly - 주간 통계
+interface DailyData {
+  day: string; // 'Mon', 'Tue', ...
+  day_kor: string; // '월', '화', ...
+  date: string; // ISO 8601
+  amount: number;
+  order_count: number;
+}
+
+interface WeeklyStatisticsResponse {
+  user_id: number;
+  week_start: string; // ISO 8601
+  week_end: string; // ISO 8601
+  daily_data: DailyData[];
+  weekly_total: number;
+}
+
+// 4. GET /api/statistics/categories - 카테고리별 통계
+interface CategoryData {
+  category: string;
+  amount: number;
+  percentage: number;
+  order_count: number;
+  platform_breakdown: { platform_name: string; amount: number }[];
+}
+
+interface CategoryStatisticsResponse {
+  user_id: number;
+  categories: CategoryData[];
+  total_amount: number;
 }
 
 // Mock Statistics API
 export const statisticsApi = {
-  // Get overall statistics dashboard data
-  getStatistics: async (period: string = '7days'): Promise<ApiResponse<StatisticsApiResponse>> => {
-    // Simulate API delay
+  // GET /api/statistics/main?user_id={user_id}
+  getStatistics: async (user_id: number): Promise<ApiResponse<MainStatisticsResponse>> => {
     await new Promise(resolve => setTimeout(resolve, 800));
 
-    const mockData: StatisticsApiResponse = {
-      statistics: {
-        kpis: [
-          {
-            id: 'total-spending',
-            title: '총 구매 금액',
-            value: '₩248,500',
-            change: 12.5,
-            icon: '💰',
-            color: 'green'
-          },
-          {
-            id: 'product-count',
-            title: '구매한 상품 수',
-            value: '34개',
-            change: 8.2,
-            icon: '🛒',
-            color: 'green'
-          },
-          {
-            id: 'savings',
-            title: '절약한 금액',
-            value: '₩52,300',
-            change: 15.3,
-            icon: '💎',
-            color: 'green'
-          },
-          {
-            id: 'delivery-time',
-            title: '평균 배송시간',
-            value: '1.2일',
-            change: -0.3,
-            icon: '🚚',
-            color: 'red'
-          }
-        ],
-        weeklyData: [
-          { day: 'Mon', dayKor: '월', amount: 15000 },
-          { day: 'Tue', dayKor: '화', amount: 23000 },
-          { day: 'Wed', dayKor: '수', amount: 18000 },
-          { day: 'Thu', dayKor: '목', amount: 31000 },
-          { day: 'Fri', dayKor: '금', amount: 28000 },
-          { day: 'Sat', dayKor: '토', amount: 42000 },
-          { day: 'Sun', dayKor: '일', amount: 35000 }
-        ],
-        categoryData: [
-          { id: 'lifestyle', name: '생활용품', percentage: 45, amount: 125000, color: '#10b981' },
-          { id: 'cleaning', name: '청소용품', percentage: 28, amount: 78000, color: '#3b82f6' },
-          { id: 'beverage', name: '음료', percentage: 15, amount: 42000, color: '#f59e0b' },
-          { id: 'others', name: '기타', percentage: 12, amount: 33500, color: '#8b5cf6' }
-        ],
-        totalSpending: 248500,
-        period: period
-      },
-      lastUpdated: new Date().toISOString()
+    const mockData: MainStatisticsResponse = {
+      user_id,
+      period: '7days',
+      total_spending: 150000,
+      total_orders: 5,
+      average_order_value: 30000,
+      most_purchased_category: '생수',
+      platform_breakdown: [
+        {
+          platform_name: '쿠팡',
+          order_count: 3,
+          total_spent: 90000
+        },
+        {
+          platform_name: '네이버쇼핑',
+          order_count: 2,
+          total_spent: 60000
+        }
+      ]
     };
 
     return {
@@ -107,53 +104,175 @@ export const statisticsApi = {
     };
   },
 
-  // Get detailed weekly data
-  getWeeklyStatistics: async (period: string = '7days'): Promise<ApiResponse<{ weeklyData: WeeklyData[]; summary: any }>> => {
+  // GET /api/statistics/list?user_id={user_id}&page={page}&limit={limit}
+  getStatisticsList: async (
+    user_id: number,
+    page: number = 1,
+    limit: number = 10
+  ): Promise<ApiResponse<StatisticsListResponse>> => {
     await new Promise(resolve => setTimeout(resolve, 600));
 
-    const weeklyData: WeeklyData[] = [
-      { day: 'Mon', dayKor: '월', amount: 15000 },
-      { day: 'Tue', dayKor: '화', amount: 23000 },
-      { day: 'Wed', dayKor: '수', amount: 18000 },
-      { day: 'Thu', dayKor: '목', amount: 31000 },
-      { day: 'Fri', dayKor: '금', amount: 28000 },
-      { day: 'Sat', dayKor: '토', amount: 42000 },
-      { day: 'Sun', dayKor: '일', amount: 35000 }
+    const mockTransactions: Transaction[] = [
+      {
+        id: 1,
+        date: new Date('2025-10-17T10:30:00Z').toISOString(),
+        platform_name: '쿠팡',
+        price: 12000,
+        category: '생수'
+      },
+      {
+        id: 2,
+        date: new Date('2025-10-16T15:20:00Z').toISOString(),
+        platform_name: '네이버쇼핑',
+        price: 15000,
+        category: '음료'
+      },
+      {
+        id: 3,
+        date: new Date('2025-10-15T09:15:00Z').toISOString(),
+        platform_name: '11번가',
+        price: 18000,
+        category: '생활용품'
+      }
     ];
-
-    const summary = {
-      totalWeeklySpending: weeklyData.reduce((sum, d) => sum + d.amount, 0),
-      averageDaily: Math.round(weeklyData.reduce((sum, d) => sum + d.amount, 0) / 7),
-      highestDay: '토요일',
-      highestAmount: 42000
-    };
 
     return {
       success: true,
-      data: { weeklyData, summary }
+      data: {
+        transactions: mockTransactions,
+        pagination: {
+          current_page: page,
+          total_pages: 3,
+          total_items: 25
+        }
+      }
     };
   },
 
-  // Get detailed category data
-  getCategoryStatistics: async (): Promise<ApiResponse<{ categoryData: CategoryData[]; insights: any }>> => {
-    await new Promise(resolve => setTimeout(resolve, 500));
+  // GET /api/statistics/weekly?user_id={user_id}
+  getWeeklyStatistics: async (user_id: number): Promise<ApiResponse<WeeklyStatisticsResponse>> => {
+    await new Promise(resolve => setTimeout(resolve, 600));
 
-    const categoryData: CategoryData[] = [
-      { id: 'lifestyle', name: '생활용품', percentage: 45, amount: 125000, color: '#10b981' },
-      { id: 'cleaning', name: '청소용품', percentage: 28, amount: 78000, color: '#3b82f6' },
-      { id: 'beverage', name: '음료', percentage: 15, amount: 42000, color: '#f59e0b' },
-      { id: 'others', name: '기타', percentage: 12, amount: 33500, color: '#8b5cf6' }
+    const today = new Date();
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() - 6);
+
+    const dailyData: DailyData[] = [
+      {
+        day: 'Mon',
+        day_kor: '월',
+        date: new Date('2025-10-14T00:00:00Z').toISOString(),
+        amount: 25000,
+        order_count: 2
+      },
+      {
+        day: 'Tue',
+        day_kor: '화',
+        date: new Date('2025-10-15T00:00:00Z').toISOString(),
+        amount: 18000,
+        order_count: 1
+      },
+      {
+        day: 'Wed',
+        day_kor: '수',
+        date: new Date('2025-10-16T00:00:00Z').toISOString(),
+        amount: 32000,
+        order_count: 2
+      },
+      {
+        day: 'Thu',
+        day_kor: '목',
+        date: new Date('2025-10-17T00:00:00Z').toISOString(),
+        amount: 28000,
+        order_count: 1
+      },
+      {
+        day: 'Fri',
+        day_kor: '금',
+        date: new Date('2025-10-18T00:00:00Z').toISOString(),
+        amount: 15000,
+        order_count: 1
+      },
+      {
+        day: 'Sat',
+        day_kor: '토',
+        date: new Date('2025-10-19T00:00:00Z').toISOString(),
+        amount: 42000,
+        order_count: 3
+      },
+      {
+        day: 'Sun',
+        day_kor: '일',
+        date: new Date('2025-10-20T00:00:00Z').toISOString(),
+        amount: 35000,
+        order_count: 2
+      }
     ];
-
-    const insights = {
-      mostPurchasedCategory: '생활용품',
-      growingCategory: '청소용품',
-      seasonalTrend: '생활용품 구매 비율이 45%로 가장 높습니다.'
-    };
 
     return {
       success: true,
-      data: { categoryData, insights }
+      data: {
+        user_id,
+        week_start: weekStart.toISOString(),
+        week_end: today.toISOString(),
+        daily_data: dailyData,
+        weekly_total: dailyData.reduce((sum, d) => sum + d.amount, 0)
+      }
+    };
+  },
+
+  // GET /api/statistics/categories?user_id={user_id}
+  getCategoryStatistics: async (user_id: number): Promise<ApiResponse<CategoryStatisticsResponse>> => {
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const mockCategories: CategoryData[] = [
+      {
+        category: '생수',
+        amount: 50000,
+        percentage: 33.3,
+        order_count: 3,
+        platform_breakdown: [
+          { platform_name: '쿠팡', amount: 30000 },
+          { platform_name: '네이버쇼핑', amount: 20000 }
+        ]
+      },
+      {
+        category: '음료',
+        amount: 40000,
+        percentage: 26.7,
+        order_count: 2,
+        platform_breakdown: [
+          { platform_name: '11번가', amount: 40000 }
+        ]
+      },
+      {
+        category: '생활용품',
+        amount: 35000,
+        percentage: 23.3,
+        order_count: 2,
+        platform_breakdown: [
+          { platform_name: '쿠팡', amount: 20000 },
+          { platform_name: '네이버쇼핑', amount: 15000 }
+        ]
+      },
+      {
+        category: '청소용품',
+        amount: 25000,
+        percentage: 16.7,
+        order_count: 1,
+        platform_breakdown: [
+          { platform_name: '쿠팡', amount: 25000 }
+        ]
+      }
+    ];
+
+    return {
+      success: true,
+      data: {
+        user_id,
+        categories: mockCategories,
+        total_amount: mockCategories.reduce((sum, c) => sum + c.amount, 0)
+      }
     };
   }
 };

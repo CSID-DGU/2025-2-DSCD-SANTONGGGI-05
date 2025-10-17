@@ -1,292 +1,121 @@
 import { ApiResponse } from '../../types';
 
-// Purchase History Types
-export interface PurchaseItem {
-  id: string;
-  name: string;
+// CLAUDE.md ERD 기반 Purchase History API
+// ERD: purchase_history { id, user_id, date(YYYY-MM-DD), platform_name, price }
+// ERD: products { product_id, price, platform_name, category, review }
+
+// GET /api/purchase-history?user_id={user_id}
+interface PurchaseItem {
+  id: number; // purchase_history.id
+  user_id: number;
+  date: string; // ISO 8601
+  platform_name: string;
   price: number;
-  quantity: number;
-  image: string;
-  category: string;
-  brand?: string;
-}
-
-export interface PurchaseOrder {
-  id: string;
-  orderNumber: string;
-  date: string;
-  status: 'completed' | 'pending' | 'cancelled' | 'refunded';
-  totalAmount: number;
-  items: PurchaseItem[];
-  paymentMethod: string;
-  deliveryAddress?: string;
-  estimatedDelivery?: string;
-  trackingNumber?: string;
-}
-
-export interface PurchaseSummary {
-  totalOrders: number;
-  totalSpent: number;
-  totalItems: number;
-  averageOrderValue: number;
-  lastPurchaseDate: string;
-  favoriteCategory: string;
-}
-
-export interface PurchaseHistoryData {
-  orders: PurchaseOrder[];
-  summary: PurchaseSummary;
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalItems: number;
-    itemsPerPage: number;
+  product_info?: {
+    product_id: number;
+    category: string;
+    review: number;
   };
 }
 
-export interface PurchaseHistoryApiResponse {
-  purchaseHistory: PurchaseHistoryData;
-  lastUpdated: string;
+interface PurchaseHistoryResponse {
+  user_id: number;
+  purchases: PurchaseItem[];
+  pagination: {
+    current_page: number;
+    total_pages: number;
+    total_items: number;
+  };
+  summary: {
+    total_spent: number;
+    total_orders: number;
+  };
 }
 
 // Mock Purchase History API
 export const purchaseHistoryApi = {
-  // Get user purchase history
-  getPurchaseHistory: async (
-    page: number = 1,
-    limit: number = 10,
-    status?: string,
-    dateRange?: string
-  ): Promise<ApiResponse<PurchaseHistoryApiResponse>> => {
-    // Simulate API delay
+  // GET /api/purchase-history?user_id={user_id}
+  getPurchaseHistory: async (user_id: number): Promise<ApiResponse<PurchaseHistoryResponse>> => {
     await new Promise(resolve => setTimeout(resolve, 800));
 
-    const mockOrders: PurchaseOrder[] = [
+    const mockPurchases: PurchaseItem[] = [
       {
-        id: 'order-001',
-        orderNumber: 'ORD-2024-001',
-        date: '2024-12-15T10:30:00Z',
-        status: 'completed',
-        totalAmount: 45900,
-        paymentMethod: '카드',
-        deliveryAddress: '서울시 강남구 테헤란로 123',
-        estimatedDelivery: '2024-12-16',
-        trackingNumber: 'TK123456789',
-        items: [
-          {
-            id: 'item-001',
-            name: '프리미엄 물티슈 10팩',
-            price: 15900,
-            quantity: 2,
-            image: '🧻',
-            category: '생활용품',
-            brand: 'CleanCare'
-          },
-          {
-            id: 'item-002',
-            name: '친환경 주방세제 2L',
-            price: 8500,
-            quantity: 1,
-            image: '🧽',
-            category: '청소용품',
-            brand: 'EcoClean'
-          },
-          {
-            id: 'item-003',
-            name: '미네랄 워터 24병',
-            price: 12000,
-            quantity: 1,
-            image: '💧',
-            category: '음료',
-            brand: 'PureWater'
-          }
-        ]
+        id: 1,
+        user_id,
+        date: new Date('2025-10-17T10:30:00Z').toISOString(),
+        platform_name: '쿠팡',
+        price: 12000,
+        product_info: {
+          product_id: 501,
+          category: '생수',
+          review: 250
+        }
       },
       {
-        id: 'order-002',
-        orderNumber: 'ORD-2024-002',
-        date: '2024-12-10T14:20:00Z',
-        status: 'completed',
-        totalAmount: 28000,
-        paymentMethod: '계좌이체',
-        deliveryAddress: '서울시 강남구 테헤란로 123',
-        estimatedDelivery: '2024-12-11',
-        trackingNumber: 'TK987654321',
-        items: [
-          {
-            id: 'item-004',
-            name: '고급 화장지 48롤',
-            price: 28000,
-            quantity: 1,
-            image: '🧻',
-            category: '생활용품',
-            brand: 'SoftTissue'
-          }
-        ]
+        id: 2,
+        user_id,
+        date: new Date('2025-10-16T15:20:00Z').toISOString(),
+        platform_name: '네이버쇼핑',
+        price: 15000,
+        product_info: {
+          product_id: 502,
+          category: '음료',
+          review: 180
+        }
       },
       {
-        id: 'order-003',
-        orderNumber: 'ORD-2024-003',
-        date: '2024-12-05T16:45:00Z',
-        status: 'pending',
-        totalAmount: 19800,
-        paymentMethod: '카드',
-        deliveryAddress: '서울시 강남구 테헤란로 123',
-        estimatedDelivery: '2024-12-17',
-        items: [
-          {
-            id: 'item-005',
-            name: '다목적 세정제 3개',
-            price: 6800,
-            quantity: 3,
-            image: '🧴',
-            category: '청소용품',
-            brand: 'MultiClean'
-          }
-        ]
+        id: 3,
+        user_id,
+        date: new Date('2025-10-15T09:15:00Z').toISOString(),
+        platform_name: '11번가',
+        price: 18000,
+        product_info: {
+          product_id: 503,
+          category: '생활용품',
+          review: 320
+        }
       },
       {
-        id: 'order-004',
-        orderNumber: 'ORD-2024-004',
-        date: '2024-11-28T11:15:00Z',
-        status: 'completed',
-        totalAmount: 67500,
-        paymentMethod: '카드',
-        deliveryAddress: '서울시 강남구 테헤란로 123',
-        estimatedDelivery: '2024-11-29',
-        trackingNumber: 'TK456789123',
-        items: [
-          {
-            id: 'item-006',
-            name: '유기농 세제 세트',
-            price: 25000,
-            quantity: 1,
-            image: '🌱',
-            category: '청소용품',
-            brand: 'OrganicLife'
-          },
-          {
-            id: 'item-007',
-            name: '프리미엄 샴푸 & 린스',
-            price: 42500,
-            quantity: 1,
-            image: '🧴',
-            category: '개인관리',
-            brand: 'HairCare'
-          }
-        ]
+        id: 4,
+        user_id,
+        date: new Date('2025-10-14T14:30:00Z').toISOString(),
+        platform_name: '쿠팡',
+        price: 25000,
+        product_info: {
+          product_id: 504,
+          category: '청소용품',
+          review: 150
+        }
       },
       {
-        id: 'order-005',
-        orderNumber: 'ORD-2024-005',
-        date: '2024-11-20T09:30:00Z',
-        status: 'refunded',
-        totalAmount: 15000,
-        paymentMethod: '카드',
-        deliveryAddress: '서울시 강남구 테헤란로 123',
-        items: [
-          {
-            id: 'item-008',
-            name: '주방용 스펀지 20개',
-            price: 15000,
-            quantity: 1,
-            image: '🧽',
-            category: '청소용품',
-            brand: 'KitchenClean'
-          }
-        ]
+        id: 5,
+        user_id,
+        date: new Date('2025-10-13T11:00:00Z').toISOString(),
+        platform_name: '네이버쇼핑',
+        price: 32000,
+        product_info: {
+          product_id: 505,
+          category: '생수',
+          review: 280
+        }
       }
     ];
 
-    const summary: PurchaseSummary = {
-      totalOrders: 24,
-      totalSpent: 486200,
-      totalItems: 67,
-      averageOrderValue: 20258,
-      lastPurchaseDate: '2024-12-15',
-      favoriteCategory: '생활용품'
-    };
-
-    const mockData: PurchaseHistoryApiResponse = {
-      purchaseHistory: {
-        orders: mockOrders,
-        summary,
+    return {
+      success: true,
+      data: {
+        user_id,
+        purchases: mockPurchases,
         pagination: {
-          currentPage: page,
-          totalPages: 3,
-          totalItems: 24,
-          itemsPerPage: limit
+          current_page: 1,
+          total_pages: 3,
+          total_items: 25
+        },
+        summary: {
+          total_spent: 450000,
+          total_orders: 25
         }
-      },
-      lastUpdated: new Date().toISOString()
-    };
-
-    return {
-      success: true,
-      data: mockData
-    };
-  },
-
-  // Get order details by ID
-  getOrderDetails: async (orderId: string): Promise<ApiResponse<{ order: PurchaseOrder }>> => {
-    await new Promise(resolve => setTimeout(resolve, 400));
-
-    const mockOrder: PurchaseOrder = {
-      id: orderId,
-      orderNumber: 'ORD-2024-001',
-      date: '2024-12-15T10:30:00Z',
-      status: 'completed',
-      totalAmount: 45900,
-      paymentMethod: '카드',
-      deliveryAddress: '서울시 강남구 테헤란로 123',
-      estimatedDelivery: '2024-12-16',
-      trackingNumber: 'TK123456789',
-      items: [
-        {
-          id: 'item-001',
-          name: '프리미엄 물티슈 10팩',
-          price: 15900,
-          quantity: 2,
-          image: '🧻',
-          category: '생활용품',
-          brand: 'CleanCare'
-        }
-      ]
-    };
-
-    return {
-      success: true,
-      data: { order: mockOrder }
-    };
-  },
-
-  // Reorder items from previous order
-  reorderItems: async (orderId: string): Promise<ApiResponse<{ message: string }>> => {
-    await new Promise(resolve => setTimeout(resolve, 600));
-
-    return {
-      success: true,
-      data: { message: '장바구니에 상품이 추가되었습니다.' }
-    };
-  },
-
-  // Cancel order
-  cancelOrder: async (orderId: string): Promise<ApiResponse<{ message: string }>> => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    return {
-      success: true,
-      data: { message: '주문이 취소되었습니다.' }
-    };
-  },
-
-  // Request refund
-  requestRefund: async (orderId: string, reason: string): Promise<ApiResponse<{ message: string }>> => {
-    await new Promise(resolve => setTimeout(resolve, 700));
-
-    return {
-      success: true,
-      data: { message: '환불 요청이 접수되었습니다.' }
+      }
     };
   }
 };

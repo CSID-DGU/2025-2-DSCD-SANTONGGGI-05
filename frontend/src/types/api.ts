@@ -52,15 +52,6 @@ export interface LoginResponse {
   };
 }
 
-export interface RefreshTokenRequest {
-  refreshToken: string;
-}
-
-export interface RefreshTokenResponse {
-  accessToken: string;
-  expiresAt: string;
-}
-
 // Chat API
 export interface SendMessageRequest extends ChatApiRequest {}
 export interface SendMessageResponse extends ChatApiResponse {}
@@ -97,15 +88,6 @@ export interface UpdateCartItemResponse {
 
 export interface RemoveCartItemRequest {
   itemId: string;
-}
-
-export interface ApplyDiscountRequest {
-  code: string;
-}
-
-export interface ApplyDiscountResponse {
-  discount: any;
-  summary: any;
 }
 
 // Product API

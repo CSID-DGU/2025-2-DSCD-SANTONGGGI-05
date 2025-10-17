@@ -402,7 +402,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     }
   };
 
-  // Update item quantity
+  // Update item quantity (local only - no API call needed)
   const updateQuantity = async (itemId: string, quantity: number) => {
     if (quantity <= 0) {
       await removeItem(itemId);
@@ -421,79 +421,13 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         updatedAt: new Date(),
       };
 
-      if (isAuthenticated) {
-        const response = await cartApi.updateItem(itemId, { quantity });
-        dispatch({
-          type: 'UPDATE_ITEM',
-          payload: { itemId, updates: response.data.item as Partial<CartItem> },
-        });
-        dispatch({ type: 'UPDATE_SUMMARY', payload: response.data.summary });
-      } else {
-        dispatch({ type: 'UPDATE_ITEM', payload: { itemId, updates } });
+      dispatch({ type: 'UPDATE_ITEM', payload: { itemId, updates } });
 
-        // Recalculate summary
-        const updatedItems = state.items.map(i =>
-          i.id === itemId ? { ...i, ...updates } : i
-        );
-        const newSummary = calculateSummary(updatedItems);
-        dispatch({ type: 'UPDATE_SUMMARY', payload: newSummary });
-      }
-
-    } catch (error: any) {
-      dispatch({ type: 'SET_ERROR', payload: error.message });
-      throw error;
-    } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
-    }
-  };
-
-  // Clear cart
-  const clearCart = async () => {
-    try {
-      dispatch({ type: 'SET_LOADING', payload: true });
-
-      if (isAuthenticated) {
-        await cartApi.clearCart();
-      } else {
-        storageService.clearGuestCart();
-      }
-
-      dispatch({ type: 'CLEAR_CART' });
-
-    } catch (error: any) {
-      dispatch({ type: 'SET_ERROR', payload: error.message });
-      throw error;
-    } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
-    }
-  };
-
-  // Apply discount code
-  const applyDiscount = async (code: string) => {
-    try {
-      dispatch({ type: 'SET_LOADING', payload: true });
-
-      const response = await cartApi.applyDiscount(code);
-      dispatch({ type: 'UPDATE_SUMMARY', payload: response.data.summary });
-
-    } catch (error: any) {
-      dispatch({ type: 'SET_ERROR', payload: error.message });
-      throw error;
-    } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
-    }
-  };
-
-  // Remove discount
-  const removeDiscount = async () => {
-    try {
-      dispatch({ type: 'SET_LOADING', payload: true });
-
-      await cartApi.removeDiscount();
-
-      // Recalculate summary without discount
-      const newSummary = { ...state.summary, discount: 0 };
-      newSummary.total = newSummary.subtotal + newSummary.tax + newSummary.shipping;
+      // Recalculate summary
+      const updatedItems = state.items.map(i =>
+        i.id === itemId ? { ...i, ...updates } : i
+      );
+      const newSummary = calculateSummary(updatedItems);
       dispatch({ type: 'UPDATE_SUMMARY', payload: newSummary });
 
     } catch (error: any) {
@@ -504,14 +438,22 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     }
   };
 
-  // Calculate shipping
-  const calculateShipping = async (shippingMethod: string) => {
+  // Clear cart (local only - no API call needed)
+  const clearCart = async () => {
     try {
-      const response = await cartApi.calculateShipping(shippingMethod);
-      dispatch({ type: 'UPDATE_SUMMARY', payload: response.data.summary });
+      dispatch({ type: 'SET_LOADING', payload: true });
+
+      if (!isAuthenticated) {
+        storageService.clearGuestCart();
+      }
+
+      dispatch({ type: 'CLEAR_CART' });
+
     } catch (error: any) {
       dispatch({ type: 'SET_ERROR', payload: error.message });
       throw error;
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
   };
 
@@ -581,9 +523,6 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     removeItem,
     updateQuantity,
     clearCart,
-    applyDiscount,
-    removeDiscount,
-    calculateShipping,
     getItemByProductId,
     getTotalQuantity,
     refreshCart,

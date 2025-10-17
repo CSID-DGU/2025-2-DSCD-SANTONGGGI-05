@@ -96,9 +96,6 @@ export interface CartContextValue extends CartState {
   removeItem: (itemId: string) => Promise<void>;
   updateQuantity: (itemId: string, quantity: number) => Promise<void>;
   clearCart: () => Promise<void>;
-  applyDiscount: (code: string) => Promise<void>;
-  removeDiscount: () => Promise<void>;
-  calculateShipping: (shippingMethod: string) => Promise<void>;
   getItemByProductId: (productId: string) => CartItem | undefined;
   getTotalQuantity: () => number;
   refreshCart: () => Promise<void>;

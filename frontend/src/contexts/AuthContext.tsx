@@ -172,64 +172,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     dispatch({ type: 'LOGOUT' });
   };
 
-  const refreshToken = async () => {
-    if (!state.tokens?.refreshToken) {
-      throw new Error('No refresh token available');
-    }
-
-    try {
-      const newTokens = await authApi.refreshToken(state.tokens.refreshToken);
-      dispatch({
-        type: 'REFRESH_TOKEN_SUCCESS',
-        payload: newTokens
-      });
-      storageService.setTokens(newTokens);
-    } catch (error) {
-      logout();
-      throw error;
-    }
-  };
-
-  const updateProfile = async (updates: Partial<User>) => {
-    if (!state.user) {
-      throw new Error('No user logged in');
-    }
-
-    try {
-      const response = await authApi.updateProfile(updates);
-      const updatedUser = response.data;
-
-      dispatch({
-        type: 'UPDATE_USER',
-        payload: updatedUser
-      });
-
-      storageService.setUser(updatedUser);
-    } catch (error: any) {
-      throw new Error(error.message || 'Profile update failed');
-    }
-  };
-
-  const updatePreferences = async (preferences: Partial<UserPreferences>) => {
-    if (!state.user) {
-      throw new Error('No user logged in');
-    }
-
-    try {
-      const response = await authApi.updatePreferences(preferences);
-      const updatedUser = response.data;
-
-      dispatch({
-        type: 'UPDATE_USER',
-        payload: updatedUser
-      });
-
-      storageService.setUser(updatedUser);
-    } catch (error: any) {
-      throw new Error(error.message || 'Preferences update failed');
-    }
-  };
-
   const initialize = () => {
     dispatch({ type: 'SET_LOADING', payload: false });
   };
@@ -239,9 +181,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     register,
     logout,
-    refreshToken,
-    updateProfile,
-    updatePreferences,
     initialize,
   };
 
