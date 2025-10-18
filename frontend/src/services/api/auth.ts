@@ -7,11 +7,20 @@ export const authApi = {
     // Mock login - simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // CLAUDE.md 명세에 따른 응답
+    // Mock response - AuthContext 호환성을 위해 user와 tokens 객체 반환
     return {
       data: {
-        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock-jwt-token',
-        user_id: 1123 // user.id (Long)
+        user: {
+          id: 1123,
+          email: credentials.email || 'demo@example.com',
+          name: 'Demo User',
+          role: 'user' as const
+        },
+        tokens: {
+          accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock-jwt-token',
+          refreshToken: 'mock-refresh-token',
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+        }
       }
     };
   },
@@ -21,11 +30,20 @@ export const authApi = {
     // Mock registration
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // CLAUDE.md 명세에 따른 응답
+    // Mock response - AuthContext 호환성을 위해 user와 tokens 객체 반환
     return {
       data: {
-        user_id: 1124, // 생성된 user.id (Long)
-        status: 'success'
+        user: {
+          id: 1124,
+          email: data.email || 'newuser@example.com',
+          name: data.name || 'New User',
+          role: 'user' as const
+        },
+        tokens: {
+          accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock-jwt-token',
+          refreshToken: 'mock-refresh-token',
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
+        }
       }
     };
   },
@@ -38,8 +56,17 @@ export const authApi = {
     if (stored) {
       return {
         data: {
-          user_id: 1123,
-          token: stored
+          user: {
+            id: 1123,
+            email: 'demo@example.com',
+            name: 'Demo User',
+            role: 'user' as const
+          },
+          tokens: {
+            accessToken: stored,
+            refreshToken: 'mock-refresh-token',
+            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
+          }
         }
       };
     }

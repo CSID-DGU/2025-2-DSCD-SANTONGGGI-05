@@ -334,7 +334,6 @@
     font-size: var(--font-size-base);
   }
 
-
   .messagesContainer {
     padding: var(--spacing-md);
     gap: var(--spacing-md);

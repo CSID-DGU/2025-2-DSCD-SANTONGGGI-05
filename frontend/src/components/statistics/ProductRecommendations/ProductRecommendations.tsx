@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styles from './ProductRecommendations.module.css';
-import { recommendationsApi, RecommendedProduct } from '../../../services/api/recommendations';
+import { recommendationsApi, UIRecommendedProduct } from '../../../services/api/recommendations';
 import { LoadingSpinner } from '../../ui/LoadingSpinner';
-import { useModal } from '../../../contexts/AppProvider';
+import { useModal, useAuth } from '../../../contexts/AppProvider';
 
 interface ProductRecommendationsProps {
   className?: string;
@@ -13,10 +13,11 @@ export const ProductRecommendations: React.FC<ProductRecommendationsProps> = ({
   className,
   page = 'statistics'
 }) => {
-  const [products, setProducts] = useState<RecommendedProduct[]>([]);
+  const [products, setProducts] = useState<UIRecommendedProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { openProductModal } = useModal();
+  const { user } = useAuth();
 
   const recommendationsClasses = [
     styles.productRecommendations,
@@ -33,11 +34,17 @@ export const ProductRecommendations: React.FC<ProductRecommendationsProps> = ({
     try {
       setIsLoading(true);
       setError(null);
-      const response = await recommendationsApi.getRecommendations({
-        page: page
+
+      // user_id 사용 (없으면 기본값 1123)
+      const userId = user?.id || 1123;
+
+      // 통합 API 사용 - UI 형식의 데이터를 한 번에 가져옴
+      const response = await recommendationsApi.getAllRecommendations({
+        page: page,
+        user_id: userId
       });
 
-      if (response.success && response.data) {
+      if (response.success && response.data && response.data.products) {
         setProducts(response.data.products);
       } else {
         setError('추천 상품을 불러올 수 없습니다.');
@@ -50,12 +57,12 @@ export const ProductRecommendations: React.FC<ProductRecommendationsProps> = ({
     }
   };
 
-  const handleAddToCart = (product: RecommendedProduct) => {
+  const handleAddToCart = (product: UIRecommendedProduct) => {
     console.log('Adding to cart:', product.name);
     // TODO: Integrate with cart context
   };
 
-  const handleViewProduct = (product: RecommendedProduct) => {
+  const handleViewProduct = (product: UIRecommendedProduct) => {
     // Open product detail modal with iframe
     openProductModal({
       id: product.id,

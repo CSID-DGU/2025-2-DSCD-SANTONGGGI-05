@@ -4,8 +4,7 @@ import { StatisticsNavigation } from '../StatisticsNavigation/StatisticsNavigati
 import { KPICards } from '../KPICards/KPICards';
 import { WeeklyChart } from '../Charts/WeeklyChart';
 import { CategoryChart } from '../Charts/CategoryChart';
-import { ProductRecommendations } from '../ProductRecommendations/ProductRecommendations';
-import { useNavigation } from '../../../contexts/AppProvider';
+import { useNavigation, useAuth } from '../../../contexts/AppProvider';
 import { statisticsApi, StatisticsData } from '../../../services/api/statistics';
 import { LoadingSpinner } from '../../ui/LoadingSpinner';
 
@@ -22,22 +21,27 @@ export const StatisticsDashboard: React.FC<StatisticsDashboardProps> = ({
   const [statisticsData, setStatisticsData] = useState<StatisticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedPeriod, setSelectedPeriod] = useState('7days');
   const { navigateTo } = useNavigation();
+  const { user } = useAuth();
 
   // Load statistics data on mount
   useEffect(() => {
     loadStatisticsData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPeriod]); // loadStatisticsData is intentionally not in deps to avoid re-creation loop
+  }, []); // loadStatisticsData is intentionally not in deps to avoid re-creation loop
 
   const loadStatisticsData = async () => {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await statisticsApi.getStatistics(selectedPeriod);
 
-      if (response.success && response.data) {
+      // user_id 사용 (없으면 기본값 1123)
+      const userId = user?.id || 1123;
+
+      // 통합 API 사용 - 모든 통계 데이터를 한 번에 가져옴
+      const response = await statisticsApi.getAllStatistics(userId);
+
+      if (response.success && response.data && response.data.statistics) {
         setStatisticsData(response.data.statistics);
       } else {
         setError('통계 데이터를 불러올 수 없습니다.');
@@ -48,10 +52,6 @@ export const StatisticsDashboard: React.FC<StatisticsDashboardProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handlePeriodChange = (period: string) => {
-    setSelectedPeriod(period);
   };
 
   const handleGoBackToChat = () => {
@@ -170,20 +170,6 @@ export const StatisticsDashboard: React.FC<StatisticsDashboardProps> = ({
             <h1 className={styles.title}>{title}</h1>
             <p className={styles.subtitle}>{subtitle}</p>
           </div>
-          <div className={styles.headerActions}>
-            <select
-              className={styles.periodSelect}
-              value={selectedPeriod}
-              onChange={(e) => handlePeriodChange(e.target.value)}
-            >
-              <option value="7days">최근 7일</option>
-              <option value="30days">최근 30일</option>
-              <option value="90days">최근 90일</option>
-            </select>
-            <button className={styles.downloadButton}>
-              보고서 다운로드
-            </button>
-          </div>
         </div>
 
         <div className={styles.viewContent}>
@@ -196,9 +182,6 @@ export const StatisticsDashboard: React.FC<StatisticsDashboardProps> = ({
           currentView={currentView}
           onViewChange={setCurrentView}
         />
-        <div className={styles.recommendationsSection}>
-          <ProductRecommendations />
-        </div>
       </div>
     </div>
   );

@@ -71,6 +71,20 @@ interface CategoryStatisticsResponse {
   total_amount: number;
 }
 
+// ===================================
+// Dashboard용 통합 데이터 타입
+// ===================================
+export interface StatisticsData {
+  kpis: {
+    totalSpending: number;
+    totalOrders: number;
+    averageOrderValue: number;
+    mostPurchasedCategory: string;
+  };
+  weeklyData: DailyData[];
+  categoryData: CategoryData[];
+}
+
 // Mock Statistics API
 export const statisticsApi = {
   // GET /api/statistics/main?user_id={user_id}
@@ -274,5 +288,55 @@ export const statisticsApi = {
         total_amount: mockCategories.reduce((sum, c) => sum + c.amount, 0)
       }
     };
+  },
+
+  // ===================================
+  // Dashboard용 통합 API (Aggregator)
+  // ===================================
+  // 여러 API를 조합하여 Dashboard가 필요한 모든 데이터 반환
+  getAllStatistics: async (user_id: number): Promise<ApiResponse<{ statistics: StatisticsData }>> => {
+    try {
+      // 병렬로 모든 API 호출
+      const [mainRes, weeklyRes, categoryRes] = await Promise.all([
+        statisticsApi.getStatistics(user_id),
+        statisticsApi.getWeeklyStatistics(user_id),
+        statisticsApi.getCategoryStatistics(user_id)
+      ]);
+
+      // 에러 체크
+      if (!mainRes.success || !weeklyRes.success || !categoryRes.success) {
+        return {
+          success: false,
+          data: null as any,
+          error: 'Failed to fetch statistics data'
+        };
+      }
+
+      // Dashboard 형식으로 변환
+      const statisticsData: StatisticsData = {
+        kpis: {
+          totalSpending: mainRes.data.total_spending,
+          totalOrders: mainRes.data.total_orders,
+          averageOrderValue: mainRes.data.average_order_value,
+          mostPurchasedCategory: mainRes.data.most_purchased_category
+        },
+        weeklyData: weeklyRes.data.daily_data,
+        categoryData: categoryRes.data.categories
+      };
+
+      return {
+        success: true,
+        data: {
+          statistics: statisticsData
+        }
+      };
+    } catch (error) {
+      console.error('getAllStatistics error:', error);
+      return {
+        success: false,
+        data: null as any,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
   }
 };

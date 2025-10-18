@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from './PurchaseHistoryDashboard.module.css';
-import { useNavigation } from '../../../contexts/AppProvider';
+import { useNavigation, useAuth } from '../../../contexts/AppProvider';
 import { purchaseHistoryApi, PurchaseHistoryData } from '../../../services/api/purchaseHistory';
-import { ProductRecommendations } from '../../statistics/ProductRecommendations/ProductRecommendations';
 import { LoadingSpinner } from '../../ui/LoadingSpinner';
 
 interface PurchaseHistoryDashboardProps {
@@ -15,9 +14,9 @@ export const PurchaseHistoryDashboard: React.FC<PurchaseHistoryDashboardProps> =
   const [purchaseData, setPurchaseData] = useState<PurchaseHistoryData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedStatus, setSelectedStatus] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const { navigateTo } = useNavigation();
+  const { user } = useAuth();
 
   const dashboardClasses = [
     styles.purchaseHistoryDashboard,
@@ -27,19 +26,20 @@ export const PurchaseHistoryDashboard: React.FC<PurchaseHistoryDashboardProps> =
   // Load purchase history on mount
   useEffect(() => {
     loadPurchaseHistory();
-  }, [selectedStatus, currentPage]);
+  }, [currentPage]);
 
   const loadPurchaseHistory = async () => {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await purchaseHistoryApi.getPurchaseHistory(
-        currentPage,
-        10,
-        selectedStatus === 'all' ? undefined : selectedStatus
-      );
 
-      if (response.success && response.data) {
+      // user_id 사용 (없으면 기본값 1123)
+      const userId = user?.id || 1123;
+
+      // 통합 API 사용 - Dashboard 형식의 데이터를 한 번에 가져옴
+      const response = await purchaseHistoryApi.getAllPurchaseHistory(userId);
+
+      if (response.success && response.data && response.data.purchaseHistory) {
         setPurchaseData(response.data.purchaseHistory);
       } else {
         setError('구매이력을 불러올 수 없습니다.');
@@ -54,11 +54,6 @@ export const PurchaseHistoryDashboard: React.FC<PurchaseHistoryDashboardProps> =
 
   const handleGoBackToChat = () => {
     navigateTo('chat');
-  };
-
-  const handleStatusChange = (status: string) => {
-    setSelectedStatus(status);
-    setCurrentPage(1);
   };
 
   const getStatusColor = (status: string) => {
@@ -134,19 +129,6 @@ export const PurchaseHistoryDashboard: React.FC<PurchaseHistoryDashboardProps> =
             </button>
             <h1 className={styles.title}>구매이력</h1>
             <p className={styles.subtitle}>나의 쇼핑 기록</p>
-          </div>
-          <div className={styles.headerActions}>
-            <select
-              className={styles.statusSelect}
-              value={selectedStatus}
-              onChange={(e) => handleStatusChange(e.target.value)}
-            >
-              <option value="all">전체</option>
-              <option value="completed">완료</option>
-              <option value="pending">배송중</option>
-              <option value="cancelled">취소</option>
-              <option value="refunded">환불</option>
-            </select>
           </div>
         </div>
 
@@ -263,13 +245,6 @@ export const PurchaseHistoryDashboard: React.FC<PurchaseHistoryDashboardProps> =
               </button>
             </div>
           )}
-        </div>
-      </div>
-
-      {/* Sidebar with Recommendations */}
-      <div className={styles.sidebar}>
-        <div className={styles.recommendationsSection}>
-          <ProductRecommendations page="purchase-history" />
         </div>
       </div>
     </div>

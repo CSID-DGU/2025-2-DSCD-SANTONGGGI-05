@@ -32,6 +32,45 @@ interface PurchaseHistoryResponse {
   };
 }
 
+// ===================================
+// Dashboard용 통합 데이터 타입
+// ===================================
+export interface PurchaseHistoryData {
+  summary: {
+    totalOrders: number;
+    totalSpent: number;
+    totalItems: number;
+    averageOrderValue: number;
+  };
+  orders: Order[];
+  pagination: {
+    current_page: number;
+    total_pages: number;
+    total_items: number;
+  };
+}
+
+interface Order {
+  id: string;
+  orderNumber: string;
+  date: string;
+  status: 'completed' | 'pending' | 'cancelled' | 'refunded';
+  totalAmount: number;
+  items: OrderItem[];
+  paymentMethod: string;
+  trackingNumber?: string;
+}
+
+interface OrderItem {
+  id: string;
+  name: string;
+  brand?: string;
+  category: string;
+  price: number;
+  quantity: number;
+  image: string;
+}
+
 // Mock Purchase History API
 export const purchaseHistoryApi = {
   // GET /api/purchase-history?user_id={user_id}
@@ -117,5 +156,72 @@ export const purchaseHistoryApi = {
         }
       }
     };
+  },
+
+  // ===================================
+  // Dashboard용 통합 API (Aggregator)
+  // ===================================
+  // ERD 기반 응답을 Dashboard 형식으로 변환
+  getAllPurchaseHistory: async (user_id: number): Promise<ApiResponse<{ purchaseHistory: PurchaseHistoryData }>> => {
+    try {
+      const response = await purchaseHistoryApi.getPurchaseHistory(user_id);
+
+      if (!response.success) {
+        return {
+          success: false,
+          data: null as any,
+          error: 'Failed to fetch purchase history'
+        };
+      }
+
+      // ERD 기반 PurchaseItem을 Dashboard Order 형식으로 변환
+      const orders: Order[] = response.data.purchases.map((item, index) => ({
+        id: `order-${item.id}`,
+        orderNumber: `ORD-${String(item.id).padStart(6, '0')}`,
+        date: item.date,
+        status: 'completed' as const, // ERD에는 status 없음, 기본값 사용
+        totalAmount: item.price,
+        items: [{
+          id: `item-${item.id}`,
+          name: item.product_info?.category || '상품', // ERD에 상품명 없음
+          brand: item.platform_name,
+          category: item.product_info?.category || '기타',
+          price: item.price,
+          quantity: 1,
+          image: '📦' // ERD에 이미지 없음, 이모지 사용
+        }],
+        paymentMethod: item.platform_name,
+        trackingNumber: index % 3 === 0 ? `TRK${item.id}0000` : undefined
+      }));
+
+      // Summary 계산 (totalItems 추가)
+      const totalItems = response.data.purchases.length;
+      const purchaseHistoryData: PurchaseHistoryData = {
+        summary: {
+          totalOrders: response.data.summary.total_orders,
+          totalSpent: response.data.summary.total_spent,
+          totalItems: totalItems,
+          averageOrderValue: response.data.summary.total_orders > 0
+            ? Math.round(response.data.summary.total_spent / response.data.summary.total_orders)
+            : 0
+        },
+        orders: orders,
+        pagination: response.data.pagination
+      };
+
+      return {
+        success: true,
+        data: {
+          purchaseHistory: purchaseHistoryData
+        }
+      };
+    } catch (error) {
+      console.error('getAllPurchaseHistory error:', error);
+      return {
+        success: false,
+        data: null as any,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
   }
 };

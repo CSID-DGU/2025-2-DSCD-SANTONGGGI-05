@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useCart, useNavigation } from '../../../contexts/AppProvider';
 import { LoadingSpinner } from '../../ui/LoadingSpinner';
+import { ProductRecommendationModal } from '../../modals/ProductRecommendationModal/ProductRecommendationModal';
 import styles from './CartSummary.module.css';
 
 interface CartSummaryProps {
@@ -19,6 +20,7 @@ export const CartSummary: React.FC<CartSummaryProps> = ({
   const { isLoading } = useCart();
   const { navigateTo } = useNavigation();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [isRecommendationModalOpen, setIsRecommendationModalOpen] = useState(false);
 
   // Calculate total for minimized view
   const total = subtotal;
@@ -48,6 +50,12 @@ export const CartSummary: React.FC<CartSummaryProps> = ({
     if (isLoading) return;
     console.log('Navigate to statistics page');
     navigateTo('statistics');
+  };
+
+  const handleRecommendations = () => {
+    if (isLoading) return;
+    console.log('Open product recommendations modal');
+    setIsRecommendationModalOpen(true);
   };
 
   const summaryClasses = [
@@ -91,6 +99,16 @@ export const CartSummary: React.FC<CartSummaryProps> = ({
           {/* New Action Buttons */}
           <div className={styles.actionButtons}>
             <button
+              onClick={handleRecommendations}
+              disabled={isLoading}
+              className={styles.actionButton}
+              type="button"
+              aria-label="상품추천 보기"
+            >
+              <span>상품추천</span>
+            </button>
+
+            <button
               onClick={handlePurchaseHistory}
               disabled={isLoading}
               className={styles.actionButton}
@@ -112,6 +130,12 @@ export const CartSummary: React.FC<CartSummaryProps> = ({
           </div>
         </div>
       )}
+
+      {/* Product Recommendation Modal */}
+      <ProductRecommendationModal
+        isOpen={isRecommendationModalOpen}
+        onClose={() => setIsRecommendationModalOpen(false)}
+      />
     </div>
   );
 };
