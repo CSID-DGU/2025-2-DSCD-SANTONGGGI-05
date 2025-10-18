@@ -1,354 +1,784 @@
-# 🛒 Shopping Assistant React Application
-
-> 개인화된 쇼핑 어시스턴트 웹 애플리케이션 - React 19 + TypeScript + Vite
-
-## 📌 프로젝트 개요
-
-Shopping Assistant는 AI 기반 대화형 쇼핑 경험을 제공하는 현대적인 React 애플리케이션입니다. 사용자는 채팅 인터페이스를 통해 자연어로 상품을 검색하고, 실시간으로 장바구니에 추가하며, 통계 분석과 구매 이력을 통해 개인화된 쇼핑 경험을 할 수 있습니다.
-
-### ✨ 주요 특징
-
-- **🎯 AI 대화형 쇼핑**: 자연어 채팅을 통한 상품 검색 및 추천
-- **📊 통계 분석 대시보드**: 구매 패턴 분석 및 KPI 시각화
-- **📋 구매 이력 관리**: 완전한 주문 내역 및 상태 추적
-- **🛒 실시간 장바구니**: 즉시 반영되는 장바구니 관리
-- **💡 개인화 상품 추천**: 페이지별 맞춤 상품 추천
-- **📱 반응형 디자인**: 모바일부터 데스크톱까지 최적화된 경험
-- **📊 동적 패널**: 콘텐츠에 따라 확장되는 정보 패널
-- **🎨 모던 UI/UX**: CSS Modules 기반 현대적 레이아웃
-- **♿ 접근성**: WCAG 2.1 AA 준수
-
-## 🏗️ 아키텍처
-
-### 애플리케이션 구조
-```
-┌─────────────────────────────────────────────────────────┐
-│                  Navigation Router                      │
-├─────────────────────────────────────────────────────────┤
-│  Chat Page      │  Statistics Page  │  Purchase History │
-├─────────────────┼───────────────────┼───────────────────┤
-│   Chat Interface│    KPI Cards      │   Order List      │
-│   Cart Sidebar  │    Weekly Chart   │   Recommendations │
-│   Dynamic Panel │    Category Chart │   Status Filter   │
-│                 │   Recommendations │                   │
-└─────────────────┴───────────────────┴───────────────────┘
-```
-
-### 기술 스택
-
-#### Frontend
-- **React 19** - 최신 동시성 기능과 성능 최적화
-- **TypeScript** - 완전한 타입 안전성
-- **Vite** - 빠른 개발 서버와 번들링
-- **CSS Modules** - 스코프된 스타일링
-
-#### 상태 관리
-- **Context API** - 글로벌 상태 관리
-- **Custom Hooks** - 재사용 가능한 로직
-- **Local Storage** - 데이터 지속성
-
-#### 개발 도구
-- **ESLint** - 코드 품질 관리
-- **TypeScript Strict Mode** - 엄격한 타입 검사
-
-## 📂 프로젝트 구조
-
-```
-src/
-├── components/                    # 재사용 가능한 컴포넌트
-│   ├── chat/                     # 채팅 관련 컴포넌트
-│   │   ├── ChatInterface/        # 메인 채팅 인터페이스
-│   │   ├── ChatMessages/         # 메시지 표시 컴포넌트
-│   │   └── TypingIndicator/      # 타이핑 인디케이터
-│   ├── cart/                     # 장바구니 관련 컴포넌트
-│   │   ├── CartSidebar/          # 장바구니 사이드바
-│   │   ├── CartItem/             # 장바구니 아이템
-│   │   └── CartSummary/          # 장바구니 요약 및 네비게이션
-│   ├── statistics/               # 통계 분석 컴포넌트
-│   │   ├── StatisticsDashboard/  # 통계 대시보드
-│   │   ├── KPICards/             # KPI 카드
-│   │   ├── Charts/               # 차트 컴포넌트
-│   │   │   ├── WeeklyChart.tsx   # 주간 매출 차트
-│   │   │   └── CategoryChart.tsx # 카테고리별 차트
-│   │   ├── ProductRecommendations/# 상품 추천
-│   │   └── StatisticsNavigation/ # 통계 네비게이션
-│   ├── purchaseHistory/          # 구매 이력 컴포넌트
-│   │   └── PurchaseHistoryDashboard/# 구매 이력 대시보드
-│   ├── panels/                   # 동적 패널 컴포넌트
-│   │   ├── DynamicPanel/         # 기본 동적 패널
-│   │   ├── ProductListPanel/     # 상품 목록 패널
-│   │   ├── ProductDetailPanel/   # 상품 상세 패널
-│   │   ├── RecommendationsPanel/ # 추천 패널
-│   │   ├── SearchResultsPanel/   # 검색 결과 패널
-│   │   └── CategoryPanel/        # 카테고리 패널
-│   ├── layout/                   # 레이아웃 컴포넌트
-│   │   └── MainLayout/           # 메인 레이아웃
-│   └── ui/                       # 공통 UI 컴포넌트
-│       ├── LoadingSpinner/       # 로딩 스피너
-│       └── ErrorBoundary/        # 에러 바운더리
-├── contexts/                     # React Context 제공자
-│   ├── AppProvider.tsx           # 메인 프로바이더
-│   ├── AuthContext.tsx           # 인증 상태 관리
-│   ├── ChatContext.tsx           # 채팅 상태 관리
-│   ├── CartContext.tsx           # 장바구니 상태 관리
-│   ├── PanelContext.tsx          # 패널 상태 관리
-│   └── NavigationContext.tsx     # 네비게이션 상태 관리
-├── services/                     # API 및 서비스 레이어
-│   ├── api/                      # API 서비스
-│   │   ├── auth.ts               # 인증 API
-│   │   ├── cart.ts               # 장바구니 API
-│   │   ├── chat.ts               # 채팅 API
-│   │   ├── statistics.ts         # 통계 API
-│   │   ├── purchaseHistory.ts    # 구매 이력 API
-│   │   └── recommendations.ts    # 추천 API
-│   └── storage/                  # 저장소 서비스
-│       └── localStorage.ts       # 로컬 저장소 관리
-├── types/                        # TypeScript 타입 정의
-│   ├── index.ts                  # 메인 타입
-│   ├── api.ts                    # API 관련 타입
-│   ├── auth.ts                   # 인증 관련 타입
-│   ├── cart.ts                   # 장바구니 관련 타입
-│   ├── chat.ts                   # 채팅 관련 타입
-│   ├── panel.ts                  # 패널 관련 타입
-│   └── css-modules.d.ts          # CSS 모듈 타입 정의
-├── hooks/                        # 커스텀 훅
-│   └── useWindowSize.ts          # 윈도우 크기 훅
-└── main.tsx                      # 앱 엔트리 포인트
-```
-
-## 🚀 시작하기
-
-### 필수 요구사항
-- Node.js 18+
-- npm 또는 yarn
-
-### 설치 및 실행
-
-```bash
-# 저장소 클론
-git clone [repository-url]
-cd frontend
-
-# 의존성 설치
-npm install
-
-# 개발 서버 시작
-npm run dev
-
-# 브라우저에서 http://localhost:5173 열기
-```
-
-### 빌드 및 배포
-
-```bash
-# 프로덕션 빌드
-npm run build
-
-# 빌드 결과 미리보기
-npm run preview
-
-# 코드 린팅
-npm run lint
-```
-
-## 💡 구현된 기능
-
-### ✅ 완료된 기능
-
-#### 🔧 핵심 아키텍처
-- **Context 기반 상태 관리**: Auth, Chat, Cart, Panel, Navigation 컨텍스트
-- **TypeScript 타입 시스템**: 완전한 타입 안전성 보장
-- **네비게이션 시스템**: 페이지 간 seamless 전환
-- **컴포넌트 아키텍처**: 모듈식 설계와 재사용성
-
-#### 🎨 사용자 인터페이스
-- **MainLayout**: 통합 레이아웃 컴포넌트
-- **ChatInterface**: 완전한 채팅 인터페이스
-- **CartSidebar**: 실시간 장바구니 기능
-- **DynamicPanel**: 확장 가능한 정보 패널
-- **Navigation**: 부드러운 페이지 전환
-
-#### 📊 통계 분석 시스템
-- **StatisticsDashboard**: 종합 통계 대시보드
-- **KPI Cards**: 핵심 성과 지표 카드
-- **WeeklyChart**: 주간 매출 트렌드 차트
-- **CategoryChart**: 카테고리별 판매 분석
-- **ProductRecommendations**: 통계 기반 상품 추천
-
-#### 📋 구매 이력 관리
-- **PurchaseHistoryDashboard**: 완전한 구매 이력 대시보드
-- **Order Management**: 주문 상태별 필터링 및 관리
-- **Order Details**: 상세 주문 정보 표시
-- **Pagination**: 효율적인 데이터 로딩
-- **Status Tracking**: 실시간 주문 상태 추적
-
-#### 🛒 쇼핑 기능
-- **장바구니 관리**: 추가, 삭제, 수량 변경
-- **실시간 계산**: 세금, 배송비, 할인 포함
-- **상품 패널**: 다양한 상품 표시 형태
-- **체크아웃 프로세스**: 완전한 결제 흐름
-
-#### 💡 개인화 추천 시스템
-- **페이지별 추천**: 각 페이지에 맞춤화된 상품 추천
-- **추천 알고리즘**: 사용자 행동 기반 추천
-- **다양한 추천 이유**: 구매 패턴, 인기 상품, 계절 추천 등
-
-#### 📱 모바일 최적화
-- **반응형 레이아웃**: 모든 화면 크기 대응
-- **터치 친화적**: 44px 최소 터치 영역
-- **적응형 네비게이션**: 모바일에서 최적화된 메뉴
-- **성능 최적화**: 지연 로딩 및 코드 분할
-
-### 📊 API 서비스 구조
-
-#### 인증 시스템 (auth.ts)
-```typescript
-interface AuthAPI {
-  login(credentials: LoginCredentials): Promise<AuthResponse>
-  logout(): Promise<void>
-  refreshToken(): Promise<AuthResponse>
-  getCurrentUser(): Promise<User>
-}
-```
-
-#### 통계 분석 (statistics.ts)
-```typescript
-interface StatisticsAPI {
-  getKPIData(): Promise<KPIData>
-  getWeeklyChart(): Promise<WeeklyChartData>
-  getCategoryChart(): Promise<CategoryChartData>
-  getStatisticsSummary(): Promise<StatisticsSummary>
-}
-```
-
-#### 구매 이력 (purchaseHistory.ts)
-```typescript
-interface PurchaseHistoryAPI {
-  getPurchaseHistory(page: number, limit: number, status?: string): Promise<PurchaseHistoryData>
-  getOrderDetails(orderId: string): Promise<OrderDetails>
-  cancelOrder(orderId: string): Promise<void>
-  reorderItems(orderId: string): Promise<void>
-}
-```
-
-#### 상품 추천 (recommendations.ts)
-```typescript
-interface RecommendationsAPI {
-  getRecommendations(context: RecommendationContext): Promise<RecommendationsResponse>
-  refreshRecommendations(context: RecommendationContext): Promise<RecommendationsResponse>
-  getRelatedProducts(productId: string): Promise<RelatedProductsResponse>
-}
-```
-
-### 🎯 성능 지표
-
-- **60개 TypeScript 파일**: 완전한 타입 안전성
-- **40개 디렉토리**: 체계적인 구조화
-- **제로 빌드 에러**: 안정적인 코드베이스
-- **WCAG 2.1 AA**: 접근성 준수
-- **6개 API 서비스**: 완전한 백엔드 인터페이스
-- **5개 Context 프로바이더**: 효율적인 상태 관리
-
-## 🎯 향후 개발 계획
-
-### 📅 단기 계획 (1-2주)
-
-#### 🔧 API 통합
-- **실제 백엔드 연결**: REST API 및 WebSocket
-- **인증 시스템**: JWT 토큰 기반 인증
-- **실시간 기능**: 채팅 및 알림
-
-#### 💳 결제 시스템
-- **결제 게이트웨이**: Stripe/PayPal 통합
-- **주문 관리**: 주문 생성 및 추적
-- **영수증 시스템**: PDF 생성 및 이메일 발송
-
-#### 🤖 AI 기능 강화
-- **자연어 처리**: 더 정교한 의도 파악
-- **개인화 추천**: 머신러닝 기반 추천 엔진
-- **대화 컨텍스트**: 이전 대화 기억 및 활용
-
-### 📅 중기 계획 (1-2개월)
-
-#### 🔍 검색 및 필터링
-- **고급 검색**: 카테고리, 가격, 브랜드 필터
-- **자동완성**: 실시간 검색 제안
-- **검색 히스토리**: 이전 검색 기록 관리
-
-#### 📈 고급 분석
-- **사용자 세그멘테이션**: 행동 패턴 기반 분류
-- **예측 분석**: 매출 및 수요 예측
-- **A/B 테스트**: 기능 효과성 측정
-
-#### 🌐 다국어 및 다통화
-- **국제화 (i18n)**: 다국어 지원
-- **다중 통화**: 실시간 환율 적용
-- **지역별 설정**: 배송 및 세금 정책
-
-### 📅 장기 계획 (3-6개월)
-
-#### 🏪 멀티 벤더 지원
-- **판매자 관리**: 다중 판매자 플랫폼
-- **재고 관리**: 실시간 재고 추적
-- **배송 최적화**: 다중 창고 배송
-
-#### 📱 모바일 앱
-- **React Native**: 네이티브 모바일 앱
-- **푸시 알림**: 주문 상태 및 프로모션
-- **오프라인 지원**: 캐시된 콘텐츠 접근
-
-#### 🔐 고급 보안
-- **2FA 인증**: 이중 인증 시스템
-- **데이터 보호**: GDPR 준수
-- **결제 보안**: PCI DSS 인증
-
-## 🛠️ 개발 가이드
-
-### 코드 스타일
-- **TypeScript Strict Mode**: 엄격한 타입 검사
-- **ESLint**: 일관된 코드 스타일
-- **Component 명명**: PascalCase
-- **File 명명**: kebab-case
-
-### 커밋 컨벤션
-```
-feat: 새로운 기능 추가
-fix: 버그 수정
-docs: 문서 수정
-style: 코드 스타일 변경
-refactor: 코드 리팩토링
-test: 테스트 코드 추가
-chore: 빌드 과정 또는 보조 기능 수정
-```
-
-### 테스트 전략
-```bash
-# 단위 테스트
-npm run test
-
-# 통합 테스트
-npm run test:integration
-
-# E2E 테스트
-npm run test:e2e
-```
-
-## 🤝 기여하기
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 라이선스
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 📞 연락처
-
-프로젝트 관련 문의사항이나 제안사항이 있으시면 언제든 연락주세요.
+# 쇼핑 비서 서비스 - 프론트엔드
+
+> AI 기반 쇼핑 어시스턴트 대학교 졸업 프로젝트 - React 프론트엔드 애플리케이션
+>
+> **백엔드 개발자를 위한 가이드**
 
 ---
 
-**🚀 Shopping Assistant - 미래의 쇼핑 경험을 지금 경험하세요!**
+## 📋 목차
+
+1. [프로젝트 개요](#프로젝트-개요)
+2. [기술 스택](#기술-스택)
+3. [빠른 시작](#빠른-시작)
+4. [프로젝트 구조](#프로젝트-구조)
+5. [아키텍처 설명](#아키텍처-설명)
+6. [핵심 개념](#핵심-개념)
+7. [API 통합 가이드](#api-통합-가이드)
+8. [개발 가이드](#개발-가이드)
+9. [알려진 제한사항](#알려진-제한사항)
+
+---
+
+## 프로젝트 개요
+
+**쇼핑 비서 서비스**는 OpenAI API와 추천 시스템을 활용한 AI 기반 쇼핑 어시스턴트 입니다.
+
+### 주요 기능
+
+- 🤖 **AI 채팅 인터페이스**: OpenAI 기반 대화형 쇼핑 상담
+- 🛒 **스마트 장바구니**: 실시간 장바구니 관리 및 요약
+- 📊 **구매 통계 분석**: 주간/카테고리별 지출 분석
+- 🎯 **상품 추천 시스템**: 평점 및 리뷰 기반 3/3 추천
+- 📜 **구매 이력 관리**: 과거 구매 내역 조회
+- 🌐 **다중 플랫폼 통합**: 쿠팡, 네이버쇼핑, 11번가 등
+
+### 현재 상태
+
+- ✅ 프론트엔드 UI 완성
+- ✅ 7개 Context 기반 상태 관리 구현
+- ⏳ Mock API 사용 중 (백엔드 연동 대기)
+- 🎯 목표: 배포 완료된 서비스
+
+---
+
+## 기술 스택
+
+### 코어 기술
+
+```
+React 19.1.1        - UI 라이브러리
+TypeScript 5.x      - 타입 안전성
+Vite 7.1.7          - 빌드 도구 및 개발 서버
+```
+
+### 개발 도구
+
+```
+ESLint 9.36.0       - 코드 린팅
+CSS Modules         - 컴포넌트 스타일링 (camelCase)
+```
+
+### 프로젝트 규모
+
+```
+총 코드 라인: ~7,107 lines
+주요 컴포넌트: 33개
+API 서비스: 6개 파일 (15개 엔드포인트)
+Context: 7개
+```
+
+---
+
+## 빠른 시작
+
+### 1. 의존성 설치
+
+```bash
+npm install
+```
+
+### 2. 개발 서버 실행
+
+```bash
+npm run dev
+```
+
+서버가 `http://localhost:5173`에서 시작됩니다.
+
+### 3. 빌드
+
+```bash
+npm run build
+```
+
+### 4. 프로덕션 미리보기
+
+```bash
+npm run preview
+```
+
+### 5. 코드 린팅
+
+```bash
+npm run lint
+```
+
+---
+
+## 프로젝트 구조
+
+### 디렉토리 구조
+
+```
+frontend/
+├── src/
+│   ├── components/          # UI 컴포넌트
+│   │   ├── cart/           # 장바구니 관련 컴포넌트
+│   │   │   ├── CartSidebar/      # 우측 장바구니 사이드바
+│   │   │   ├── CartItem/         # 장바구니 아이템
+│   │   │   └── CartSummary/      # 장바구니 요약 정보
+│   │   ├── chat/           # 채팅 인터페이스
+│   │   │   ├── ChatInterface/    # 메인 채팅 화면
+│   │   │   ├── ChatMessages/     # 메시지 목록
+│   │   │   └── TypingIndicator/  # AI 입력 중 표시
+│   │   ├── layout/         # 레이아웃 컴포넌트
+│   │   │   └── MainLayout/       # 메인 레이아웃 (3단 구조)
+│   │   ├── modals/         # 모달창
+│   │   │   ├── ProductDetailModal/       # 제품 상세 정보
+│   │   │   └── ProductRecommendationModal/ # 상품 추천 모달
+│   │   ├── panels/         # 동적 패널 시스템
+│   │   │   ├── DynamicPanel/         # 패널 컨테이너
+│   │   │   ├── ProductListPanel/     # 상품 목록
+│   │   │   ├── ProductDetailPanel/   # 상품 상세
+│   │   │   ├── RecommendationsPanel/ # 추천 상품
+│   │   │   ├── SearchResultsPanel/   # 검색 결과
+│   │   │   └── CategoryPanel/        # 카테고리별 상품
+│   │   ├── purchaseHistory/ # 구매 이력 대시보드
+│   │   │   └── PurchaseHistoryDashboard/
+│   │   ├── statistics/     # 통계 대시보드
+│   │   │   ├── StatisticsDashboard/      # 통계 메인 화면
+│   │   │   ├── StatisticsNavigation/     # 통계 네비게이션
+│   │   │   ├── KPICards/                 # KPI 카드
+│   │   │   ├── Charts/                   # 차트 컴포넌트
+│   │   │   │   ├── WeeklyChart/          # 주간 차트
+│   │   │   │   └── CategoryChart/        # 카테고리 차트
+│   │   │   └── ProductRecommendations/   # 추천 상품
+│   │   └── ui/             # 공통 UI 컴포넌트
+│   │       ├── LoadingSpinner/   # 로딩 스피너
+│   │       └── ErrorBoundary/    # 에러 경계
+│   ├── contexts/           # React Context (전역 상태 관리)
+│   │   ├── AppProvider.tsx       # 통합 Provider
+│   │   ├── AuthContext.tsx       # 인증 상태
+│   │   ├── ChatContext.tsx       # 채팅 세션 및 메시지
+│   │   ├── CartContext.tsx       # 장바구니 관리
+│   │   ├── PanelContext.tsx      # 동적 패널 제어
+│   │   ├── ModalContext.tsx      # 모달 관리
+│   │   └── NavigationContext.tsx # 페이지 네비게이션
+│   ├── services/           # API 및 서비스 레이어
+│   │   ├── api/            # API 서비스 (Mock 구현)
+│   │   │   ├── auth.ts           # 로그인, 회원가입
+│   │   │   ├── chat.ts           # 채팅 메시지, 기록
+│   │   │   ├── cart.ts           # 장바구니 CRUD
+│   │   │   ├── statistics.ts     # 통계 데이터
+│   │   │   ├── purchaseHistory.ts # 구매 이력
+│   │   │   └── recommendations.ts # 상품 추천
+│   │   └── storage/        # 로컬 스토리지 유틸
+│   │       └── localStorage.ts
+│   ├── types/              # TypeScript 타입 정의
+│   │   ├── index.ts        # 공통 타입
+│   │   ├── api.ts          # API 관련 타입
+│   │   ├── auth.ts         # 인증 타입
+│   │   ├── cart.ts         # 장바구니 타입
+│   │   ├── chat.ts         # 채팅 타입
+│   │   ├── modal.ts        # 모달 타입
+│   │   └── panel.ts        # 패널 타입
+│   ├── hooks/              # Custom React Hooks
+│   │   └── useWindowSize.ts # 반응형 브레이크포인트
+│   ├── styles/             # 전역 스타일
+│   ├── App.tsx             # 루트 컴포넌트
+│   ├── main.tsx            # 엔트리 포인트
+│   └── index.css           # 전역 CSS
+├── public/                 # 정적 파일
+├── CLAUDE.md               # 프로젝트 가이드 (AI 개발 참고)
+├── API_SPECIFICATION.md    # API 명세서 (이 문서 참고)
+├── package.json            # 의존성 관리
+├── tsconfig.json           # TypeScript 설정
+├── vite.config.js          # Vite 설정
+└── README.md               # 이 파일
+```
+
+### 파일 명명 규칙
+
+```
+컴포넌트:    ComponentName/ComponentName.tsx
+스타일:      ComponentName/ComponentName.module.css
+인덱스:      ComponentName/index.ts
+타입:        types/*.ts
+API:         services/api/*.ts
+Context:     contexts/*Context.tsx
+```
+
+---
+
+## 아키텍처 설명
+
+### 1. 애플리케이션 흐름
+
+```
+main.tsx (엔트리)
+  ↓
+AppProvider (7개 Context 통합)
+  ↓
+App.tsx (초기화 및 에러 처리)
+  ↓
+MainLayout (3단 레이아웃)
+  ├── ChatInterface (좌측 - 채팅)
+  ├── CartSidebar (우측 - 장바구니)
+  └── DynamicPanel (하단 - 동적 패널)
+```
+
+### 2. Context 계층 구조
+
+```typescript
+<AppProvider>
+  <AuthProvider>           // 1. 인증 (최상위)
+    <NavigationProvider>   // 2. 네비게이션
+      <CartProvider>       // 3. 장바구니
+        <PanelProvider>    // 4. 동적 패널
+          <ModalProvider>  // 5. 모달
+            <ChatProvider> // 6. 채팅 (하위 의존성)
+              {children}
+              <ProductDetailModal /> // 전역 모달
+            </ChatProvider>
+          </ModalProvider>
+        </PanelProvider>
+      </CartProvider>
+    </NavigationProvider>
+  </AuthProvider>
+</AppProvider>
+```
+
+**Context 의존성 이유:**
+- ChatProvider는 CartContext를 사용 (AI가 장바구니 추가)
+- PanelProvider는 제품 정보 표시에 사용
+- AuthProvider가 최상위 (모든 기능이 인증 필요)
+
+### 3. 페이지 구조
+
+#### 메인 페이지 (채팅)
+
+```
+┌─────────────────────────────────────────┬────────────┐
+│                                         │            │
+│  ChatInterface                          │ CartSidebar│
+│  (AI 대화, 메시지 입력)                  │ (장바구니) │
+│                                         │            │
+│                                         │            │
+└─────────────────────────────────────────┴────────────┘
+┌───────────────────────────────────────────────────────┐
+│ DynamicPanel (동적 패널 - 상황에 따라 표시)            │
+│ - 상품 목록 / 상품 상세 / 추천 상품 등                │
+└───────────────────────────────────────────────────────┘
+```
+
+#### 통계 페이지
+
+```
+┌───────────────────┬─────────────────────────────────────┐
+│                   │                                     │
+│ StatisticsNav     │  통계 분석 결과                      │
+│ (선택지 목록)      │  - KPI 카드                         │
+│                   │  - 주간 차트                        │
+│                   │  - 카테고리 차트                     │
+│                   │                                     │
+└───────────────────┴─────────────────────────────────────┘
+```
+
+#### 구매이력 페이지
+
+```
+┌─────────────────────────────────────────────────────┐
+│  PurchaseHistoryDashboard                           │
+│  - 구매 내역 목록                                    │
+│  - 주문 상세 정보                                    │
+│  - 총 지출액, 평균 주문액 등                         │
+└─────────────────────────────────────────────────────┘
+```
+
+---
+
+## 핵심 개념
+
+### 1. Context 기반 상태 관리
+
+모든 전역 상태는 React Context로 관리됩니다.
+
+**⚠️ 주의**: Fast Refresh가 비활성화되어 Context 변경 시 전체 페이지가 리로드됩니다.
+
+#### AuthContext - 인증 상태 관리
+
+```typescript
+interface AuthContextValue {
+  user: User | null;              // 현재 로그인 사용자
+  isAuthenticated: boolean;       // 로그인 여부
+  isLoading: boolean;             // 인증 확인 중
+  error: string | null;           // 에러 메시지
+
+  login: (credentials) => Promise<void>;    // 로그인
+  register: (data) => Promise<void>;        // 회원가입
+  logout: () => Promise<void>;              // 로그아웃
+  initialize: () => Promise<void>;          // 앱 초기화
+}
+```
+
+**사용 예시:**
+```typescript
+import { useAuth } from '@/contexts/AppProvider';
+
+const { user, isAuthenticated, login } = useAuth();
+
+await login({ email: 'user@example.com', password: 'pass' });
+```
+
+#### ChatContext - 채팅 세션 및 메시지 관리
+
+```typescript
+interface ChatContextValue {
+  messages: Message[];            // 메시지 목록
+  isLoading: boolean;             // AI 응답 대기 중
+  error: string | null;           // 에러
+
+  sendMessage: (content: string) => Promise<void>;  // 메시지 전송
+  clearMessages: () => void;                        // 메시지 초기화
+  loadHistory: () => Promise<void>;                 // 이전 대화 불러오기
+}
+```
+
+**메시지 타입:**
+```typescript
+interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+  type?: number;                  // 0: 일반, 1: 상품추천, 2: 통계
+  recommendationItems?: Product[]; // 추천 상품 데이터
+}
+```
+
+#### CartContext - 장바구니 관리
+
+```typescript
+interface CartContextValue {
+  items: CartItemType[];          // 장바구니 아이템
+  total: number;                  // 총 금액
+  itemCount: number;              // 총 아이템 수
+  isLoading: boolean;
+
+  // 원본 API (권장)
+  addItem: (productId, quantity?, variantId?) => Promise<void>;
+  removeItem: (itemId) => Promise<void>;
+  updateQuantity: (itemId, quantity) => Promise<void>;
+  clearCart: () => Promise<void>;
+
+  // 호환성 API (간단한 컴포넌트용)
+  addToCart: (item) => Promise<void>;
+}
+```
+
+**사용 예시:**
+```typescript
+// 방법 1: 원본 API (권장)
+await addItem('product-123', 2);
+
+// 방법 2: 호환성 API
+await addToCart({
+  id: 'product-123',
+  name: '생수 2L',
+  price: 12000,
+  quantity: 2
+});
+```
+
+#### PanelContext - 동적 패널 제어
+
+```typescript
+type PanelType =
+  | 'product-list'      // 상품 목록
+  | 'product-detail'    // 상품 상세
+  | 'recommendations'   // 추천 상품
+  | 'search-results'    // 검색 결과
+  | 'category';         // 카테고리별 상품
+
+interface PanelContextValue {
+  currentPanel: PanelData | null; // 현재 표시 중인 패널
+  isExpanded: boolean;            // 패널 확장 여부
+  height: number;                 // 패널 높이
+
+  showPanel: (panelData) => void;  // 패널 표시
+  hidePanel: () => void;           // 패널 숨김
+  updatePanel: (updates) => void;  // 패널 업데이트
+}
+```
+
+**사용 예시:**
+```typescript
+const { showPanel } = usePanel();
+
+showPanel({
+  type: 'product-list',
+  data: { products: [...] },
+  title: '추천 상품',
+  height: 400
+});
+```
+
+### 2. Path Alias
+
+모든 import는 path alias를 사용합니다:
+
+```typescript
+// ✅ 올바른 사용
+import { useAuth } from '@/contexts/AppProvider';
+import { Button } from '@/components/ui/Button';
+
+// ❌ 잘못된 사용 (상대 경로)
+import { useAuth } from '../../../contexts/AppProvider';
+```
+
+**설정된 Alias:**
+```
+@/*              → ./src/*
+@/components/*   → ./src/components/*
+@/contexts/*     → ./src/contexts/*
+@/types/*        → ./src/types/*
+@/hooks/*        → ./src/hooks/*
+@/services/*     → ./src/services/*
+```
+
+### 3. TypeScript 엄격 모드
+
+#### exactOptionalPropertyTypes
+
+선택적 속성에 `undefined`를 명시할 수 없습니다:
+
+```typescript
+// ❌ 잘못됨
+const state = {
+  currentPage: 'chat',
+  previousPage: undefined  // Error!
+};
+
+// ✅ 올바름
+const state = {
+  currentPage: 'chat'  // previousPage 생략
+};
+```
+
+#### noImplicitReturns
+
+모든 코드 경로에서 반환값이 필요합니다:
+
+```typescript
+// ❌ 잘못됨
+function getStatus(code: number) {
+  if (code === 200) {
+    return 'success';
+  }
+  // Error: 다른 경로에서 반환값 없음
+}
+
+// ✅ 올바름
+function getStatus(code: number): string {
+  if (code === 200) {
+    return 'success';
+  }
+  return 'error';
+}
+```
+
+### 4. CSS Modules
+
+모든 컴포넌트는 CSS Modules를 사용합니다:
+
+```css
+/* ComponentName.module.css */
+.container {
+  padding: 20px;
+}
+
+.primary-button {  /* CSS에서는 kebab-case */
+  background: blue;
+}
+```
+
+```typescript
+// ComponentName.tsx
+import styles from './ComponentName.module.css';
+
+<div className={styles.container}>
+  <button className={styles.primaryButton} />  {/* JS에서는 camelCase */}
+</div>
+```
+
+### 5. 반응형 디자인
+
+`useWindowSize` 훅으로 브레이크포인트 관리:
+
+```typescript
+const { width, height, breakpoint } = useWindowSize();
+
+// breakpoint 값
+// 'mobile'  : < 768px
+// 'tablet'  : 768px - 1024px
+// 'desktop' : 1024px - 1440px
+// 'wide'    : >= 1440px
+
+{breakpoint === 'mobile' && <MobileView />}
+{breakpoint === 'desktop' && <DesktopView />}
+```
+
+---
+
+## API 통합 가이드
+
+### 현재 상태: Mock API
+
+모든 API는 현재 **Mock 데이터**를 반환합니다. 실제 백엔드 연동 시 아래 가이드를 따르세요.
+
+### API 서비스 구조
+
+```
+src/services/api/
+├── auth.ts           # 인증 API (2개 엔드포인트)
+├── chat.ts           # 채팅 API (2개 엔드포인트)
+├── cart.ts           # 장바구니 API (3개 엔드포인트)
+├── statistics.ts     # 통계 API (5개 엔드포인트)
+├── purchaseHistory.ts # 구매이력 API (2개 엔드포인트)
+└── recommendations.ts # 추천 API (2개 엔드포인트)
+```
+
+### 백엔드 연동 절차
+
+#### 1단계: 환경 변수 설정
+
+`.env` 파일 생성:
+
+```bash
+VITE_API_BASE_URL=http://localhost:8000/api
+VITE_API_TIMEOUT=30000
+```
+
+#### 2단계: API 클라이언트 설정
+
+`src/services/api/client.ts` 파일 생성:
+
+```typescript
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+export const apiClient = {
+  async request(endpoint: string, options: RequestInit = {}) {
+    const token = localStorage.getItem('auth_token');
+
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+        ...options.headers,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'API Error');
+    }
+
+    return response.json();
+  },
+};
+```
+
+#### 3단계: Mock 로직 제거
+
+각 API 파일 (`auth.ts`, `chat.ts` 등)에서:
+
+```typescript
+// ❌ Mock 코드 제거
+export const chatApi = {
+  sendMessage: async (user_id: number, message: string) => {
+    await new Promise(resolve => setTimeout(resolve, 1000));  // 제거
+    const mockProducts: Product[] = [...];  // 제거
+    return { success: true, data: mockProducts };  // 제거
+  }
+};
+
+// ✅ 실제 API 호출로 변경
+export const chatApi = {
+  sendMessage: async (user_id: number, message: string) => {
+    const data = await apiClient.request('/chat/messages', {
+      method: 'POST',
+      body: JSON.stringify({ user_id, message }),
+    });
+    return { success: true, data };
+  }
+};
+```
+
+#### 4단계: 타입 검증
+
+API 응답 타입이 CLAUDE.md 명세와 일치하는지 확인:
+
+```typescript
+// ERD 기반 타입 (변경 금지)
+interface SendMessageResponse {
+  user_id: number;
+  ai_message: string;
+  type: number;
+  recommendationItems: Product[];
+}
+
+// 백엔드 응답이 이 타입과 정확히 일치해야 함
+```
+
+### 중요 사항
+
+**🚨 타입 변경 금지**
+
+API 응답 타입은 CLAUDE.md에 정의된 ERD 기반 구조를 따릅니다. 백엔드는 이 타입에 맞춰 응답해야 합니다.
+
+**🚨 LocalStorage 제거**
+
+실제 백엔드 연동 시 LocalStorage 기반 게스트 장바구니는 제거하고 서버 기반 장바구니로 대체해야 합니다.
+
+**🚨 인증 토큰**
+
+모든 인증이 필요한 API는 `Authorization: Bearer {token}` 헤더를 포함해야 합니다.
+
+---
+
+## 개발 가이드
+
+### 코드 스타일
+
+#### 컴포넌트 작성 규칙
+
+```typescript
+// ✅ 올바른 컴포넌트 구조
+interface ComponentProps {
+  title: string;
+  onClose: () => void;
+}
+
+export const Component: React.FC<ComponentProps> = ({ title, onClose }) => {
+  // 1. 상태 관리
+  const [state, setState] = useState<StateType>(initialState);
+
+  // 2. Context 사용
+  const { user } = useAuth();
+
+  // 3. 이펙트
+  useEffect(() => {
+    // ...
+  }, []);
+
+  // 4. 이벤트 핸들러
+  const handleClick = () => {
+    // ...
+  };
+
+  // 5. 렌더링
+  return <div>...</div>;
+};
+```
+
+### 디버깅 가이드
+
+#### TypeScript 에러 확인
+
+```bash
+npx tsc --noEmit
+```
+
+#### Context 관련 에러
+
+**에러:** "useAuth must be used within AuthProvider"
+
+**원인:** Context Provider 외부에서 hook 사용
+
+**해결:**
+```typescript
+// App.tsx에서 모든 컴포넌트가 <AppProvider> 내부에 있는지 확인
+<AppProvider>
+  <Component />  {/* 여기서 useAuth 사용 가능 */}
+</AppProvider>
+```
+
+---
+
+## 알려진 제한사항
+
+### 1. Fast Refresh 비활성화
+
+**원인:** Context Provider와 custom hook이 같은 파일에 정의됨
+
+**영향:** 코드 변경 시 전체 페이지 리로드 발생 (개발 경험 저하)
+
+**해결 방법:** 없음 (현재 아키텍처 유지)
+
+### 2. Mock API
+
+**현재:** 모든 API 응답이 하드코딩된 Mock 데이터
+
+**영향:** 실제 서버 없이 UI 개발 및 테스트 가능
+
+**백엔드 연동 시:** API 서비스 파일의 Mock 로직만 제거하고 실제 fetch 호출로 변경
+
+### 3. ESLint 미설정
+
+**현재:** `eslint.config.js` 파일 존재하지만 실질적 규칙 없음
+
+**영향:** TypeScript 컴파일러만으로 타입 체크
+
+### 4. 테스트 없음
+
+**현재:** 테스트 프레임워크 미설정
+
+**영향:** 수동 테스트 필요
+
+---
+
+## 문제 해결
+
+### 빌드 실패
+
+```bash
+# 캐시 삭제
+rm -rf node_modules dist
+
+# 재설치
+npm install
+
+# 빌드
+npm run build
+```
+
+### 타입 에러
+
+```bash
+# TypeScript 검사
+npx tsc --noEmit
+```
+
+### 개발 서버 포트 충돌
+
+`vite.config.js` 수정:
+
+```javascript
+export default defineConfig({
+  server: {
+    port: 3000,  // 다른 포트로 변경
+  }
+})
+```
+
+---
+
+## 추가 문서
+
+- **[CLAUDE.md](CLAUDE.md)** - AI 개발 가이드 및 상세 프로젝트 규칙
+- **[API_SPECIFICATION.md](API_SPECIFICATION.md)** - 전체 API 명세서 및 ERD
+- **[ARCHITECTURE_SUMMARY.md](ARCHITECTURE_SUMMARY.md)** - 아키텍처 개요
+
+---
+
+## 라이선스
+
+대학교 졸업 프로젝트 - 교육 목적
+
+---
+
+## 팀
+
+백엔드 개발자를 위해 작성된 문서입니다. 프론트엔드 관련 질문이나 이슈는 프론트엔드 담당자에게 문의하세요.
