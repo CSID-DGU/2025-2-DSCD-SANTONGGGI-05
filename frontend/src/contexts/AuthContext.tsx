@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import { AuthState, AuthContextValue, User, LoginCredentials, RegisterData, UserPreferences } from '../types/auth';
 import { authApi } from '../services/api/auth';
 import { storageService } from '../services/storage/localStorage';
@@ -172,17 +172,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     dispatch({ type: 'LOGOUT' });
   };
 
-  const initialize = () => {
+  const initialize = useCallback(() => {
     dispatch({ type: 'SET_LOADING', payload: false });
-  };
+  }, []);
 
-  const contextValue: AuthContextValue = {
+  const contextValue: AuthContextValue = useMemo(() => ({
     ...state,
     login,
     register,
     logout,
     initialize,
-  };
+  }), [
+    state.user,
+    state.tokens,
+    state.isAuthenticated,
+    state.isLoading,
+    state.error,
+    initialize,
+    // Intentionally excluding login, register, logout to prevent infinite loops
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  ]);
 
   return (
     <AuthContext.Provider value={contextValue}>

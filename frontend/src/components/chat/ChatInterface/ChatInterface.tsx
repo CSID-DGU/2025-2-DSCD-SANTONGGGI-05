@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import { useChat } from '../../../contexts/AppProvider';
 import { ChatMessages } from '../ChatMessages/ChatMessages';
 import { TypingIndicator } from '../TypingIndicator/TypingIndicator';
+import { ChatRecommendationModal } from '@/components/modals/ChatRecommendationModal';
+import { StatisticsImageModal } from '@/components/modals/StatisticsImageModal';
 import { ChatAttachment } from '../../../types/chat';
 import styles from './ChatInterface.module.css';
 
@@ -31,6 +33,12 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 모달 상태 관리
+  const [recommendationModalOpen, setRecommendationModalOpen] = useState(false);
+  const [recommendationProducts, setRecommendationProducts] = useState<any[]>([]);
+  const [statisticsModalOpen, setStatisticsModalOpen] = useState(false);
+  const [statisticsImageUrl, setStatisticsImageUrl] = useState('');
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -105,6 +113,43 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
     }
   };
 
+  // 개발용: Type 1 모달 테스트 (상품 추천)
+  const handleTestRecommendationModal = () => {
+    const mockProducts = [
+      {
+        product_id: 501,
+        price: 12000,
+        platform_name: '쿠팡',
+        category: '생수',
+        review: 250
+      },
+      {
+        product_id: 502,
+        price: 15000,
+        platform_name: '네이버쇼핑',
+        category: '생수',
+        review: 180
+      },
+      {
+        product_id: 503,
+        price: 18000,
+        platform_name: '11번가',
+        category: '음료',
+        review: 320
+      }
+    ];
+    setRecommendationProducts(mockProducts);
+    setRecommendationModalOpen(true);
+  };
+
+  // 개발용: Type 2 모달 테스트 (통계 이미지)
+  const handleTestStatisticsModal = () => {
+    // Mock 통계 이미지 URL (실제로는 백엔드에서 받음)
+    const mockImageUrl = 'https://via.placeholder.com/600x400/3b82f6/ffffff?text=Payment+Statistics';
+    setStatisticsImageUrl(mockImageUrl);
+    setStatisticsModalOpen(true);
+  };
+
 
 
 
@@ -133,6 +178,24 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
         <div>
           <h1 className={styles.headerTitle}>쇼비자 맞춤형 쇼핑 비서 서비스</h1>
           <p className={styles.headerSubtitle}>실시간 상품 추천 채팅</p>
+        </div>
+
+        {/* 개발용 테스트 버튼 */}
+        <div className={styles.devButtons}>
+          <button
+            className={styles.devButton}
+            onClick={handleTestRecommendationModal}
+            title="상품 추천 모달 테스트 (Type 1)"
+          >
+            🧪 상품추천
+          </button>
+          <button
+            className={styles.devButton}
+            onClick={handleTestStatisticsModal}
+            title="통계 이미지 모달 테스트 (Type 2)"
+          >
+            🧪 통계이미지
+          </button>
         </div>
       </div>
 
@@ -247,6 +310,20 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
           {error}
         </div>
       )}
+
+      {/* Type 1 모달: 상품 추천 */}
+      <ChatRecommendationModal
+        isOpen={recommendationModalOpen}
+        onClose={() => setRecommendationModalOpen(false)}
+        products={recommendationProducts}
+      />
+
+      {/* Type 2 모달: 통계 이미지 */}
+      <StatisticsImageModal
+        isOpen={statisticsModalOpen}
+        onClose={() => setStatisticsModalOpen(false)}
+        imageUrl={statisticsImageUrl}
+      />
 
     </div>
   );

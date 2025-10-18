@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react';
 
 export type PageType = 'chat' | 'statistics' | 'purchase-history';
 
@@ -25,30 +25,33 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
     // previousPage is intentionally omitted - optional property
   });
 
-  const navigateTo = (page: PageType) => {
+  const navigateTo = useCallback((page: PageType) => {
     setNavigationState(prev => ({
       currentPage: page,
       previousPage: prev.currentPage
     }));
-  };
+  }, []);
 
-  const goBack = () => {
-    if (navigationState.previousPage) {
-      setNavigationState(prev => ({
-        currentPage: prev.previousPage || 'chat',
-        previousPage: 'chat' // Reset to default
-      }));
-    }
-  };
+  const goBack = useCallback(() => {
+    setNavigationState(prev => {
+      if (prev.previousPage) {
+        return {
+          currentPage: prev.previousPage,
+          previousPage: 'chat' // Reset to default
+        };
+      }
+      return prev;
+    });
+  }, []);
 
   const canGoBack = Boolean(navigationState.previousPage);
 
-  const contextValue: NavigationContextValue = {
+  const contextValue: NavigationContextValue = useMemo(() => ({
     ...navigationState,
     navigateTo,
     goBack,
     canGoBack
-  };
+  }), [navigationState.currentPage, navigationState.previousPage, navigateTo, goBack, canGoBack]);
 
   return (
     <NavigationContext.Provider value={contextValue}>

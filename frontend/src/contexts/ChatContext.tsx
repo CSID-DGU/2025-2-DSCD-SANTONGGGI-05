@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import { ChatState, ChatContextValue, ChatMessage, ChatSession, ChatAttachment } from '../types/chat';
 import { chatApi } from '../services/api/chat';
 import { useAuth } from './AuthContext';
@@ -425,9 +425,9 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   };
 
   // Clear current session
-  const clearCurrentSession = () => {
+  const clearCurrentSession = useCallback(() => {
     dispatch({ type: 'CLEAR_CURRENT_SESSION' });
-  };
+  }, []);
 
   // Mark message as read
   const markAsRead = useCallback((messageId: string) => {
@@ -435,7 +435,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     console.log('Marking message as read:', messageId);
   }, []);
 
-  const contextValue: ChatContextValue = {
+  const contextValue: ChatContextValue = useMemo(() => ({
     ...state,
     sendMessage,
     retryMessage,
@@ -446,7 +446,20 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     deleteSession,
     clearCurrentSession,
     markAsRead,
-  };
+  }), [
+    // Track state changes - use primitives to avoid object reference issues
+    state.sessions.length,
+    state.currentSession?.id,
+    state.currentSession?.messages.length,
+    state.isLoading,
+    state.isTyping,
+    state.error,
+    state.connectionStatus,
+    clearCurrentSession,
+    markAsRead,
+    // Intentionally excluding other functions to prevent infinite loops
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  ]);
 
   return (
     <ChatContext.Provider value={contextValue}>

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, useMemo, ReactNode } from 'react';
 import { PanelState, PanelContextValue, PanelData } from '../types/panel';
 
 // Initial state
@@ -211,7 +211,7 @@ export const PanelProvider: React.FC<PanelProviderProps> = ({ children }) => {
     dispatch({ type: 'CLEAR_HISTORY' });
   }, []);
 
-  const contextValue: PanelContextValue = {
+  const contextValue: PanelContextValue = useMemo(() => ({
     ...state,
     showPanel,
     hidePanel,
@@ -221,7 +221,22 @@ export const PanelProvider: React.FC<PanelProviderProps> = ({ children }) => {
     setPanelHeight,
     goBack,
     clearHistory,
-  };
+  }), [
+    state.currentPanel,
+    state.panelHistory.length,
+    state.isExpanded,
+    state.isAnimating,
+    state.height,
+    showPanel,
+    hidePanel,
+    closePanel,
+    togglePanel,
+    updatePanelData,
+    setPanelHeight,
+    goBack,
+    clearHistory,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  ]);
 
   return (
     <PanelContext.Provider value={contextValue}>

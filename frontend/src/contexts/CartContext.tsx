@@ -364,10 +364,9 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
         dispatch({ type: 'ADD_ITEM', payload: newItem });
 
-        // Will recalculate in next render with updated items
-        setTimeout(() => {
-          dispatch({ type: 'UPDATE_SUMMARY', payload: calculateSummary(state.items) });
-        }, 0);
+        // Recalculate summary with the new item included
+        const updatedItems = [...state.items, newItem];
+        dispatch({ type: 'UPDATE_SUMMARY', payload: calculateSummary(updatedItems) });
       }
     } catch (error: any) {
       dispatch({ type: 'SET_ERROR', payload: error.message });
@@ -379,7 +378,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   }, [isAuthenticated]); // Don't include calculateSummary or state
 
   // Remove item from cart
-  const removeItem = async (itemId: string) => {
+  const removeItem = useCallback(async (itemId: string) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
 
@@ -400,10 +399,11 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]); // Don't include state to avoid infinite loops
 
   // Update item quantity (local only - no API call needed)
-  const updateQuantity = async (itemId: string, quantity: number) => {
+  const updateQuantity = useCallback(async (itemId: string, quantity: number) => {
     if (quantity <= 0) {
       await removeItem(itemId);
       return;
@@ -436,10 +436,11 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [removeItem]); // Include removeItem dependency
 
   // Clear cart (local only - no API call needed)
-  const clearCart = async () => {
+  const clearCart = useCallback(async () => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
 
@@ -455,17 +456,19 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
-  };
+  }, [isAuthenticated]);
 
   // Get item by product ID
-  const getItemByProductId = (productId: string): CartItem | undefined => {
+  const getItemByProductId = useCallback((productId: string): CartItem | undefined => {
     return state.items.find(item => item.productId === productId);
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.items.length]); // Use length to avoid full array dependency
 
   // Get total quantity
-  const getTotalQuantity = (): number => {
+  const getTotalQuantity = useCallback((): number => {
     return state.items.reduce((total, item) => total + item.quantity, 0);
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.items.length]); // Use length to avoid full array dependency
 
   // Refresh cart data
   const refreshCart = useCallback(async () => {
@@ -534,6 +537,11 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     state.lastUpdated,
     addItem,
     addToCart,
+    removeItem,
+    updateQuantity,
+    clearCart,
+    getItemByProductId,
+    getTotalQuantity,
     refreshCart,
   ]);
 
