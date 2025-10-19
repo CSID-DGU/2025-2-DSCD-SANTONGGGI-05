@@ -113,29 +113,56 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
     }
   };
 
-  // 개발용: Type 1 모달 테스트 (상품 추천)
+  // 개발용: Type 1 모달 테스트 (상품 추천 - 채팅 응답용 6개)
   const handleTestRecommendationModal = () => {
     const mockProducts = [
       {
         product_id: 501,
+        name: '제주 삼다수 2L 12병',
         price: 12000,
         platform_name: '쿠팡',
         category: '생수',
         review: 250
       },
       {
+        product_id: 505,
+        price: 18000,
+        name: '코카콜라 제로 355ml 24캔',
+        platform_name: '11번가',
+        category: '음료',
+        review: 320
+      },
+      {
         product_id: 502,
+        name: '아이시스 8.0 2L 6병',
         price: 15000,
         platform_name: '네이버쇼핑',
         category: '생수',
         review: 180
       },
       {
-        product_id: 503,
-        price: 18000,
+        product_id: 506,
+        name: '크린랩 주방세제 3개입',
+        price: 22000,
+        platform_name: '쿠팡',
+        category: '청소용품',
+        review: 410
+      },
+      {
+        product_id: 507,
+        name: '테크 물티슈 10팩',
+        price: 9500,
+        platform_name: '네이버쇼핑',
+        category: '생활용품',
+        review: 150
+      },
+      {
+        product_id: 508,
+        name: '레쓰비 카페라떼 175ml 30캔',
+        price: 14500,
         platform_name: '11번가',
         category: '음료',
-        review: 320
+        review: 290
       }
     ];
     setRecommendationProducts(mockProducts);

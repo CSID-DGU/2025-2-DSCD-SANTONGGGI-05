@@ -54,49 +54,42 @@ export const recommendationsApi = {
   ): Promise<ApiResponse<RecommendationsResponse>> => {
     await new Promise(resolve => setTimeout(resolve, 600));
 
-    // Mock 추천 상품 - rating과 review 가중치 기반
+    // Mock 추천 상품 - CustomRecommendation용 (Type 2) 5개
     const mockRecommendations: RecommendedProduct[] = [
       {
-        product_id: 501,
-        price: 12000,
+        product_id: 601,
+        price: 8500,
         platform_name: '쿠팡',
         category: '생수',
-        url: 'https://www.coupang.com/vp/products/5625704601'
+        url: 'https://www.coupang.com/vp/products/6012345678'
       },
       {
-        product_id: 505,
-        price: 18000,
-        platform_name: '11번가',
-        category: '음료',
-        url: 'https://www.11st.co.kr/products/8584772955'
-      },
-      {
-        product_id: 502,
-        price: 15000,
+        product_id: 602,
+        price: 25000,
         platform_name: '네이버쇼핑',
-        category: '생수',
-        url: 'https://search.shopping.naver.com/catalog/34739644906'
-      },
-      {
-        product_id: 506,
-        price: 22000,
-        platform_name: '쿠팡',
         category: '청소용품',
-        url: 'https://www.coupang.com/vp/products/6789012345'
+        url: 'https://search.shopping.naver.com/catalog/60123456789'
       },
       {
-        product_id: 507,
-        price: 9500,
-        platform_name: '네이버쇼핑',
-        category: '생활용품',
-        url: 'https://search.shopping.naver.com/catalog/45678901234'
-      },
-      {
-        product_id: 508,
-        price: 14500,
+        product_id: 603,
+        price: 13500,
         platform_name: '11번가',
+        category: '생활용품',
+        url: 'https://www.11st.co.kr/products/6034567890'
+      },
+      {
+        product_id: 604,
+        price: 19000,
+        platform_name: '쿠팡',
         category: '음료',
-        url: 'https://www.11st.co.kr/products/9876543210'
+        url: 'https://www.coupang.com/vp/products/6045678901'
+      },
+      {
+        product_id: 605,
+        price: 11000,
+        platform_name: '네이버쇼핑',
+        category: '식품',
+        url: 'https://search.shopping.naver.com/catalog/60567890123'
       }
     ];
 
@@ -160,27 +153,38 @@ export const recommendationsApi = {
         const discount = hasDiscount ? Math.floor(Math.random() * 20) + 10 : undefined;
         const originalPrice = hasDiscount ? Math.floor(basePrice / (1 - discount! / 100)) : undefined;
 
-        return {
+        const product: UIRecommendedProduct = {
           id: String(item.product_id),
           name: `${item.category} - ${item.platform_name}`,
           price: basePrice,
-          originalPrice,
           image: categoryEmojis[item.category] || '📦',
           category: item.category,
-          discount,
           rating: 4.0 + Math.random(), // 4.0-5.0 범위의 랜덤 평점
           reviewCount: Math.floor(Math.random() * 500) + 50, // 50-550 범위의 리뷰 수
           url: item.url,
           reason: categoryReasons[item.category] || '추천 상품입니다'
         };
+
+        // 할인이 있는 경우에만 속성 추가
+        if (hasDiscount && discount !== undefined && originalPrice !== undefined) {
+          product.originalPrice = originalPrice;
+          product.discount = discount;
+        }
+
+        return product;
       });
+
+      const result: UIRecommendationsData = {
+        products: products
+      };
+
+      if (params.page !== undefined) {
+        result.page = params.page;
+      }
 
       return {
         success: true,
-        data: {
-          products: products,
-          page: params.page
-        }
+        data: result
       };
     } catch (error) {
       console.error('getAllRecommendations error:', error);

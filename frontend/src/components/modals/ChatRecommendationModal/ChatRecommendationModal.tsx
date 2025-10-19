@@ -5,6 +5,7 @@ import styles from './ChatRecommendationModal.module.css';
 // Type 1: 채팅 응답에서 받은 상품 추천 데이터
 interface Product {
   product_id: number;
+  name: string;
   price: number;
   platform_name: string;
   category: string;
@@ -17,6 +18,16 @@ interface ChatRecommendationModalProps {
   products: Product[];  // 백엔드에서 받은 recommendationItems
 }
 
+// 카테고리별 이모지 매핑
+const categoryEmojis: Record<string, string> = {
+  '생수': '💧',
+  '음료': '🥤',
+  '생활용품': '🧴',
+  '청소용품': '🧹',
+  '식품': '🍔',
+  '기타': '📦'
+};
+
 export const ChatRecommendationModal: React.FC<ChatRecommendationModalProps> = ({
   isOpen,
   onClose,
@@ -27,7 +38,7 @@ export const ChatRecommendationModal: React.FC<ChatRecommendationModalProps> = (
   const handleAddToCart = async (product: Product) => {
     try {
       await addItem(String(product.product_id), 1);
-      alert(`${product.category} 상품을 장바구니에 추가했습니다!`);
+      alert(`${product.name}을(를) 장바구니에 추가했습니다!`);
     } catch (error) {
       console.error('장바구니 추가 실패:', error);
       alert('장바구니 추가에 실패했습니다.');
@@ -59,44 +70,59 @@ export const ChatRecommendationModal: React.FC<ChatRecommendationModalProps> = (
             </div>
           ) : (
             <div className={styles.productList}>
-              {products.map((product, index) => (
-                <div key={product.product_id} className={styles.productCard}>
-                  {/* Rank Badge */}
-                  <div className={styles.rankBadge}>#{index + 1}</div>
+              {products.map((product, index) => {
+                const emoji = categoryEmojis[product.category] || '📦';
 
-                  {/* Product Info */}
-                  <div className={styles.productInfo}>
-                    <div className={styles.productHeader}>
-                      <span className={styles.platform}>{product.platform_name}</span>
-                      <span className={styles.category}>{product.category}</span>
+                return (
+                  <div key={product.product_id} className={styles.productCard}>
+                    {/* Rank Badge */}
+                    <div className={styles.rankBadge}>#{index + 1}</div>
+
+                    {/* Product Image (Emoji) */}
+                    <div className={styles.productImage}>
+                      <span className={styles.productEmoji}>{emoji}</span>
                     </div>
 
-                    <div className={styles.productDetails}>
-                      <div className={styles.priceSection}>
-                        <span className={styles.price}>
-                          ₩{product.price.toLocaleString()}
-                        </span>
+                    {/* Product Info Container */}
+                    <div className={styles.productInfoContainer}>
+                      {/* Product Info */}
+                      <div className={styles.productInfo}>
+                        <div className={styles.productHeader}>
+                          <span className={styles.platform}>{product.platform_name}</span>
+                          <span className={styles.category}>{product.category}</span>
+                        </div>
+
+                        {/* Product Name */}
+                        <h3 className={styles.productName}>{product.name}</h3>
+
+                        <div className={styles.productDetails}>
+                          <div className={styles.priceSection}>
+                            <span className={styles.price}>
+                              ₩{product.price.toLocaleString()}
+                            </span>
+                          </div>
+
+                          <div className={styles.reviewSection}>
+                            <span className={styles.reviewIcon}>⭐</span>
+                            <span className={styles.reviewCount}>
+                              리뷰 {product.review.toLocaleString()}개
+                            </span>
+                          </div>
+                        </div>
                       </div>
 
-                      <div className={styles.reviewSection}>
-                        <span className={styles.reviewIcon}>⭐</span>
-                        <span className={styles.reviewCount}>
-                          리뷰 {product.review.toLocaleString()}개
-                        </span>
-                      </div>
+                      {/* Add to Cart Button */}
+                      <button
+                        className={styles.addToCartButton}
+                        onClick={() => handleAddToCart(product)}
+                      >
+                        <span className={styles.cartIcon}>🛒</span>
+                        장바구니 추가
+                      </button>
                     </div>
                   </div>
-
-                  {/* Add to Cart Button */}
-                  <button
-                    className={styles.addToCartButton}
-                    onClick={() => handleAddToCart(product)}
-                  >
-                    <span className={styles.cartIcon}>🛒</span>
-                    장바구니 추가
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

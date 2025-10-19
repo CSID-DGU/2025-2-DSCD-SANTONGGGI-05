@@ -196,29 +196,6 @@ export const PurchaseHistoryDashboard: React.FC<PurchaseHistoryDashboardProps> =
                   ))}
                 </div>
 
-                <div className={styles.orderActions}>
-                  <div className={styles.orderMeta}>
-                    <span className={styles.paymentMethod}>결제: {order.paymentMethod}</span>
-                    {order.trackingNumber && (
-                      <span className={styles.trackingNumber}>송장: {order.trackingNumber}</span>
-                    )}
-                  </div>
-                  <div className={styles.actionButtons}>
-                    {order.status === 'completed' && (
-                      <button className={styles.reorderButton}>
-                        재주문
-                      </button>
-                    )}
-                    {order.status === 'pending' && (
-                      <button className={styles.cancelButton}>
-                        주문취소
-                      </button>
-                    )}
-                    <button className={styles.detailButton}>
-                      상세보기
-                    </button>
-                  </div>
-                </div>
               </div>
             ))}
           </div>
