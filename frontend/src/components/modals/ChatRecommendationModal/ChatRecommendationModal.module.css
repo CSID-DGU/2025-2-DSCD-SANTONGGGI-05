@@ -27,7 +27,7 @@
   background: white;
   border-radius: 16px;
   width: 90%;
-  max-width: 600px;
+  max-width: 900px;
   max-height: 80vh;
   display: flex;
   flex-direction: column;
@@ -99,8 +99,8 @@
 
 /* Product List */
 .productList {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
 }
 
@@ -241,6 +241,10 @@
 
   .modalBody {
     padding: 16px 20px;
+  }
+
+  .productList {
+    grid-template-columns: 1fr;
   }
 
   .productCard {

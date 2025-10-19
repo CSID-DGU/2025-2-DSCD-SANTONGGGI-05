@@ -17,7 +17,7 @@
 .modalContent {
   background: white;
   border-radius: var(--border-radius-lg);
-  max-width: 800px;
+  max-width: 680px;
   width: 100%;
   max-height: 85vh;
   display: flex;
@@ -30,25 +30,25 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-lg);
+  padding: 16px 20px;
   border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
 }
 
 .modalTitle {
   margin: 0;
-  font-size: var(--font-size-2xl);
+  font-size: 18px;
   font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
 }
 
 .closeButton {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border: none;
   background: transparent;
   color: var(--color-text-secondary);
-  font-size: var(--font-size-xxl);
+  font-size: 24px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -65,7 +65,7 @@
 /* Modal Body */
 .modalBody {
   flex: 1;
-  padding: var(--spacing-lg);
+  padding: 16px;
   overflow-y: auto;
   min-height: 0;
 }
@@ -86,16 +86,16 @@
 .productList {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 10px;
 }
 
 /* Product Card */
 .productCard {
   display: flex;
-  gap: var(--spacing-lg);
-  padding: var(--spacing-lg);
+  gap: 12px;
+  padding: 12px;
   border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-lg);
+  border-radius: var(--border-radius-md);
   background: var(--color-background);
   transition: all var(--animation-duration-fast) ease;
   position: relative;
@@ -110,17 +110,17 @@
 /* Product Rank */
 .productRank {
   position: absolute;
-  top: var(--spacing-xs);
-  left: var(--spacing-xs);
-  width: 24px;
-  height: 24px;
+  top: 6px;
+  left: 6px;
+  width: 20px;
+  height: 20px;
   background: var(--color-primary);
   color: white;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: var(--font-weight-bold);
 }
 
@@ -128,8 +128,8 @@
 .productImage {
   position: relative;
   flex-shrink: 0;
-  width: 90px;
-  height: 90px;
+  width: 70px;
+  height: 70px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -139,19 +139,19 @@
 }
 
 .productEmoji {
-  font-size: 48px;
+  font-size: 36px;
   line-height: 1;
 }
 
 .discountBadge {
   position: absolute;
-  top: -6px;
-  right: -6px;
+  top: -4px;
+  right: -4px;
   background: var(--color-danger);
   color: white;
-  padding: 2px 6px;
+  padding: 2px 5px;
   border-radius: var(--border-radius-full);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: var(--font-weight-bold);
 }
 
@@ -160,11 +160,11 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .productCategory {
-  font-size: var(--font-size-xs);
+  font-size: 10px;
   color: var(--color-text-secondary);
   font-weight: var(--font-weight-medium);
   text-transform: uppercase;
@@ -173,34 +173,34 @@
 
 .productName {
   margin: 0;
-  font-size: var(--font-size-lg);
+  font-size: 14px;
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
-  line-height: 1.4;
+  line-height: 1.3;
 }
 
 /* Pricing */
 .productPricing {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  margin-top: 2px;
+  gap: 6px;
+  margin-top: 1px;
 }
 
 .originalPrice {
-  font-size: var(--font-size-sm);
+  font-size: 12px;
   color: var(--color-text-secondary);
   text-decoration: line-through;
 }
 
 .discountPrice {
-  font-size: var(--font-size-lg);
+  font-size: 15px;
   font-weight: var(--font-weight-semibold);
   color: var(--color-danger);
 }
 
 .regularPrice {
-  font-size: var(--font-size-lg);
+  font-size: 15px;
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
 }
@@ -209,62 +209,63 @@
 .platformBadge {
   display: inline-flex;
   align-items: center;
-  padding: 4px 8px;
+  padding: 3px 6px;
   background: var(--color-background);
   border: 1px solid var(--color-border);
   border-radius: var(--border-radius-sm);
-  font-size: var(--font-size-xs);
+  font-size: 10px;
   color: var(--color-text-secondary);
   font-weight: var(--font-weight-medium);
-  margin-top: 4px;
+  margin-top: 2px;
+  width: fit-content;
 }
 
 /* Recommendation Reason */
 .recommendationReason {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 8px;
+  gap: 3px;
+  padding: 4px 6px;
   background: var(--color-info-background);
   border-radius: var(--border-radius-sm);
   border: 1px solid var(--color-info);
-  margin-top: 4px;
+  margin-top: 3px;
 }
 
 .reasonIcon {
-  font-size: var(--font-size-sm);
+  font-size: 11px;
   line-height: 1;
 }
 
 .reasonText {
-  font-size: var(--font-size-sm);
+  font-size: 11px;
   color: var(--color-info);
   font-weight: var(--font-weight-medium);
-  line-height: 1.4;
+  line-height: 1.3;
 }
 
 /* Product Actions */
 .productActions {
   display: flex;
   gap: 6px;
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
 .addToCartBtn {
   flex: 1;
-  padding: 8px 12px;
+  padding: 6px 10px;
   background: var(--color-primary);
   color: white;
   border: none;
   border-radius: var(--border-radius-sm);
-  font-size: var(--font-size-sm);
+  font-size: 12px;
   font-weight: var(--font-weight-medium);
   cursor: pointer;
   transition: background-color var(--animation-duration-fast) ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 3px;
 }
 
 .addToCartBtn:hover {
@@ -272,17 +273,17 @@
 }
 
 .cartIcon {
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .viewProductBtn {
   flex: 1;
-  padding: 8px 12px;
+  padding: 6px 10px;
   background: transparent;
   color: var(--color-text-secondary);
   border: 1px solid var(--color-border);
   border-radius: var(--border-radius-sm);
-  font-size: var(--font-size-sm);
+  font-size: 12px;
   font-weight: var(--font-weight-medium);
   cursor: pointer;
   transition: all var(--animation-duration-fast) ease;
@@ -301,8 +302,8 @@
   }
 
   .productCard {
-    padding: var(--spacing-sm);
-    gap: var(--spacing-sm);
+    padding: 10px;
+    gap: 10px;
   }
 
   .productImage {
@@ -314,14 +315,28 @@
     font-size: 28px;
   }
 
+  .productName {
+    font-size: 13px;
+  }
+
+  .productPricing {
+    gap: 4px;
+  }
+
+  .discountPrice,
+  .regularPrice {
+    font-size: 14px;
+  }
+
   .productActions {
     flex-direction: column;
     gap: 4px;
+    margin-top: 4px;
   }
 
   .addToCartBtn,
   .viewProductBtn {
-    padding: 6px 10px;
-    font-size: var(--font-size-xs);
+    padding: 5px 8px;
+    font-size: 11px;
   }
 }
