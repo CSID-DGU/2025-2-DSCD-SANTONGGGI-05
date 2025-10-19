@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { useCart, useNavigation } from '../../../contexts/AppProvider';
+import { useCart, useNavigation, useAuth } from '../../../contexts/AppProvider';
 import { LoadingSpinner } from '../../ui/LoadingSpinner';
-import { ProductRecommendationModal } from '../../modals/ProductRecommendationModal/ProductRecommendationModal';
+import { RecommendationWeightModal } from '../../modals/RecommendationWeightModal';
+import { CustomRecommendationModal } from '../../modals/CustomRecommendationModal';
+import { recommendationsApi } from '../../../services/api/recommendations';
 import styles from './CartSummary.module.css';
 
 interface CartSummaryProps {
@@ -9,6 +11,14 @@ interface CartSummaryProps {
   isMinimized?: boolean;
   itemCount: number;
   className?: string;
+}
+
+interface CustomRecommendedProduct {
+  product_id: number;
+  price: number;
+  platform_name: string;
+  category: string;
+  url: string;
 }
 
 export const CartSummary: React.FC<CartSummaryProps> = ({
@@ -19,8 +29,11 @@ export const CartSummary: React.FC<CartSummaryProps> = ({
 }) => {
   const { isLoading } = useCart();
   const { navigateTo } = useNavigation();
+  const { user } = useAuth();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
-  const [isRecommendationModalOpen, setIsRecommendationModalOpen] = useState(false);
+  const [isWeightModalOpen, setIsWeightModalOpen] = useState(false);
+  const [isCustomRecommendationModalOpen, setIsCustomRecommendationModalOpen] = useState(false);
+  const [customRecommendations, setCustomRecommendations] = useState<CustomRecommendedProduct[]>([]);
 
   // Calculate total for minimized view
   const total = subtotal;
@@ -54,8 +67,39 @@ export const CartSummary: React.FC<CartSummaryProps> = ({
 
   const handleRecommendations = () => {
     if (isLoading) return;
-    console.log('Open product recommendations modal');
-    setIsRecommendationModalOpen(true);
+    console.log('Open weight input modal for custom recommendations');
+    setIsWeightModalOpen(true);
+  };
+
+  const handleWeightSubmit = async (rating: number, review: number) => {
+    try {
+      console.log(`Fetching custom recommendations with rating: ${rating}, review: ${review}`);
+
+      // 가중치 모달 닫기
+      setIsWeightModalOpen(false);
+
+      // API 호출
+      const userId = user?.id || 1123;
+      const response = await recommendationsApi.getRecommendations({
+        user_id: userId,
+        rating,
+        review
+      });
+
+      if (response.success) {
+        // 5개만 선택
+        const products = response.data.recommendations.slice(0, 5);
+        setCustomRecommendations(products);
+
+        // 추천 결과 모달 열기
+        setIsCustomRecommendationModalOpen(true);
+      } else {
+        alert('추천 상품을 가져오는데 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Failed to fetch custom recommendations:', error);
+      alert('추천 상품을 가져오는데 실패했습니다.');
+    }
   };
 
   const summaryClasses = [
@@ -131,10 +175,18 @@ export const CartSummary: React.FC<CartSummaryProps> = ({
         </div>
       )}
 
-      {/* Product Recommendation Modal */}
-      <ProductRecommendationModal
-        isOpen={isRecommendationModalOpen}
-        onClose={() => setIsRecommendationModalOpen(false)}
+      {/* Weight Input Modal (Type 2 - Custom Recommendation) */}
+      <RecommendationWeightModal
+        isOpen={isWeightModalOpen}
+        onClose={() => setIsWeightModalOpen(false)}
+        onSubmit={handleWeightSubmit}
+      />
+
+      {/* Custom Recommendation Results Modal (Type 2) */}
+      <CustomRecommendationModal
+        isOpen={isCustomRecommendationModalOpen}
+        onClose={() => setIsCustomRecommendationModalOpen(false)}
+        products={customRecommendations}
       />
     </div>
   );

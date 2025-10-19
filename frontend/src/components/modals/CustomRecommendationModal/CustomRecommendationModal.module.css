@@ -70,37 +70,16 @@
   min-height: 0;
 }
 
-/* Loading & Error States */
-.loadingContainer,
-.errorContainer {
+/* Empty State */
+.emptyState {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: var(--spacing-xl);
   min-height: 200px;
-}
-
-.errorMessage {
-  margin-bottom: var(--spacing-md);
-  color: var(--color-danger);
+  color: var(--color-text-secondary);
   font-size: var(--font-size-md);
-}
-
-.retryButton {
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-  transition: background-color var(--animation-duration-fast) ease;
-}
-
-.retryButton:hover {
-  background: var(--color-primary-hover);
 }
 
 /* Product List */
@@ -224,6 +203,20 @@
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
+}
+
+/* Platform Badge */
+.platformBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+  margin-top: 4px;
 }
 
 /* Recommendation Reason */
