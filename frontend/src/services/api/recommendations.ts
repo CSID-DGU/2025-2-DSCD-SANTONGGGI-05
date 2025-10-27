@@ -120,7 +120,7 @@ export const recommendationsApi = {
         review: 6
       });
 
-      if (!response.success) {
+      if (!response.success || !response.data) {
         return {
           success: false,
           data: null as any,
@@ -150,10 +150,16 @@ export const recommendationsApi = {
       const products: UIRecommendedProduct[] = response.data.recommendations.map((item, index) => {
         const basePrice = item.price;
         const hasDiscount = index % 3 === 0; // 일부 상품에 할인 적용
-        const discount = hasDiscount ? Math.floor(Math.random() * 20) + 10 : undefined;
-        const originalPrice = hasDiscount ? Math.floor(basePrice / (1 - discount! / 100)) : undefined;
 
-        const product: UIRecommendedProduct = {
+        let discount: number | undefined;
+        let originalPrice: number | undefined;
+
+        if (hasDiscount) {
+          discount = Math.floor(Math.random() * 20) + 10;
+          originalPrice = Math.floor(basePrice / (1 - discount / 100));
+        }
+
+        return {
           id: String(item.product_id),
           name: `${item.category} - ${item.platform_name}`,
           price: basePrice,
@@ -162,16 +168,12 @@ export const recommendationsApi = {
           rating: 4.0 + Math.random(), // 4.0-5.0 범위의 랜덤 평점
           reviewCount: Math.floor(Math.random() * 500) + 50, // 50-550 범위의 리뷰 수
           url: item.url,
-          reason: categoryReasons[item.category] || '추천 상품입니다'
+          reason: categoryReasons[item.category] || '추천 상품입니다',
+          ...(hasDiscount && discount !== undefined && originalPrice !== undefined && {
+            originalPrice,
+            discount
+          })
         };
-
-        // 할인이 있는 경우에만 속성 추가
-        if (hasDiscount && discount !== undefined && originalPrice !== undefined) {
-          product.originalPrice = originalPrice;
-          product.discount = discount;
-        }
-
-        return product;
       });
 
       const result: UIRecommendationsData = {

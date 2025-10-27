@@ -1,40 +1,17 @@
 import { BaseEntity } from './index';
-import { PanelData } from './panel';
-import { CartUpdate } from './cart';
 
+// ERD 기반 채팅 메시지 타입
 export interface ChatMessage extends BaseEntity {
   content: string;
   role: 'user' | 'assistant';
-  type: 'text' | 'image' | 'file' | 'product' | 'action';
-  metadata?: ChatMessageMetadata;
-  panelData?: PanelData;
-  cartUpdates?: CartUpdate[];
-  attachments?: ChatAttachment[];
-}
-
-export interface ChatMessageMetadata {
-  typing?: boolean;
-  edited?: boolean;
-  editedAt?: Date;
+  type: 'text' | 'product' | 'statistics';  // ERD type: 0(일반), 1(상품추천), 2(결제통계)
   status?: 'sending' | 'sent' | 'delivered' | 'failed';
-  retryCount?: number;
 }
 
-export interface ChatAttachment {
-  id: string;
-  type: 'image' | 'file' | 'product_link';
-  url: string;
-  name: string;
-  size?: number;
-  mimeType?: string;
-}
-
+// 프론트엔드 UI용 세션 (단순화)
 export interface ChatSession extends BaseEntity {
   title: string;
   messages: ChatMessage[];
-  isActive: boolean;
-  summary?: string;
-  tags?: string[];
 }
 
 export interface ChatState {
@@ -47,40 +24,7 @@ export interface ChatState {
 }
 
 export interface ChatContextValue extends ChatState {
-  sendMessage: (content: string, attachments?: ChatAttachment[]) => Promise<void>;
-  retryMessage: (messageId: string) => Promise<void>;
-  editMessage: (messageId: string, newContent: string) => Promise<void>;
-  deleteMessage: (messageId: string) => Promise<void>;
-  createSession: (title?: string) => Promise<ChatSession>;
-  switchSession: (sessionId: string) => Promise<void>;
-  deleteSession: (sessionId: string) => Promise<void>;
+  sendMessage: (message: string) => Promise<void>;
   clearCurrentSession: () => void;
-  markAsRead: (messageId: string) => void;
-}
-
-export interface ChatApiRequest {
-  message: string;
-  sessionId?: string;
-  attachments?: ChatAttachment[];
-  context?: {
-    cartItems?: string[];
-    userPreferences?: any;
-    previousMessages?: number;
-  };
-}
-
-export interface ChatApiResponse {
-  message: ChatMessage;
-  panelData?: PanelData;
-  cartUpdates?: CartUpdate[];
-  sessionId: string;
-  suggestions?: string[];
-  actions?: ChatAction[];
-}
-
-export interface ChatAction {
-  type: 'add_to_cart' | 'remove_from_cart' | 'show_product' | 'navigate' | 'search';
-  payload: any;
-  label: string;
-  icon?: string;
+  loadHistory: () => Promise<void>;
 }

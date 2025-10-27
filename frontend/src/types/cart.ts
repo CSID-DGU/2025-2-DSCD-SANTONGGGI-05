@@ -1,6 +1,6 @@
 import { BaseEntity } from './index';
 
-export interface Product extends BaseEntity {
+export interface DetailedProduct extends BaseEntity {
   name: string;
   description: string;
   price: number;
@@ -51,7 +51,7 @@ export interface ProductVariant {
 
 export interface CartItem extends BaseEntity {
   productId: string;
-  product: Product;
+  product: DetailedProduct;
   variantId?: string;
   variant?: ProductVariant;
   unitPrice: number;
@@ -83,7 +83,7 @@ export interface CartState {
   lastUpdated: Date | null;
 }
 
-export interface CartContextValue extends CartState {
+export interface CartContextValue extends Omit<CartState, 'items'> {
   // Simplified properties for component compatibility
   items: CartItemType[];
   total: number;

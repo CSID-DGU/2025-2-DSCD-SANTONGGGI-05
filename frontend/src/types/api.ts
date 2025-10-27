@@ -1,6 +1,4 @@
 import { ApiResponse } from './index';
-import { ChatApiRequest, ChatApiResponse } from './chat';
-import { CartUpdate, AddToCartRequest, UpdateCartRequest } from './cart';
 import { PanelData } from './panel';
 
 // HTTP method types
@@ -52,9 +50,18 @@ export interface LoginResponse {
   };
 }
 
-// Chat API
-export interface SendMessageRequest extends ChatApiRequest {}
-export interface SendMessageResponse extends ChatApiResponse {}
+// Chat API (ERD 기반으로 단순화됨)
+export interface SendMessageRequest {
+  user_id: number;
+  message: string;
+}
+
+export interface SendMessageResponse {
+  user_id: number;
+  ai_message: string;
+  type: number;
+  recommendationItems: any[];
+}
 
 export interface GetChatHistoryRequest {
   sessionId?: string;

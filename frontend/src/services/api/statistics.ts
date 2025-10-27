@@ -304,7 +304,7 @@ export const statisticsApi = {
       ]);
 
       // 에러 체크
-      if (!mainRes.success || !weeklyRes.success || !categoryRes.success) {
+      if (!mainRes.success || !mainRes.data || !weeklyRes.success || !weeklyRes.data || !categoryRes.success || !categoryRes.data) {
         return {
           success: false,
           data: null as any,

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode, useCallback, useMemo } from 'react';
-import { ChatState, ChatContextValue, ChatMessage, ChatSession, ChatAttachment } from '../types/chat';
+import { ChatState, ChatContextValue, ChatMessage, ChatSession } from '../types/chat';
 import { chatApi } from '../services/api/chat';
 import { useAuth } from './AuthContext';
 import { usePanel } from './PanelContext';
@@ -15,53 +15,49 @@ const sampleSession: ChatSession = {
       content: '안녕하세요! 무엇을 도와드릴까요?',
       role: 'assistant',
       type: 'text',
-      createdAt: new Date(Date.now() - 300000), // 5 minutes ago
+      createdAt: new Date(Date.now() - 300000),
       updatedAt: new Date(Date.now() - 300000),
-      metadata: { status: 'delivered' }
+      status: 'delivered'
     },
     {
       id: 'msg-2',
       content: '총인님에게 적합한 상품을 추천해 드릴게요!',
       role: 'assistant',
       type: 'text',
-      createdAt: new Date(Date.now() - 240000), // 4 minutes ago
+      createdAt: new Date(Date.now() - 240000),
       updatedAt: new Date(Date.now() - 240000),
-      metadata: { status: 'delivered' }
+      status: 'delivered'
     },
     {
       id: 'msg-3',
       content: '나 물 6개 사야 될 것 같아',
       role: 'user',
       type: 'text',
-      createdAt: new Date(Date.now() - 180000), // 3 minutes ago
+      createdAt: new Date(Date.now() - 180000),
       updatedAt: new Date(Date.now() - 180000),
-      metadata: { status: 'sent' }
+      status: 'sent'
     },
     {
       id: 'msg-4',
       content: '내 장바구니 불러워줘',
       role: 'user',
       type: 'text',
-      createdAt: new Date(Date.now() - 120000), // 2 minutes ago
+      createdAt: new Date(Date.now() - 120000),
       updatedAt: new Date(Date.now() - 120000),
-      metadata: { status: 'sent' }
+      status: 'sent'
     },
     {
       id: 'msg-5',
       content: '장바구니를 확인했습니다',
       role: 'assistant',
       type: 'text',
-      createdAt: new Date(Date.now() - 60000), // 1 minute ago
+      createdAt: new Date(Date.now() - 60000),
       updatedAt: new Date(Date.now() - 60000),
-      metadata: { status: 'delivered' }
+      status: 'delivered'
     }
   ],
-  createdAt: new Date(Date.now() - 360000), // 6 minutes ago
-  updatedAt: new Date(Date.now() - 60000),
-  metadata: {
-    totalMessages: 5,
-    lastActivity: new Date(Date.now() - 60000)
-  }
+  createdAt: new Date(Date.now() - 360000),
+  updatedAt: new Date(Date.now() - 60000)
 };
 
 // Initial state with sample data
@@ -74,22 +70,18 @@ const initialState: ChatState = {
   connectionStatus: 'connected',
 };
 
-// Action types
+// Action types (ERD 기반 단순화)
 type ChatAction =
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_TYPING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
   | { type: 'SET_CONNECTION_STATUS'; payload: 'connected' | 'connecting' | 'disconnected' | 'error' }
-  | { type: 'SET_CURRENT_SESSION'; payload: ChatSession | null }
-  | { type: 'SET_SESSIONS'; payload: ChatSession[] }
-  | { type: 'ADD_MESSAGE'; payload: { sessionId: string; message: ChatMessage } }
-  | { type: 'UPDATE_MESSAGE'; payload: { sessionId: string; messageId: string; updates: Partial<ChatMessage> } }
-  | { type: 'DELETE_MESSAGE'; payload: { sessionId: string; messageId: string } }
-  | { type: 'ADD_SESSION'; payload: ChatSession }
-  | { type: 'DELETE_SESSION'; payload: string }
+  | { type: 'ADD_MESSAGE'; payload: ChatMessage }
+  | { type: 'UPDATE_MESSAGE'; payload: { messageId: string; updates: Partial<ChatMessage> } }
+  | { type: 'SET_MESSAGES'; payload: ChatMessage[] }
   | { type: 'CLEAR_CURRENT_SESSION' };
 
-// Reducer
+// Reducer (ERD 기반 단순화)
 const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
   switch (action.type) {
     case 'SET_LOADING':
@@ -104,23 +96,11 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
     case 'SET_CONNECTION_STATUS':
       return { ...state, connectionStatus: action.payload };
 
-    case 'SET_CURRENT_SESSION':
-      return { ...state, currentSession: action.payload };
-
-    case 'SET_SESSIONS':
-      return { ...state, sessions: action.payload };
-
     case 'ADD_MESSAGE':
-      const { sessionId, message } = action.payload;
       return {
         ...state,
-        sessions: state.sessions.map(session =>
-          session.id === sessionId
-            ? { ...session, messages: [...session.messages, message] }
-            : session
-        ),
-        currentSession: state.currentSession?.id === sessionId
-          ? { ...state.currentSession, messages: [...state.currentSession.messages, message] }
+        currentSession: state.currentSession
+          ? { ...state.currentSession, messages: [...state.currentSession.messages, action.payload] }
           : state.currentSession,
       };
 
@@ -128,17 +108,7 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
       const { messageId, updates } = action.payload;
       return {
         ...state,
-        sessions: state.sessions.map(session =>
-          session.id === action.payload.sessionId
-            ? {
-                ...session,
-                messages: session.messages.map(msg =>
-                  msg.id === messageId ? { ...msg, ...updates } : msg
-                )
-              }
-            : session
-        ),
-        currentSession: state.currentSession?.id === action.payload.sessionId
+        currentSession: state.currentSession
           ? {
               ...state.currentSession,
               messages: state.currentSession.messages.map(msg =>
@@ -148,36 +118,12 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
           : state.currentSession,
       };
 
-    case 'DELETE_MESSAGE':
+    case 'SET_MESSAGES':
       return {
         ...state,
-        sessions: state.sessions.map(session =>
-          session.id === action.payload.sessionId
-            ? {
-                ...session,
-                messages: session.messages.filter(msg => msg.id !== action.payload.messageId)
-              }
-            : session
-        ),
-        currentSession: state.currentSession?.id === action.payload.sessionId
-          ? {
-              ...state.currentSession,
-              messages: state.currentSession.messages.filter(msg => msg.id !== action.payload.messageId)
-            }
+        currentSession: state.currentSession
+          ? { ...state.currentSession, messages: action.payload }
           : state.currentSession,
-      };
-
-    case 'ADD_SESSION':
-      return {
-        ...state,
-        sessions: [action.payload, ...state.sessions],
-      };
-
-    case 'DELETE_SESSION':
-      return {
-        ...state,
-        sessions: state.sessions.filter(session => session.id !== action.payload),
-        currentSession: state.currentSession?.id === action.payload ? null : state.currentSession,
       };
 
     case 'CLEAR_CURRENT_SESSION':
@@ -205,35 +151,62 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   const { showPanel } = usePanel();
   const { addItem } = useCart();
 
-  // Initialize chat sessions when user is authenticated
+  // Load chat history when user is authenticated
   useEffect(() => {
     if (isAuthenticated && user) {
-      loadChatSessions();
+      loadHistory();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, user?.id]); // loadChatSessions is intentionally not in deps
+  }, [isAuthenticated, user?.id]);
 
-  // Load chat sessions
-  const loadChatSessions = async () => {
+  // Load chat history (GET /api/chat/history)
+  const loadHistory = useCallback(async () => {
+    if (!user) return;
+
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
-      const response = await chatApi.getSessions();
-      dispatch({ type: 'SET_SESSIONS', payload: response.data });
+      const response = await chatApi.getHistory(user.id);
+
+      if (response.success && response.data) {
+        // ERD API 응답을 프론트엔드 메시지 형식으로 변환
+        const messages: ChatMessage[] = response.data.messages.map(msg => ({
+          id: `msg-${msg.id}`,
+          content: msg.message,
+          role: 'user' as const,
+          type: 'text' as const,
+          createdAt: new Date(msg.timestamp),
+          updatedAt: new Date(msg.timestamp),
+          status: 'sent' as const
+        }));
+
+        // AI 응답도 추가
+        response.data.messages.forEach(msg => {
+          messages.push({
+            id: `ai-msg-${msg.id}`,
+            content: msg.ai_message,
+            role: 'assistant' as const,
+            type: 'text' as const,
+            createdAt: new Date(msg.timestamp),
+            updatedAt: new Date(msg.timestamp),
+            status: 'delivered' as const
+          });
+        });
+
+        dispatch({ type: 'SET_MESSAGES', payload: messages });
+      }
     } catch (error: any) {
       dispatch({ type: 'SET_ERROR', payload: error.message });
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
-  };
+  }, [user]);
 
-  // Send message
-  const sendMessage = async (content: string, attachments?: ChatAttachment[]) => {
-    if (!state.currentSession) {
-      // Create new session if none exists
-      await createSession();
+  // Send message (POST /api/chat/messages)
+  const sendMessage = useCallback(async (content: string) => {
+    if (!user) {
+      dispatch({ type: 'SET_ERROR', payload: '로그인이 필요합니다' });
+      return;
     }
-
-    const sessionId = state.currentSession!.id;
 
     // Create optimistic user message
     const userMessage: ChatMessage = {
@@ -243,79 +216,71 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
       type: 'text',
       createdAt: new Date(),
       updatedAt: new Date(),
-      attachments,
-      metadata: { status: 'sending' }
+      status: 'sending'
     };
 
     // Add user message immediately
     dispatch({
       type: 'ADD_MESSAGE',
-      payload: { sessionId, message: userMessage }
+      payload: userMessage
     });
 
     try {
       dispatch({ type: 'SET_TYPING', payload: true });
 
-      const response = await chatApi.sendMessage({
-        message: content,
-        sessionId,
-        attachments,
-        context: {
-          cartItems: [],
-          userPreferences: user?.preferences,
-        }
-      });
+      // ERD API 호출
+      const response = await chatApi.sendMessage(user.id, content);
 
-      // Update user message status
-      dispatch({
-        type: 'UPDATE_MESSAGE',
-        payload: {
-          sessionId,
-          messageId: userMessage.id,
-          updates: {
-            id: response.data.message.id || userMessage.id,
-            metadata: { status: 'sent' }
+      if (response.success && response.data) {
+        // Update user message status
+        dispatch({
+          type: 'UPDATE_MESSAGE',
+          payload: {
+            messageId: userMessage.id,
+            updates: { status: 'sent' }
           }
-        }
-      });
+        });
 
-      // Add assistant response
-      dispatch({
-        type: 'ADD_MESSAGE',
-        payload: {
-          sessionId,
-          message: response.data.message
-        }
-      });
+        // Add AI response
+        const aiMessage: ChatMessage = {
+          id: `ai-${Date.now()}`,
+          content: response.data.ai_message,
+          role: 'assistant',
+          type: response.data.type === 1 ? 'product' : response.data.type === 2 ? 'statistics' : 'text',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          status: 'delivered'
+        };
 
-      // Handle panel data if present
-      if (response.data.panelData) {
-        showPanel(response.data.panelData);
-      }
+        dispatch({
+          type: 'ADD_MESSAGE',
+          payload: aiMessage
+        });
 
-      // Handle cart updates if present
-      if (response.data.cartUpdates) {
-        for (const update of response.data.cartUpdates) {
-          switch (update.type) {
-            case 'add':
-              if (update.productId) {
-                await addItem(update.productId, update.variantId);
-              }
-              break;
-          }
+        // Handle product recommendations (type === 1)
+        if (response.data.type === 1 && response.data.recommendationItems.length > 0) {
+          showPanel({
+            type: 'product-list',
+            data: {
+              products: response.data.recommendationItems.map(item => ({
+                id: `${item.product_id}`,
+                name: item.category,
+                price: item.price,
+                platformName: item.platform_name,
+                review: item.review
+              }))
+            },
+            title: '추천 상품'
+          });
         }
       }
-
     } catch (error: any) {
       // Update message status to failed
       dispatch({
         type: 'UPDATE_MESSAGE',
         payload: {
-          sessionId,
           messageId: userMessage.id,
-          updates: {
-            metadata: { status: 'failed' }
-          }
+          updates: { status: 'failed' }
         }
       });
 
@@ -323,126 +288,19 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     } finally {
       dispatch({ type: 'SET_TYPING', payload: false });
     }
-  };
-
-  // Retry failed message
-  const retryMessage = async (messageId: string) => {
-    const session = state.currentSession;
-    if (!session) return;
-
-    const message = session.messages.find(msg => msg.id === messageId);
-    if (!message || message.role !== 'user') return;
-
-    await sendMessage(message.content, message.attachments);
-  };
-
-  // Edit message
-  const editMessage = async (messageId: string, newContent: string) => {
-    const session = state.currentSession;
-    if (!session) return;
-
-    try {
-      await chatApi.editMessage(messageId, newContent);
-
-      dispatch({
-        type: 'UPDATE_MESSAGE',
-        payload: {
-          sessionId: session.id,
-          messageId,
-          updates: {
-            content: newContent,
-            metadata: { edited: true, editedAt: new Date() }
-          }
-        }
-      });
-    } catch (error: any) {
-      dispatch({ type: 'SET_ERROR', payload: error.message });
-    }
-  };
-
-  // Delete message
-  const deleteMessage = async (messageId: string) => {
-    const session = state.currentSession;
-    if (!session) return;
-
-    try {
-      await chatApi.deleteMessage(messageId);
-
-      dispatch({
-        type: 'DELETE_MESSAGE',
-        payload: { sessionId: session.id, messageId }
-      });
-    } catch (error: any) {
-      dispatch({ type: 'SET_ERROR', payload: error.message });
-    }
-  };
-
-  // Create new session
-  const createSession = async (title?: string): Promise<ChatSession> => {
-    try {
-      const response = await chatApi.createSession(title);
-      const newSession = response.data;
-
-      dispatch({ type: 'ADD_SESSION', payload: newSession });
-      dispatch({ type: 'SET_CURRENT_SESSION', payload: newSession });
-
-      return newSession;
-    } catch (error: any) {
-      dispatch({ type: 'SET_ERROR', payload: error.message });
-      throw error;
-    }
-  };
-
-  // Switch to different session
-  const switchSession = async (sessionId: string) => {
-    try {
-      const session = state.sessions.find(s => s.id === sessionId);
-      if (session) {
-        dispatch({ type: 'SET_CURRENT_SESSION', payload: session });
-      } else {
-        // Load session from API if not in local state
-        const response = await chatApi.getSession(sessionId);
-        dispatch({ type: 'SET_CURRENT_SESSION', payload: response.data });
-      }
-    } catch (error: any) {
-      dispatch({ type: 'SET_ERROR', payload: error.message });
-    }
-  };
-
-  // Delete session
-  const deleteSession = async (sessionId: string) => {
-    try {
-      await chatApi.deleteSession(sessionId);
-      dispatch({ type: 'DELETE_SESSION', payload: sessionId });
-    } catch (error: any) {
-      dispatch({ type: 'SET_ERROR', payload: error.message });
-    }
-  };
+  }, [user, showPanel]);
 
   // Clear current session
   const clearCurrentSession = useCallback(() => {
     dispatch({ type: 'CLEAR_CURRENT_SESSION' });
   }, []);
 
-  // Mark message as read
-  const markAsRead = useCallback((messageId: string) => {
-    // Implementation for read receipts if needed
-    console.log('Marking message as read:', messageId);
-  }, []);
-
   const contextValue: ChatContextValue = useMemo(() => ({
     ...state,
     sendMessage,
-    retryMessage,
-    editMessage,
-    deleteMessage,
-    createSession,
-    switchSession,
-    deleteSession,
     clearCurrentSession,
-    markAsRead,
+    loadHistory,
   }), [
-    // Track state changes - use primitives to avoid object reference issues
     state.sessions.length,
     state.currentSession?.id,
     state.currentSession?.messages.length,
@@ -450,10 +308,9 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     state.isTyping,
     state.error,
     state.connectionStatus,
+    sendMessage,
     clearCurrentSession,
-    markAsRead,
-    // Intentionally excluding other functions to prevent infinite loops
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    loadHistory,
   ]);
 
   return (

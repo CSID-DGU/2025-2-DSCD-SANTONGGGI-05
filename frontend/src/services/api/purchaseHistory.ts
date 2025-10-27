@@ -166,7 +166,7 @@ export const purchaseHistoryApi = {
     try {
       const response = await purchaseHistoryApi.getPurchaseHistory(user_id);
 
-      if (!response.success) {
+      if (!response.success || !response.data) {
         return {
           success: false,
           data: null as any,
@@ -191,7 +191,7 @@ export const purchaseHistoryApi = {
           image: '📦' // ERD에 이미지 없음, 이모지 사용
         }],
         paymentMethod: item.platform_name,
-        trackingNumber: index % 3 === 0 ? `TRK${item.id}0000` : undefined
+        ...(index % 3 === 0 && { trackingNumber: `TRK${item.id}0000` })
       }));
 
       // Summary 계산 (totalItems 추가)
