@@ -5,65 +5,19 @@ import { useAuth } from './AuthContext';
 import { usePanel } from './PanelContext';
 import { useCart } from './CartContext';
 
-// Sample messages for testing mockup design
-const sampleSession: ChatSession = {
-  id: 'sample-session-1',
+// Initial empty session (messages will be loaded from API)
+const emptySession: ChatSession = {
+  id: 'session-1',
   title: '쇼핑 상담',
-  messages: [
-    {
-      id: 'msg-1',
-      content: '안녕하세요! 무엇을 도와드릴까요?',
-      role: 'assistant',
-      type: 'text',
-      createdAt: new Date(Date.now() - 300000),
-      updatedAt: new Date(Date.now() - 300000),
-      status: 'delivered'
-    },
-    {
-      id: 'msg-2',
-      content: '총인님에게 적합한 상품을 추천해 드릴게요!',
-      role: 'assistant',
-      type: 'text',
-      createdAt: new Date(Date.now() - 240000),
-      updatedAt: new Date(Date.now() - 240000),
-      status: 'delivered'
-    },
-    {
-      id: 'msg-3',
-      content: '나 물 6개 사야 될 것 같아',
-      role: 'user',
-      type: 'text',
-      createdAt: new Date(Date.now() - 180000),
-      updatedAt: new Date(Date.now() - 180000),
-      status: 'sent'
-    },
-    {
-      id: 'msg-4',
-      content: '내 장바구니 불러워줘',
-      role: 'user',
-      type: 'text',
-      createdAt: new Date(Date.now() - 120000),
-      updatedAt: new Date(Date.now() - 120000),
-      status: 'sent'
-    },
-    {
-      id: 'msg-5',
-      content: '장바구니를 확인했습니다',
-      role: 'assistant',
-      type: 'text',
-      createdAt: new Date(Date.now() - 60000),
-      updatedAt: new Date(Date.now() - 60000),
-      status: 'delivered'
-    }
-  ],
-  createdAt: new Date(Date.now() - 360000),
-  updatedAt: new Date(Date.now() - 60000)
+  messages: [],
+  createdAt: new Date(),
+  updatedAt: new Date()
 };
 
-// Initial state with sample data
+// Initial state - messages will be loaded from API after login
 const initialState: ChatState = {
-  currentSession: sampleSession,
-  sessions: [sampleSession],
+  currentSession: emptySession,
+  sessions: [emptySession],
   isLoading: false,
   isTyping: false,
   error: null,
@@ -169,27 +123,34 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
 
       if (response.success && response.data) {
         // ERD API 응답을 프론트엔드 메시지 형식으로 변환
-        const messages: ChatMessage[] = response.data.messages.map(msg => ({
-          id: `msg-${msg.id}`,
-          content: msg.message,
-          role: 'user' as const,
-          type: 'text' as const,
-          createdAt: new Date(msg.timestamp),
-          updatedAt: new Date(msg.timestamp),
-          status: 'sent' as const
-        }));
+        const messages: ChatMessage[] = [];
 
-        // AI 응답도 추가
         response.data.messages.forEach(msg => {
-          messages.push({
-            id: `ai-msg-${msg.id}`,
-            content: msg.ai_message,
-            role: 'assistant' as const,
-            type: 'text' as const,
-            createdAt: new Date(msg.timestamp),
-            updatedAt: new Date(msg.timestamp),
-            status: 'delivered' as const
-          });
+          // User message 추가 (message가 비어있지 않을 때만)
+          if (msg.message && msg.message.trim()) {
+            messages.push({
+              id: `msg-${msg.id}`,
+              content: msg.message,
+              role: 'user' as const,
+              type: 'text' as const,
+              createdAt: new Date(msg.timestamp),
+              updatedAt: new Date(msg.timestamp),
+              status: 'sent' as const
+            });
+          }
+
+          // AI message 추가 (ai_message가 비어있지 않을 때만)
+          if (msg.ai_message && msg.ai_message.trim()) {
+            messages.push({
+              id: `ai-msg-${msg.id}`,
+              content: msg.ai_message,
+              role: 'assistant' as const,
+              type: 'text' as const,
+              createdAt: new Date(msg.timestamp),
+              updatedAt: new Date(msg.timestamp),
+              status: 'delivered' as const
+            });
+          }
         });
 
         dispatch({ type: 'SET_MESSAGES', payload: messages });

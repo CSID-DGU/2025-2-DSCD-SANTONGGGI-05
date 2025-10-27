@@ -78,6 +78,9 @@ export const chatApi = {
   getHistory: async (user_id?: number): Promise<ApiResponse<GetHistoryResponse>> => {
     await new Promise(resolve => setTimeout(resolve, 500));
 
+    // Sample messages matching ChatContext initial state
+    const baseTime = Date.now();
+
     return {
       success: true,
       data: {
@@ -85,16 +88,30 @@ export const chatApi = {
           {
             id: 1,
             user_id: user_id || 1123,
-            message: '나 물 6개 사야 될 것 같아',
-            ai_message: '물 6개를 찾아드렸습니다...',
-            timestamp: new Date().toISOString()
+            message: '',
+            ai_message: '안녕하세요! 무엇을 도와드릴까요?',
+            timestamp: new Date(baseTime - 300000).toISOString()
           },
           {
             id: 2,
             user_id: user_id || 1123,
-            message: '가장 저렴한 거 보여줘',
-            ai_message: '가장 저렴한 상품을 찾았습니다...',
-            timestamp: new Date().toISOString()
+            message: '',
+            ai_message: '총인님에게 적합한 상품을 추천해 드릴게요!',
+            timestamp: new Date(baseTime - 240000).toISOString()
+          },
+          {
+            id: 3,
+            user_id: user_id || 1123,
+            message: '나 물 6개 사야 될 것 같아',
+            ai_message: '',
+            timestamp: new Date(baseTime - 180000).toISOString()
+          },
+          {
+            id: 4,
+            user_id: user_id || 1123,
+            message: '내 장바구니 불러워줘',
+            ai_message: '장바구니를 확인했습니다',
+            timestamp: new Date(baseTime - 120000).toISOString()
           }
         ]
       }
