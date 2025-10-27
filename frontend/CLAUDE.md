@@ -349,7 +349,7 @@ interface Product {
 **Request Body:**
 ```typescript
 interface LoginRequest {
-  username: string;  // user.number 필드에 대응
+  phone_number: string;  // user.number 필드에 대응 (전화번호)
   password: string;
 }
 ```
@@ -357,7 +357,7 @@ interface LoginRequest {
 **Request 예시:**
 ```json
 {
-  "username": "user123",
+  "phone_number": "010-1234-5678",
   "password": "password123"
 }
 ```
@@ -385,18 +385,18 @@ interface LoginResponse {
 **Request Body:**
 ```typescript
 interface RegisterRequest {
-  username: string;  // user.number 필드에 저장
+  phone_number: string;  // user.number 필드에 저장 (전화번호)
   password: string;
-  email: string;
+  name: string;          // user.name 필드에 저장 (사용자 이름)
 }
 ```
 
 **Request 예시:**
 ```json
 {
-  "username": "newuser",
+  "phone_number": "010-1234-5678",
   "password": "securepass",
-  "email": "user@example.com"
+  "name": "홍길동"
 }
 ```
 

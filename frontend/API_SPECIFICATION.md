@@ -49,7 +49,7 @@
 ```sql
 CREATE TABLE users (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  number VARCHAR(255) NOT NULL UNIQUE,  -- username (계정명)
+  number VARCHAR(255) NOT NULL UNIQUE,  -- 전화번호 (로그인 아이디)
   password VARCHAR(255) NOT NULL,
   name VARCHAR(255) NOT NULL            -- 사용자 이름
 );
@@ -59,7 +59,7 @@ CREATE TABLE users (
 ```typescript
 interface User {
   id: number;           // Long
-  number: string;       // username (계정명)
+  number: string;       // 전화번호 (로그인 아이디)
   password: string;     // 비밀번호
   name: string;         // 사용자 이름
 }

@@ -36,7 +36,7 @@ export interface ApiError {
 
 // Authentication API
 export interface LoginRequest {
-  email: string;
+  phone_number: string;  // 전화번호로 로그인
   password: string;
   rememberMe?: boolean;
 }

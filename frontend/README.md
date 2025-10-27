@@ -318,7 +318,7 @@ import { useAuth } from '@/contexts/AppProvider';
 
 const { user, isAuthenticated, login } = useAuth();
 
-await login({ email: 'user@example.com', password: 'pass' });
+await login({ phone_number: '010-1234-5678', password: 'pass' });
 ```
 
 #### ChatContext - 채팅 세션 및 메시지 관리
