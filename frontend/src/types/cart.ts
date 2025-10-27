@@ -83,7 +83,7 @@ export interface CartState {
   lastUpdated: Date | null;
 }
 
-export interface CartContextValue extends Omit<CartState, 'items'> {
+  export interface CartContextValue extends Omit<CartState, 'items'> {
   // Simplified properties for component compatibility
   items: CartItemType[];
   total: number;
