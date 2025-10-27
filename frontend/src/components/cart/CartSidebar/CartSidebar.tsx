@@ -162,16 +162,14 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
           </>
         )}
 
-        {/* Cart Summary */}
-        {!isEmpty && (
-          <div className={styles.summaryContainer}>
-            <CartSummary
-              subtotal={total}
-              isMinimized={isMinimized}
-              itemCount={itemCount}
-            />
-          </div>
-        )}
+        {/* Cart Summary - Always show to keep action buttons visible */}
+        <div className={styles.summaryContainer}>
+          <CartSummary
+            subtotal={total}
+            isMinimized={isMinimized}
+            itemCount={itemCount}
+          />
+        </div>
       </div>
 
       {/* Mobile Backdrop */}
