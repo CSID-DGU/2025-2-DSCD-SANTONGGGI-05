@@ -74,17 +74,6 @@
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
 }
 
-.botMessage .messageBubble::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 3px;
-  height: 100%;
-  background: linear-gradient(to bottom, var(--color-accent), var(--color-primary));
-  border-radius: var(--border-radius-sm) 0 0 var(--border-radius-sm);
-}
-
 /* Hide avatars to match mockup */
 .messageAvatar {
   display: none;
@@ -435,9 +424,5 @@
 @media (prefers-color-scheme: dark) {
   .userMessage .messageBubble {
     box-shadow: var(--shadow-chat-bubble), 0 0 20px rgba(79, 70, 229, 0.2);
-  }
-
-  .botMessage .messageBubble::before {
-    background: linear-gradient(to bottom, var(--color-accent-light), var(--color-primary-light));
   }
 }

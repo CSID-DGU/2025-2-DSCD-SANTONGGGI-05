@@ -1,12 +1,13 @@
 import React, { useEffect } from 'react';
 import { MainLayout } from './components/layout/MainLayout/MainLayout';
+import { LoginPage } from './pages/LoginPage/LoginPage';
 import { useAuth } from './contexts/AppProvider';
 import { LoadingSpinner } from './components/ui/LoadingSpinner/LoadingSpinner';
 import { ErrorBoundary } from './components/ui/ErrorBoundary/ErrorBoundary';
 import './App.css';
 
 const App: React.FC = () => {
-  const { user, isLoading, error, initialize } = useAuth();
+  const { isAuthenticated, isLoading, error, initialize } = useAuth();
 
   // Initialize the app on mount
   useEffect(() => {
@@ -43,7 +44,7 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <div className="app">
-        <MainLayout />
+        {isAuthenticated ? <MainLayout /> : <LoginPage />}
       </div>
     </ErrorBoundary>
   );
