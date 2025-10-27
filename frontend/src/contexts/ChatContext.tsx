@@ -203,7 +203,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(chatReducer, initialState);
   const { user, isAuthenticated } = useAuth();
   const { showPanel } = usePanel();
-  const { addItem, updateQuantity } = useCart();
+  const { addItem } = useCart();
 
   // Initialize chat sessions when user is authenticated
   useEffect(() => {
@@ -299,12 +299,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
           switch (update.type) {
             case 'add':
               if (update.productId) {
-                await addItem(update.productId, update.quantity || 1, update.variantId);
-              }
-              break;
-            case 'update_quantity':
-              if (update.itemId && update.quantity) {
-                await updateQuantity(update.itemId, update.quantity);
+                await addItem(update.productId, update.variantId);
               }
               break;
           }

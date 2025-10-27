@@ -54,9 +54,7 @@ export interface CartItem extends BaseEntity {
   product: Product;
   variantId?: string;
   variant?: ProductVariant;
-  quantity: number;
   unitPrice: number;
-  totalPrice: number;
   addedAt: Date;
   customizations?: CartItemCustomization[];
 }
@@ -74,7 +72,7 @@ export interface CartSummary {
   discount: number;
   total: number;
   currency: string;
-  itemCount: number;
+  itemCount: number; // 장바구니에 담긴 상품 개수 (수량 아님)
 }
 
 export interface CartState {
@@ -92,37 +90,27 @@ export interface CartContextValue extends CartState {
   itemCount: number;
 
   // Original methods
-  addItem: (productId: string, quantity?: number, variantId?: string) => Promise<void>;
+  addItem: (productId: string, variantId?: string) => Promise<void>;
   removeItem: (itemId: string) => Promise<void>;
-  updateQuantity: (itemId: string, quantity: number) => Promise<void>;
   clearCart: () => Promise<void>;
   getItemByProductId: (productId: string) => CartItem | undefined;
-  getTotalQuantity: () => number;
   refreshCart: () => Promise<void>;
 
   // Simplified methods for component compatibility
-  addToCart: (item: { id: string; name: string; price: number; image?: string; quantity: number }) => Promise<void>;
+  addToCart: (item: { id: string; name: string; price: number; image?: string }) => Promise<void>;
 }
 
 export interface CartUpdate {
-  type: 'add' | 'remove' | 'update_quantity' | 'clear' | 'apply_discount';
+  type: 'add' | 'remove' | 'clear' | 'apply_discount';
   productId?: string;
   itemId?: string;
-  quantity?: number;
   variantId?: string;
   discountCode?: string;
 }
 
 export interface AddToCartRequest {
   productId: string;
-  quantity: number;
   variantId?: string;
-  customizations?: CartItemCustomization[];
-}
-
-export interface UpdateCartRequest {
-  itemId: string;
-  quantity?: number;
   customizations?: CartItemCustomization[];
 }
 
@@ -151,7 +139,6 @@ export interface CartItemType {
   name: string;
   price: number;
   image?: string;
-  quantity: number;
   variant?: string;
   url?: string; // 외부 쇼핑몰 URL (쿠팡, 네이버쇼핑 등)
 }

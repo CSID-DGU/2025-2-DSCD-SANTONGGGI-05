@@ -164,7 +164,7 @@ export const ProductDetailModal: React.FC = () => {
 
               <div className={styles.paymentRow}>
                 <span className={styles.paymentLabel}>배송비</span>
-                <span className={styles.paymentValue}>{shippingFee === 0 ? '무료' : `${shippingFee.toLocaleString()}원`}</span>
+                <span className={styles.paymentValue}>무료</span>
               </div>
 
               <div className={`${styles.paymentRow} ${styles.totalRow}`}>

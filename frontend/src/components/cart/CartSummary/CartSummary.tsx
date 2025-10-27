@@ -86,7 +86,7 @@ export const CartSummary: React.FC<CartSummaryProps> = ({
         review
       });
 
-      if (response.success) {
+      if (response.success && response.data) {
         // 5개만 선택
         const products = response.data.recommendations.slice(0, 5);
         setCustomRecommendations(products);

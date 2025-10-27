@@ -1,6 +1,6 @@
-import { BaseEntity } from './index';
-
-export interface User extends BaseEntity {
+// User 타입은 ERD 기준으로 독립 정의 (id: number)
+export interface User {
+  id: number;  // ERD: Long (number)
   email: string;
   name: string;
   avatar?: string;

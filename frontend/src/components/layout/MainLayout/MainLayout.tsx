@@ -120,8 +120,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ className }) => {
         aria-label="Shopping Cart"
       >
         <CartSidebar
-          onToggleMobile={breakpoint === 'mobile' ? toggleMobileCart : undefined}
-          isCollapsed={breakpoint === 'mobile' ? cartCollapsed : false}
+          {...(breakpoint === 'mobile' && {
+            onToggleMobile: toggleMobileCart,
+            isCollapsed: cartCollapsed
+          })}
         />
       </div>
 

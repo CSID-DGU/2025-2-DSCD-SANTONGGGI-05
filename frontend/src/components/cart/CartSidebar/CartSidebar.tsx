@@ -23,7 +23,6 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
     itemCount,
     isLoading,
     error,
-    updateQuantity,
     removeItem
   } = useCart();
   const { breakpoint } = useWindowSize();
@@ -153,7 +152,6 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                 <div key={item.id} role="listitem">
                   <CartItem
                     item={item}
-                    onUpdateQuantity={(quantity) => updateQuantity(item.id, quantity)}
                     onRemove={() => removeItem(item.id)}
                     isLoading={isLoading}
                   />

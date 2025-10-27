@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import { CartState, CartContextValue, CartItem, CartSummary } from '../types/cart';
-import { cartApi } from '../services/api/cart';
+import { cartApi, convertApiCartItemToUI, calculateCartSummary } from '../services/api/cart';
 import { useAuth } from './AuthContext';
 import { storageService } from '../services/storage/localStorage';
 
@@ -24,9 +24,7 @@ const sampleCartItems: CartItem[] = [
       createdAt: new Date(),
       updatedAt: new Date(),
     },
-    quantity: 6,
     unitPrice: 1500,
-    totalPrice: 9000,
     addedAt: new Date(),
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -49,9 +47,7 @@ const sampleCartItems: CartItem[] = [
       createdAt: new Date(),
       updatedAt: new Date(),
     },
-    quantity: 2,
     unitPrice: 15000,
-    totalPrice: 30000,
     addedAt: new Date(),
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -74,9 +70,7 @@ const sampleCartItems: CartItem[] = [
       createdAt: new Date(),
       updatedAt: new Date(),
     },
-    quantity: 3,
     unitPrice: 3500,
-    totalPrice: 10500,
     addedAt: new Date(),
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -87,13 +81,13 @@ const sampleCartItems: CartItem[] = [
 const initialState: CartState = {
   items: sampleCartItems,
   summary: {
-    subtotal: 49500,
+    subtotal: 20000, // 1500 + 15000 + 3500
     tax: 0,
     shipping: 0,
     discount: 0,
-    total: 49500,
+    total: 20000,
     currency: 'KRW',
-    itemCount: 11, // 6 + 2 + 3
+    itemCount: 3, // 상품 개수 (수량 아님)
   },
   isLoading: false,
   error: null,
@@ -131,31 +125,21 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
       };
 
     case 'ADD_ITEM':
+      // 이미 장바구니에 있는 상품인지 확인
       const existingItemIndex = state.items.findIndex(
         item => item.productId === action.payload.productId &&
                 item.variantId === action.payload.variantId
       );
 
-      let newItems: CartItem[];
+      // 이미 있으면 추가하지 않음 (수량 개념 없음)
       if (existingItemIndex >= 0) {
-        // Update existing item quantity
-        newItems = state.items.map((item, index) =>
-          index === existingItemIndex
-            ? {
-                ...item,
-                quantity: item.quantity + action.payload.quantity,
-                totalPrice: (item.quantity + action.payload.quantity) * item.unitPrice
-              }
-            : item
-        );
-      } else {
-        // Add new item
-        newItems = [...state.items, action.payload];
+        return state;
       }
 
+      // 새 상품 추가
       return {
         ...state,
-        items: newItems,
+        items: [...state.items, action.payload],
         lastUpdated: new Date(),
       };
 
@@ -224,11 +208,13 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         try {
           dispatch({ type: 'SET_LOADING', payload: true });
           const response = await cartApi.getCart();
+          const uiItems = response.data.items.map(convertApiCartItemToUI);
+          const summary = calculateCartSummary(uiItems);
           dispatch({
             type: 'SET_CART_DATA',
             payload: {
-              items: response.data.items,
-              summary: response.data.summary,
+              items: uiItems,
+              summary: summary,
             },
           });
         } catch (error: any) {
@@ -272,11 +258,13 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
       const response = await cartApi.getCart();
+      const uiItems = response.data.items.map(convertApiCartItemToUI);
+      const summary = calculateCartSummary(uiItems);
       dispatch({
         type: 'SET_CART_DATA',
         payload: {
-          items: response.data.items,
-          summary: response.data.summary,
+          items: uiItems,
+          summary: summary,
         },
       });
     } catch (error: any) {
@@ -300,39 +288,25 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     }
   }, []);
 
-  // Calculate cart summary
-  const calculateSummary = (items: CartItem[]): CartSummary => {
-    const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
-    const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
-    const tax = subtotal * 0.08; // 8% tax rate
-    const shipping = subtotal > 50 ? 0 : 5.99; // Free shipping over $50
-    const total = subtotal + tax + shipping - state.summary.discount;
-
-    return {
-      subtotal,
-      tax,
-      shipping,
-      discount: state.summary.discount,
-      total,
-      currency: state.summary.currency,
-      itemCount,
-    };
-  };
-
   // Add item to cart
-  const addItem = useCallback(async (productId: string, quantity: number = 1, variantId?: string) => {
+  const addItem = useCallback(async (productId: string, variantId?: string) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
 
-      if (isAuthenticated) {
+      if (isAuthenticated && user) {
         const response = await cartApi.addToCart({
-          productId,
-          quantity,
-          variantId,
+          user_id: user.id,
+          product_id: Number(productId),
+          platform_name: '쿠팡',
+          price: 10000, // 임시 가격
         });
 
-        dispatch({ type: 'ADD_ITEM', payload: response.data.item as unknown as CartItem });
-        dispatch({ type: 'UPDATE_SUMMARY', payload: response.data.summary });
+        const uiItem = convertApiCartItemToUI(response.data.item);
+        dispatch({ type: 'ADD_ITEM', payload: uiItem });
+
+        // Recalculate summary with the new item
+        const updatedItems = [...state.items, uiItem];
+        dispatch({ type: 'UPDATE_SUMMARY', payload: calculateCartSummary(updatedItems) });
       } else {
         // For guest users, simulate adding item
         // In a real app, you'd need product data to create the cart item
@@ -354,9 +328,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
             updatedAt: new Date(),
           },
           ...(variantId && { variantId }),
-          quantity,
           unitPrice: 0, // Would come from product data
-          totalPrice: 0,
           addedAt: new Date(),
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -366,7 +338,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
         // Recalculate summary with the new item included
         const updatedItems = [...state.items, newItem];
-        dispatch({ type: 'UPDATE_SUMMARY', payload: calculateSummary(updatedItems) });
+        dispatch({ type: 'UPDATE_SUMMARY', payload: calculateCartSummary(updatedItems) });
       }
     } catch (error: any) {
       dispatch({ type: 'SET_ERROR', payload: error.message });
@@ -375,22 +347,22 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated]); // Don't include calculateSummary or state
+  }, [isAuthenticated, user]); // Include user for authenticated calls
 
   // Remove item from cart
   const removeItem = useCallback(async (itemId: string) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
 
-      if (isAuthenticated) {
-        await cartApi.removeItem(itemId);
+      if (isAuthenticated && user) {
+        await cartApi.removeItem(Number(itemId), user.id);
       }
 
       dispatch({ type: 'REMOVE_ITEM', payload: itemId });
 
       // Recalculate summary
       const remainingItems = state.items.filter(item => item.id !== itemId);
-      const newSummary = calculateSummary(remainingItems);
+      const newSummary = calculateCartSummary(remainingItems);
       dispatch({ type: 'UPDATE_SUMMARY', payload: newSummary });
 
     } catch (error: any) {
@@ -400,44 +372,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated]); // Don't include state to avoid infinite loops
-
-  // Update item quantity (local only - no API call needed)
-  const updateQuantity = useCallback(async (itemId: string, quantity: number) => {
-    if (quantity <= 0) {
-      await removeItem(itemId);
-      return;
-    }
-
-    try {
-      dispatch({ type: 'SET_LOADING', payload: true });
-
-      const item = state.items.find(i => i.id === itemId);
-      if (!item) throw new Error('Item not found');
-
-      const updates: Partial<CartItem> = {
-        quantity,
-        totalPrice: quantity * item.unitPrice,
-        updatedAt: new Date(),
-      };
-
-      dispatch({ type: 'UPDATE_ITEM', payload: { itemId, updates } });
-
-      // Recalculate summary
-      const updatedItems = state.items.map(i =>
-        i.id === itemId ? { ...i, ...updates } : i
-      );
-      const newSummary = calculateSummary(updatedItems);
-      dispatch({ type: 'UPDATE_SUMMARY', payload: newSummary });
-
-    } catch (error: any) {
-      dispatch({ type: 'SET_ERROR', payload: error.message });
-      throw error;
-    } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [removeItem]); // Include removeItem dependency
+  }, [isAuthenticated, user]); // Include user for authenticated calls
 
   // Clear cart (local only - no API call needed)
   const clearCart = useCallback(async () => {
@@ -464,12 +399,6 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.items.length]); // Use length to avoid full array dependency
 
-  // Get total quantity
-  const getTotalQuantity = useCallback((): number => {
-    return state.items.reduce((total, item) => total + item.quantity, 0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.items.length]); // Use length to avoid full array dependency
-
   // Refresh cart data
   const refreshCart = useCallback(async () => {
     if (isAuthenticated) {
@@ -480,10 +409,10 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   }, [isAuthenticated, loadCartData, loadGuestCart]);
 
   // Add simplified methods for component compatibility
-  const addToCart = useCallback(async (item: { id: string; name: string; price: number; image?: string; quantity: number }) => {
+  const addToCart = useCallback(async (item: { id: string; name: string; price: number; image?: string }) => {
     // Simplified addToCart that matches component expectations
     try {
-      await addItem(item.id, item.quantity);
+      await addItem(item.id);
     } catch (error) {
       console.error('Failed to add to cart:', error);
     }
@@ -495,7 +424,6 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       id: item.id,
       name: item.product?.name || `Product ${item.productId}`,
       price: item.unitPrice,
-      quantity: item.quantity,
     };
 
     if (item.product?.images?.[0]?.url) {
@@ -524,10 +452,8 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     addItem,
     addToCart,
     removeItem,
-    updateQuantity,
     clearCart,
     getItemByProductId,
-    getTotalQuantity,
     refreshCart,
   }), [
     items,
@@ -538,10 +464,8 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     addItem,
     addToCart,
     removeItem,
-    updateQuantity,
     clearCart,
     getItemByProductId,
-    getTotalQuantity,
     refreshCart,
   ]);
 

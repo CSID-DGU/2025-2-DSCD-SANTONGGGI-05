@@ -201,7 +201,7 @@ export const PurchaseHistoryDashboard: React.FC<PurchaseHistoryDashboardProps> =
           </div>
 
           {/* Pagination */}
-          {purchaseData.pagination.totalPages > 1 && (
+          {purchaseData.pagination.total_pages > 1 && (
             <div className={styles.pagination}>
               <button
                 className={styles.pageButton}
@@ -211,11 +211,11 @@ export const PurchaseHistoryDashboard: React.FC<PurchaseHistoryDashboardProps> =
                 이전
               </button>
               <span className={styles.pageInfo}>
-                {currentPage} / {purchaseData.pagination.totalPages}
+                {currentPage} / {purchaseData.pagination.total_pages}
               </span>
               <button
                 className={styles.pageButton}
-                disabled={currentPage === purchaseData.pagination.totalPages}
+                disabled={currentPage === purchaseData.pagination.total_pages}
                 onClick={() => setCurrentPage(currentPage + 1)}
               >
                 다음

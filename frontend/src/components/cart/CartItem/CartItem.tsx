@@ -5,32 +5,17 @@ import { useModal } from '../../../contexts/AppProvider';
 
 interface CartItemProps {
   item: CartItemType;
-  onUpdateQuantity: (quantity: number) => void;
   onRemove: () => void;
   isLoading?: boolean;
 }
 
 export const CartItem: React.FC<CartItemProps> = ({
   item,
-  onUpdateQuantity,
   onRemove,
   isLoading = false
 }) => {
   const [isUpdating, setIsUpdating] = useState(false);
   const { openProductModal } = useModal();
-
-  const handleQuantityChange = async (newQuantity: number) => {
-    if (newQuantity < 1 || newQuantity === item.quantity || isLoading) {
-      return;
-    }
-
-    setIsUpdating(true);
-    try {
-      await onUpdateQuantity(newQuantity);
-    } finally {
-      setIsUpdating(false);
-    }
-  };
 
   const handleRemove = async () => {
     if (isLoading) return;
@@ -43,7 +28,6 @@ export const CartItem: React.FC<CartItemProps> = ({
     }
   };
 
-  const itemTotal = item.price * item.quantity;
   const isDisabled = isLoading || isUpdating;
 
   const handleProductClick = () => {
@@ -52,8 +36,8 @@ export const CartItem: React.FC<CartItemProps> = ({
         id: item.id,
         name: item.name,
         price: item.price,
-        image: item.image,
-        url: item.url,
+        ...(item.image && { image: item.image }),
+        ...(item.url && { url: item.url }),
       });
     }
   };
@@ -62,7 +46,7 @@ export const CartItem: React.FC<CartItemProps> = ({
     <div
       className={`${styles.cartItem} ${isDisabled ? styles.disabled : ''}`}
       role="article"
-      aria-label={`${item.name} - ${item.quantity} items`}
+      aria-label={item.name}
     >
       {/* Product Image */}
       <div
@@ -118,67 +102,23 @@ export const CartItem: React.FC<CartItemProps> = ({
           )}
 
           <div className={styles.priceInfo}>
-            <span className={styles.quantityText}>
-              수량: {item.quantity}
-            </span>
             <span className={styles.unitPrice}>
               ₩{item.price.toLocaleString()}
             </span>
           </div>
         </div>
 
-        {/* Quantity Controls */}
-        <div className={styles.quantitySection}>
-          <div className={styles.quantityControls} role="group" aria-label="Quantity controls">
-            <button
-              onClick={() => handleQuantityChange(item.quantity - 1)}
-              disabled={isDisabled || item.quantity <= 1}
-              className={styles.quantityButton}
-              aria-label="Decrease quantity"
-              type="button"
-            >
-              −
-            </button>
-
-            <input
-              type="number"
-              value={item.quantity}
-              onChange={(e) => {
-                const value = parseInt(e.target.value, 10);
-                if (!isNaN(value) && value >= 1) {
-                  handleQuantityChange(value);
-                }
-              }}
-              disabled={isDisabled}
-              className={styles.quantityInput}
-              min="1"
-              max="99"
-              aria-label="Item quantity"
-            />
-
-            <button
-              onClick={() => handleQuantityChange(item.quantity + 1)}
-              disabled={isDisabled || item.quantity >= 99}
-              className={styles.quantityButton}
-              aria-label="Increase quantity"
-              type="button"
-            >
-              +
-            </button>
-          </div>
-
-          {/* Remove Button */}
-          <button
-            onClick={handleRemove}
-            disabled={isDisabled}
-            className={styles.removeButton}
-            aria-label={`Remove ${item.name} from cart`}
-            type="button"
-          >
-            <span className={styles.removeIcon} aria-hidden="true">🗑️</span>
-            <span className={styles.removeText}>Remove</span>
-          </button>
-        </div>
+        {/* Remove Button */}
+        <button
+          onClick={handleRemove}
+          disabled={isDisabled}
+          className={styles.removeButton}
+          aria-label={`Remove ${item.name} from cart`}
+          type="button"
+        >
+          <span className={styles.removeIcon} aria-hidden="true">🗑️</span>
+          <span className={styles.removeText}>제거</span>
+        </button>
       </div>
 
       {/* Loading Overlay */}
