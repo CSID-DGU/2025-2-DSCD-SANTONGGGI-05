@@ -37,7 +37,7 @@ export const ChatRecommendationModal: React.FC<ChatRecommendationModalProps> = (
 
   const handleAddToCart = async (product: Product) => {
     try {
-      await addItem(String(product.product_id), 1);
+      await addItem(String(product.product_id));
       alert(`${product.name}을(를) 장바구니에 추가했습니다!`);
     } catch (error) {
       console.error('장바구니 추가 실패:', error);

@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import styles from './ErrorBoundary.module.css';
 
@@ -30,7 +31,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
+  override componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     console.error('Error caught by boundary:', error);
     console.error('Error info:', errorInfo);
 
@@ -53,7 +54,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     });
   };
 
-  render(): ReactNode {
+  override render(): ReactNode {
     if (this.state.hasError) {
       // Return custom fallback if provided
       if (this.props.fallback) {
@@ -70,7 +71,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               An unexpected error occurred. Please try refreshing the page.
             </p>
 
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {import.meta.env.DEV && this.state.error && (
               <details className={styles.errorDetails}>
                 <summary>Error Details (Development)</summary>
                 <pre className={styles.errorStack}>

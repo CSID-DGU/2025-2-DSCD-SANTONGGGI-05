@@ -45,7 +45,7 @@ export const CustomRecommendationModal: React.FC<CustomRecommendationModalProps>
 
   const handleAddToCart = async (product: Product) => {
     try {
-      await addItem(product.product_id.toString(), 1);
+      await addItem(product.product_id.toString());
       alert(`${product.category} 상품이 장바구니에 추가되었습니다.`);
     } catch (error) {
       console.error('Failed to add to cart:', error);

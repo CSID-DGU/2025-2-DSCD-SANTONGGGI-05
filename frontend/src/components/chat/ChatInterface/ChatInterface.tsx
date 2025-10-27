@@ -4,7 +4,6 @@ import { ChatMessages } from '../ChatMessages/ChatMessages';
 import { TypingIndicator } from '../TypingIndicator/TypingIndicator';
 import { ChatRecommendationModal } from '@/components/modals/ChatRecommendationModal';
 import { StatisticsImageModal } from '@/components/modals/StatisticsImageModal';
-import { ChatAttachment } from '../../../types/chat';
 import styles from './ChatInterface.module.css';
 
 interface ChatInterfaceProps {
@@ -29,10 +28,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
   } = useChat();
 
   const [inputValue, setInputValue] = useState('');
-  const [attachments, setAttachments] = useState<ChatAttachment[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 모달 상태 관리
   const [recommendationModalOpen, setRecommendationModalOpen] = useState(false);
@@ -57,13 +54,12 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
 
   // Handle send message
   const handleSendMessage = async () => {
-    if (!inputValue.trim() && attachments.length === 0) return;
+    if (!inputValue.trim()) return;
     if (isLoading || isTyping) return;
 
     try {
-      await sendMessage(inputValue.trim(), attachments);
+      await sendMessage(inputValue.trim());
       setInputValue('');
-      setAttachments([]);
     } catch (error) {
       console.error('Failed to send message:', error);
     }
@@ -75,30 +71,6 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
       e.preventDefault();
       handleSendMessage();
     }
-  };
-
-  // Handle file attachment
-  const handleFileAttach = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    const newAttachments: ChatAttachment[] = files.map(file => ({
-      id: Math.random().toString(36).substr(2, 9),
-      type: file.type.startsWith('image/') ? 'image' : 'file',
-      url: URL.createObjectURL(file),
-      name: file.name,
-      size: file.size,
-      mimeType: file.type,
-    }));
-
-    setAttachments(prev => [...prev, ...newAttachments]);
-  };
-
-  // Remove attachment
-  const removeAttachment = (attachmentId: string) => {
-    setAttachments(prev => prev.filter(att => att.id !== attachmentId));
   };
 
   // Handle suggestion click
@@ -187,7 +159,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
 
   const messages = currentSession?.messages || [];
   const hasMessages = messages.length > 0;
-  const canSend = inputValue.trim().length > 0 || attachments.length > 0;
+  const canSend = inputValue.trim().length > 0;
 
   return (
     <div className={interfaceClasses} role="region" aria-label="Chat Interface">
@@ -264,24 +236,6 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
 
       {/* Input Area */}
       <div className={styles.inputContainer}>
-        {/* Attachments Preview */}
-        {attachments.length > 0 && (
-          <div className={styles.attachmentsPreview}>
-            {attachments.map(attachment => (
-              <div key={attachment.id} className={styles.attachment}>
-                <span className={styles.attachmentName}>{attachment.name}</span>
-                <button
-                  className={styles.removeAttachment}
-                  onClick={() => removeAttachment(attachment.id)}
-                  aria-label={`Remove ${attachment.name}`}
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-
         <div className={styles.inputWrapper}>
           <textarea
             ref={textareaRef}
@@ -297,16 +251,6 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
 
           <div className={styles.inputActions}>
             <button
-              className={styles.attachButton}
-              onClick={handleFileAttach}
-              disabled={isLoading || isTyping}
-              aria-label="Attach file"
-              title="Attach file"
-            >
-              📎
-            </button>
-
-            <button
               className={styles.sendButton}
               onClick={handleSendMessage}
               disabled={!canSend || isLoading || isTyping}
@@ -317,17 +261,6 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
             </button>
           </div>
         </div>
-
-        {/* Hidden file input */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          accept="image/*,.pdf,.doc,.docx,.txt"
-          onChange={handleFileChange}
-          style={{ display: 'none' }}
-          aria-hidden="true"
-        />
       </div>
 
 

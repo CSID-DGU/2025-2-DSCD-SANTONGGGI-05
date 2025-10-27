@@ -91,17 +91,6 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({ messages, isLoading 
                   <div className={styles.messageContent}>
                     {message.content}
                   </div>
-
-                  {message.attachments && message.attachments.length > 0 && (
-                    <div className={styles.messageAttachments}>
-                      {message.attachments.map((attachment) => (
-                        <div key={attachment.id} className={styles.attachment}>
-                          <div className={styles.attachmentIcon}>📎</div>
-                          <span>{attachment.name}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
 
                 {isLastInGroup && (
