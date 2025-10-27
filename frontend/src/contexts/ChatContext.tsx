@@ -22,6 +22,8 @@ const initialState: ChatState = {
   isTyping: false,
   error: null,
   connectionStatus: 'connected',
+  isRecommendationModalOpen: false,
+  recommendationProducts: [],
 };
 
 // Action types (ERD 기반 단순화)
@@ -33,7 +35,9 @@ type ChatAction =
   | { type: 'ADD_MESSAGE'; payload: ChatMessage }
   | { type: 'UPDATE_MESSAGE'; payload: { messageId: string; updates: Partial<ChatMessage> } }
   | { type: 'SET_MESSAGES'; payload: ChatMessage[] }
-  | { type: 'CLEAR_CURRENT_SESSION' };
+  | { type: 'CLEAR_CURRENT_SESSION' }
+  | { type: 'OPEN_RECOMMENDATION_MODAL'; payload: any[] }
+  | { type: 'CLOSE_RECOMMENDATION_MODAL' };
 
 // Reducer (ERD 기반 단순화)
 const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
@@ -86,6 +90,20 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
         currentSession: null,
       };
 
+    case 'OPEN_RECOMMENDATION_MODAL':
+      return {
+        ...state,
+        isRecommendationModalOpen: true,
+        recommendationProducts: action.payload,
+      };
+
+    case 'CLOSE_RECOMMENDATION_MODAL':
+      return {
+        ...state,
+        isRecommendationModalOpen: false,
+        recommendationProducts: [],
+      };
+
     default:
       return state;
   }
@@ -102,8 +120,6 @@ interface ChatProviderProps {
 export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(chatReducer, initialState);
   const { user, isAuthenticated } = useAuth();
-  const { showPanel } = usePanel();
-  const { addItem } = useCart();
 
   // Load chat history when user is authenticated
   useEffect(() => {
@@ -218,21 +234,18 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
           payload: aiMessage
         });
 
-        // Handle product recommendations (type === 1)
+        // Handle product recommendations (type === 1) - Open ChatRecommendationModal
         if (response.data.type === 1 && response.data.recommendationItems.length > 0) {
-          showPanel({
-            type: 'product-list',
-            data: {
-              products: response.data.recommendationItems.map(item => ({
-                id: `${item.product_id}`,
-                name: item.category,
-                price: item.price,
-                platformName: item.platform_name,
-                review: item.review
-              }))
-            },
-            title: '추천 상품'
-          });
+          const products = response.data.recommendationItems.map(item => ({
+            product_id: item.product_id,
+            name: item.category,
+            price: item.price,
+            platform_name: item.platform_name,
+            category: item.category,
+            review: item.review
+          }));
+
+          dispatch({ type: 'OPEN_RECOMMENDATION_MODAL', payload: products });
         }
       }
     } catch (error: any) {
@@ -249,11 +262,21 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     } finally {
       dispatch({ type: 'SET_TYPING', payload: false });
     }
-  }, [user, showPanel]);
+  }, [user]);
 
   // Clear current session
   const clearCurrentSession = useCallback(() => {
     dispatch({ type: 'CLEAR_CURRENT_SESSION' });
+  }, []);
+
+  // Open recommendation modal
+  const openRecommendationModal = useCallback((products: any[]) => {
+    dispatch({ type: 'OPEN_RECOMMENDATION_MODAL', payload: products });
+  }, []);
+
+  // Close recommendation modal
+  const closeRecommendationModal = useCallback(() => {
+    dispatch({ type: 'CLOSE_RECOMMENDATION_MODAL' });
   }, []);
 
   const contextValue: ChatContextValue = useMemo(() => ({
@@ -261,6 +284,8 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     sendMessage,
     clearCurrentSession,
     loadHistory,
+    openRecommendationModal,
+    closeRecommendationModal,
   }), [
     state.sessions.length,
     state.currentSession?.id,
@@ -269,9 +294,13 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     state.isTyping,
     state.error,
     state.connectionStatus,
+    state.isRecommendationModalOpen,
+    state.recommendationProducts.length,
     sendMessage,
     clearCurrentSession,
     loadHistory,
+    openRecommendationModal,
+    closeRecommendationModal,
   ]);
 
   return (

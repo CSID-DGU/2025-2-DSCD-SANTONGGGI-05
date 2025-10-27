@@ -14,6 +14,16 @@ export interface ChatSession extends BaseEntity {
   messages: ChatMessage[];
 }
 
+// Recommendation product from API
+export interface RecommendationProduct {
+  product_id: number;
+  name: string;
+  price: number;
+  platform_name: string;
+  category: string;
+  review: number;
+}
+
 export interface ChatState {
   currentSession: ChatSession | null;
   sessions: ChatSession[];
@@ -21,10 +31,15 @@ export interface ChatState {
   isTyping: boolean;
   error: string | null;
   connectionStatus: 'connected' | 'connecting' | 'disconnected' | 'error';
+  // Recommendation modal state
+  isRecommendationModalOpen: boolean;
+  recommendationProducts: RecommendationProduct[];
 }
 
 export interface ChatContextValue extends ChatState {
   sendMessage: (message: string) => Promise<void>;
   clearCurrentSession: () => void;
   loadHistory: () => Promise<void>;
+  openRecommendationModal: (products: RecommendationProduct[]) => void;
+  closeRecommendationModal: () => void;
 }

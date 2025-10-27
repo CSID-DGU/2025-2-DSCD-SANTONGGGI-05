@@ -60,6 +60,34 @@ export const chatApi = {
         platform_name: '네이버쇼핑',
         category: '생수',
         review: 180
+      },
+      {
+        product_id: 501,
+        price: 12000,
+        platform_name: '쿠팡',
+        category: '생수',
+        review: 250
+      },
+      {
+        product_id: 502,
+        price: 15000,
+        platform_name: '네이버쇼핑',
+        category: '생수',
+        review: 180
+      },
+      {
+        product_id: 501,
+        price: 12000,
+        platform_name: '쿠팡',
+        category: '생수',
+        review: 250
+      },
+      {
+        product_id: 502,
+        price: 15000,
+        platform_name: '네이버쇼핑',
+        category: '생수',
+        review: 180
       }
     ];
 

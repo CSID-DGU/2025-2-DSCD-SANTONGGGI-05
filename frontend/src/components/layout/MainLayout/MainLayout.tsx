@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useAuth, usePanel, useNavigation } from '../../../contexts/AppProvider';
+import { useAuth, usePanel, useNavigation, useChat } from '../../../contexts/AppProvider';
 import { useWindowSize } from '../../../hooks/useWindowSize';
 import { ChatInterface } from '../../chat/ChatInterface';
 import { CartSidebar } from '../../cart/CartSidebar';
 import { DynamicPanel } from '../../panels/DynamicPanel';
 import { StatisticsDashboard } from '../../statistics/StatisticsDashboard/StatisticsDashboard';
 import { PurchaseHistoryDashboard } from '../../purchaseHistory/PurchaseHistoryDashboard/PurchaseHistoryDashboard';
+import { ChatRecommendationModal } from '../../modals/ChatRecommendationModal/ChatRecommendationModal';
 import styles from './MainLayout.module.css';
 
 interface MainLayoutProps {
@@ -16,6 +17,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ className }) => {
   const { user, isLoading: authLoading, error: authError } = useAuth();
   const { currentPanel, isExpanded, height, isAnimating } = usePanel();
   const { currentPage } = useNavigation();
+  const { isRecommendationModalOpen, recommendationProducts, closeRecommendationModal } = useChat();
   const { width, breakpoint } = useWindowSize();
   const [cartCollapsed, setCartCollapsed] = useState(false);
   const layoutRef = useRef<HTMLDivElement>(null);
@@ -157,6 +159,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ className }) => {
           aria-hidden="true"
         />
       )}
+
+      {/* Chat Recommendation Modal */}
+      <ChatRecommendationModal
+        isOpen={isRecommendationModalOpen}
+        onClose={closeRecommendationModal}
+        products={recommendationProducts}
+      />
     </div>
   );
 };
