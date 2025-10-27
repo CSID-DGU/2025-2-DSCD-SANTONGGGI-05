@@ -294,8 +294,9 @@ npx tsc --noEmit
 ```typescript
 interface User {
   id: number;           // Long
-  number: string;       // username (계정명)
+  number: string;       // 전화번호 (로그인 아이디로 사용)
   password: string;     // 비밀번호
+  name: string;         // 사용자 이름
 }
 ```
 

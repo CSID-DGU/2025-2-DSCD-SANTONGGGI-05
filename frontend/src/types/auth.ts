@@ -1,7 +1,7 @@
 // User 타입은 ERD 기준으로 독립 정의 (id: number)
 export interface User {
   id: number;  // ERD: Long (number)
-  email: string;
+  phone_number: string;  // ERD: number 필드 (전화번호)
   name: string;
   avatar?: string;
   preferences?: UserPreferences;
@@ -37,13 +37,13 @@ export interface AuthTokens {
 }
 
 export interface LoginCredentials {
-  email: string;
+  phone_number: string;  // 전화번호로 로그인
   password: string;
   rememberMe?: boolean;
 }
 
 export interface RegisterData {
-  email: string;
+  phone_number: string;  // 전화번호로 회원가입
   password: string;
   confirmPassword: string;
   name: string;

@@ -1,5 +1,5 @@
 // Mock auth API service - ERD 기반
-// ERD: users { id: number, number: string (username), password: string }
+// ERD: users { id: number, number: string (전화번호), password: string, name: string }
 
 export const authApi = {
   // POST /api/auth/login
@@ -12,7 +12,7 @@ export const authApi = {
       data: {
         user: {
           id: 1123,
-          email: credentials.email || 'demo@example.com',
+          phone_number: credentials.phone_number || '010-1234-5678',
           name: 'Demo User',
           role: 'user' as const
         },
@@ -35,7 +35,7 @@ export const authApi = {
       data: {
         user: {
           id: 1124,
-          email: data.email || 'newuser@example.com',
+          phone_number: data.phone_number || '010-9876-5432',
           name: data.name || 'New User',
           role: 'user' as const
         },
@@ -58,7 +58,7 @@ export const authApi = {
         data: {
           user: {
             id: 1123,
-            email: 'demo@example.com',
+            phone_number: '010-1234-5678',
             name: 'Demo User',
             role: 'user' as const
           },

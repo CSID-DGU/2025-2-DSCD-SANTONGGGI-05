@@ -11,7 +11,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
   const { register } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
+    phone_number: '',
     password: '',
     confirmPassword: ''
   });
@@ -33,8 +33,8 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
       return;
     }
 
-    if (!formData.email.trim()) {
-      setError('아이디를 입력해주세요');
+    if (!formData.phone_number.trim()) {
+      setError('전화번호를 입력해주세요');
       return;
     }
 
@@ -57,7 +57,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
     try {
       await register({
         name: formData.name,
-        email: formData.email,
+        phone_number: formData.phone_number,
         password: formData.password,
         confirmPassword: formData.confirmPassword,
         acceptTerms: true
@@ -112,19 +112,19 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
           </div>
 
           <div className={styles.formGroup}>
-            <label htmlFor="register-email" className={styles.label}>
-              아이디
+            <label htmlFor="register-phone" className={styles.label}>
+              전화번호
             </label>
             <input
-              id="register-email"
-              type="text"
-              name="email"
-              value={formData.email}
+              id="register-phone"
+              type="tel"
+              name="phone_number"
+              value={formData.phone_number}
               onChange={handleChange}
               className={styles.input}
-              placeholder="user123"
+              placeholder="010-1234-5678"
               disabled={isLoading}
-              autoComplete="username"
+              autoComplete="tel"
             />
           </div>
 
@@ -178,7 +178,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
 export const LoginPage: React.FC = () => {
   const { login } = useAuth();
   const [credentials, setCredentials] = useState({
-    email: '',
+    phone_number: '',
     password: ''
   });
   const [error, setError] = useState('');
@@ -195,8 +195,8 @@ export const LoginPage: React.FC = () => {
     e.preventDefault();
     setError('');
 
-    if (!credentials.email.trim()) {
-      setError('아이디를 입력해주세요');
+    if (!credentials.phone_number.trim()) {
+      setError('전화번호를 입력해주세요');
       return;
     }
 
@@ -208,7 +208,7 @@ export const LoginPage: React.FC = () => {
     setIsLoading(true);
     try {
       await login({
-        email: credentials.email,
+        phone_number: credentials.phone_number,
         password: credentials.password
       });
     } catch (err: any) {
@@ -236,19 +236,19 @@ export const LoginPage: React.FC = () => {
             )}
 
             <div className={styles.formGroup}>
-              <label htmlFor="email" className={styles.label}>
-                아이디
+              <label htmlFor="phone_number" className={styles.label}>
+                전화번호
               </label>
               <input
-                id="email"
-                type="text"
-                name="email"
-                value={credentials.email}
+                id="phone_number"
+                type="tel"
+                name="phone_number"
+                value={credentials.phone_number}
                 onChange={handleChange}
                 className={styles.input}
-                placeholder="아이디를 입력하세요"
+                placeholder="010-1234-5678"
                 disabled={isLoading}
-                autoComplete="username"
+                autoComplete="tel"
                 autoFocus
               />
             </div>

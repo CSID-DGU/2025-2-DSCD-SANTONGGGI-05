@@ -50,7 +50,8 @@
 CREATE TABLE users (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
   number VARCHAR(255) NOT NULL UNIQUE,  -- username (계정명)
-  password VARCHAR(255) NOT NULL
+  password VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL            -- 사용자 이름
 );
 ```
 
@@ -60,6 +61,7 @@ interface User {
   id: number;           // Long
   number: string;       // username (계정명)
   password: string;     // 비밀번호
+  name: string;         // 사용자 이름
 }
 ```
 
@@ -166,7 +168,7 @@ interface Product {
 **Request Body:**
 ```typescript
 interface LoginRequest {
-  username: string;  // user.number 필드에 대응
+  phone_number: string;  // user.number 필드에 대응 (전화번호)
   password: string;
 }
 ```
@@ -174,7 +176,7 @@ interface LoginRequest {
 **Request 예시:**
 ```json
 {
-  "username": "user123",
+  "phone_number": "010-1234-5678",
   "password": "password123"
 }
 ```
@@ -198,7 +200,7 @@ interface LoginResponse {
 **프론트엔드 처리:**
 ```typescript
 // AuthContext에서 사용
-const response = await authApi.login({ username, password });
+const response = await authApi.login({ phone_number, password });
 localStorage.setItem('auth_token', response.token);
 ```
 
@@ -213,18 +215,18 @@ localStorage.setItem('auth_token', response.token);
 **Request Body:**
 ```typescript
 interface RegisterRequest {
-  username: string;  // user.number 필드에 저장
+  phone_number: string;  // user.number 필드에 저장 (전화번호)
   password: string;
-  email: string;     // ERD에는 없지만 프론트엔드에서 전송
+  name: string;          // user.name 필드에 저장 (사용자 이름)
 }
 ```
 
 **Request 예시:**
 ```json
 {
-  "username": "newuser",
+  "phone_number": "010-1234-5678",
   "password": "securepass",
-  "email": "user@example.com"
+  "name": "홍길동"
 }
 ```
 
