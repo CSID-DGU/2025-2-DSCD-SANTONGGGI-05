@@ -137,40 +137,44 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
       dispatch({ type: 'SET_LOADING', payload: true });
       const response = await chatApi.getHistory(user.id);
 
-      if (response.success && response.data) {
-        // ERD API 응답을 프론트엔드 메시지 형식으로 변환
-        const messages: ChatMessage[] = [];
-
-        response.data.messages.forEach(msg => {
-          // User message 추가 (message가 비어있지 않을 때만)
-          if (msg.message && msg.message.trim()) {
-            messages.push({
-              id: `msg-${msg.id}`,
-              content: msg.message,
-              role: 'user' as const,
-              type: 'text' as const,
-              createdAt: new Date(msg.timestamp),
-              updatedAt: new Date(msg.timestamp),
-              status: 'sent' as const
-            });
-          }
-
-          // AI message 추가 (ai_message가 비어있지 않을 때만)
-          if (msg.ai_message && msg.ai_message.trim()) {
-            messages.push({
-              id: `ai-msg-${msg.id}`,
-              content: msg.ai_message,
-              role: 'assistant' as const,
-              type: 'text' as const,
-              createdAt: new Date(msg.timestamp),
-              updatedAt: new Date(msg.timestamp),
-              status: 'delivered' as const
-            });
-          }
-        });
-
-        dispatch({ type: 'SET_MESSAGES', payload: messages });
+      if (!response.success || !response.data) {
+        const message = response.error || '채팅 기록을 불러오지 못했습니다.';
+        dispatch({ type: 'SET_ERROR', payload: message });
+        return;
       }
+
+      // ERD API 응답을 프론트엔드 메시지 형식으로 변환
+      const messages: ChatMessage[] = [];
+
+      response.data.messages.forEach(msg => {
+        // User message 추가 (message가 비어있지 않을 때만)
+        if (msg.message && msg.message.trim()) {
+          messages.push({
+            id: `msg-${msg.id}`,
+            content: msg.message,
+            role: 'user' as const,
+            type: 'text' as const,
+            createdAt: new Date(msg.timestamp),
+            updatedAt: new Date(msg.timestamp),
+            status: 'sent' as const
+          });
+        }
+
+        // AI message 추가 (ai_message가 비어있지 않을 때만)
+        if (msg.ai_message && msg.ai_message.trim()) {
+          messages.push({
+            id: `ai-msg-${msg.id}`,
+            content: msg.ai_message,
+            role: 'assistant' as const,
+            type: 'text' as const,
+            createdAt: new Date(msg.timestamp),
+            updatedAt: new Date(msg.timestamp),
+            status: 'delivered' as const
+          });
+        }
+      });
+
+      dispatch({ type: 'SET_MESSAGES', payload: messages });
     } catch (error: any) {
       dispatch({ type: 'SET_ERROR', payload: error.message });
     } finally {
@@ -208,45 +212,47 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
       // ERD API 호출
       const response = await chatApi.sendMessage(user.id, content);
 
-      if (response.success && response.data) {
-        // Update user message status
-        dispatch({
-          type: 'UPDATE_MESSAGE',
-          payload: {
-            messageId: userMessage.id,
-            updates: { status: 'sent' }
-          }
-        });
+      if (!response.success || !response.data) {
+        throw new Error(response.error || '메시지 전송에 실패했습니다.');
+      }
 
-        // Add AI response
-        const aiMessage: ChatMessage = {
-          id: `ai-${Date.now()}`,
-          content: response.data.ai_message,
-          role: 'assistant',
-          type: response.data.type === 1 ? 'product' : response.data.type === 2 ? 'statistics' : 'text',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          status: 'delivered'
-        };
-
-        dispatch({
-          type: 'ADD_MESSAGE',
-          payload: aiMessage
-        });
-
-        // Handle product recommendations (type === 1) - Open ChatRecommendationModal
-        if (response.data.type === 1 && response.data.recommendationItems.length > 0) {
-          const products = response.data.recommendationItems.map(item => ({
-            product_id: item.product_id,
-            name: item.category,
-            price: item.price,
-            platform_name: item.platform_name,
-            category: item.category,
-            review: item.review
-          }));
-
-          dispatch({ type: 'OPEN_RECOMMENDATION_MODAL', payload: products });
+      // Update user message status
+      dispatch({
+        type: 'UPDATE_MESSAGE',
+        payload: {
+          messageId: userMessage.id,
+          updates: { status: 'sent' }
         }
+      });
+
+      // Add AI response
+      const aiMessage: ChatMessage = {
+        id: `ai-${Date.now()}`,
+        content: response.data.ai_message,
+        role: 'assistant',
+        type: response.data.type === 1 ? 'product' : response.data.type === 2 ? 'statistics' : 'text',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        status: 'delivered'
+      };
+
+      dispatch({
+        type: 'ADD_MESSAGE',
+        payload: aiMessage
+      });
+
+      // Handle product recommendations (type === 1) - Open ChatRecommendationModal
+      if (response.data.type === 1 && response.data.recommendationItems.length > 0) {
+        const products = response.data.recommendationItems.map(item => ({
+          product_id: item.product_id,
+          name: item.category,
+          price: item.price,
+          platform_name: item.platform_name,
+          category: item.category,
+          review: item.review
+        }));
+
+        dispatch({ type: 'OPEN_RECOMMENDATION_MODAL', payload: products });
       }
     } catch (error: any) {
       // Update message status to failed
