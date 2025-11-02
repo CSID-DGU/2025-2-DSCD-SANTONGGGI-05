@@ -1,9 +1,17 @@
 """FastAPI 애플리케이션 초기 설정을 담당하는 모듈."""
 
+from __future__ import annotations
+
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .api.chat import router as chat_router
+from .core.database import init_db
+
+
+RUN_INIT_DB = os.getenv("RUN_INIT_DB", "").lower() == "true"
 
 
 def create_app() -> FastAPI:
@@ -17,7 +25,6 @@ def create_app() -> FastAPI:
         ),
     )
 
-    # CORS 허용 범위를 지정하여 Vite 개발 서버에서 오는 요청을 수락한다.
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[
@@ -29,8 +36,10 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    # /api/chat 엔드포인트 묶음을 등록한다.
     app.include_router(chat_router, prefix="/api")
+
+    if RUN_INIT_DB:
+        init_db()
 
     return app
 
