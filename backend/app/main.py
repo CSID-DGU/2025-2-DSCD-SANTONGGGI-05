@@ -1,0 +1,44 @@
+"""FastAPI 애플리케이션 초기 설정을 담당하는 모듈."""
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from .api.chat import router as chat_router
+
+
+def create_app() -> FastAPI:
+    """FastAPI 인스턴스를 생성하고 공통 설정을 적용한다."""
+    app = FastAPI(
+        title="Shopping Assistant Backend",
+        version="0.1.0",
+        description=(
+            "프론트엔드 연동 테스트용 백엔드 뼈대입니다. "
+            "현재는 목업 데이터를 반환하며 차후 실제 로직으로 교체할 수 있습니다."
+        ),
+    )
+
+    # CORS 허용 범위를 지정하여 Vite 개발 서버에서 오는 요청을 수락한다.
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+        ],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    # /api/chat 엔드포인트 묶음을 등록한다.
+    app.include_router(chat_router, prefix="/api")
+
+    return app
+
+
+app = create_app()
+
+
+@app.get("/health", tags=["system"])
+async def health_check() -> dict[str, str]:
+    """배포/모니터링 도구가 서버 상태를 확인할 때 사용하는 헬스 체크."""
+    return {"status": "ok"}
