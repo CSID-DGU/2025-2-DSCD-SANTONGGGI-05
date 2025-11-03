@@ -7,6 +7,15 @@ from .chat import (
     SendChatMessageRequest,
     SendChatMessageResponse,
 )
+from .auth import (
+    UserOut,
+    RegisterRequest,
+    RegisterResponse,
+    LoginRequest,
+    LoginResponse,
+    AuthTokens,
+    default_tokens,
+)
 
 __all__ = [
     "ChatMessage",
@@ -14,4 +23,11 @@ __all__ = [
     "RecommendationItem",
     "SendChatMessageRequest",
     "SendChatMessageResponse",
+    "UserOut",
+    "RegisterRequest",
+    "RegisterResponse",
+    "LoginRequest",
+    "LoginResponse",
+    "AuthTokens",
+    "default_tokens",
 ]
