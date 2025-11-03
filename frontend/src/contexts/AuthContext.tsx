@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo, ReactNode } from 'react';
-import { AuthState, AuthContextValue, User, LoginCredentials, RegisterData, UserPreferences } from '../types/auth';
+import { AuthState, AuthContextValue, User, LoginCredentials, RegisterData, UserPreferences, AuthResponse } from '../types/auth';
 import { authApi } from '../services/api/auth';
 import { storageService } from '../services/storage/localStorage';
 
@@ -10,6 +10,7 @@ const initialState: AuthState = {
   isAuthenticated: false,
   isLoading: true,
   error: null,
+  authError: null,
 };
 
 // Action types
@@ -24,14 +25,15 @@ type AuthAction =
   | { type: 'REFRESH_TOKEN_SUCCESS'; payload: any }
   | { type: 'UPDATE_USER'; payload: User }
   | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'CLEAR_ERROR' };
+  | { type: 'CLEAR_ERROR' }
+  | { type: 'SET_AUTH_ERROR'; payload: string | null };
 
 // Reducer
 const authReducer = (state: AuthState, action: AuthAction): AuthState => {
   switch (action.type) {
     case 'LOGIN_START':
     case 'REGISTER_START':
-      return { ...state, isLoading: true, error: null };
+      return { ...state, isLoading: true, error: null, authError: null };
 
     case 'LOGIN_SUCCESS':
     case 'REGISTER_SUCCESS':
@@ -42,6 +44,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         isAuthenticated: true,
         isLoading: false,
         error: null,
+        authError: null,
       };
 
     case 'LOGIN_FAILURE':
@@ -52,7 +55,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         tokens: null,
         isAuthenticated: false,
         isLoading: false,
-        error: action.payload,
+        authError: action.payload,
       };
 
     case 'LOGOUT':
@@ -84,6 +87,13 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
       return {
         ...state,
         error: null,
+        authError: null,
+      };
+
+    case 'SET_AUTH_ERROR':
+      return {
+        ...state,
+        authError: action.payload,
       };
 
     default:
@@ -120,7 +130,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   // Actions
-  const login = async (credentials: LoginCredentials) => {
+  const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
     dispatch({ type: 'LOGIN_START' });
     try {
       const response = await authApi.login(credentials);
@@ -136,16 +146,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         type: 'LOGIN_SUCCESS',
         payload: { user, tokens }
       });
+      return { success: true };
     } catch (error: any) {
-      dispatch({
-        type: 'LOGIN_FAILURE',
-        payload: error.message || 'Login failed'
-      });
-      throw error;
+      const message = error?.message || 'Login failed';
+      dispatch({ type: 'LOGIN_FAILURE', payload: message });
+      dispatch({ type: 'SET_AUTH_ERROR', payload: message });
+      return { success: false, message };
     }
   };
 
-  const register = async (data: RegisterData) => {
+  const register = async (data: RegisterData): Promise<AuthResponse> => {
     dispatch({ type: 'REGISTER_START' });
     try {
       const response = await authApi.register(data);
@@ -158,12 +168,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         type: 'REGISTER_SUCCESS',
         payload: { user, tokens }
       });
+      return { success: true };
     } catch (error: any) {
-      dispatch({
-        type: 'REGISTER_FAILURE',
-        payload: error.message || 'Registration failed'
-      });
-      throw error;
+      const message = error?.message || 'Registration failed';
+      dispatch({ type: 'REGISTER_FAILURE', payload: message });
+      dispatch({ type: 'SET_AUTH_ERROR', payload: message });
+      return { success: false, message };
     }
   };
 
@@ -176,19 +186,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     dispatch({ type: 'SET_LOADING', payload: false });
   }, []);
 
+  const clearAuthError = useCallback(() => {
+    dispatch({ type: 'SET_AUTH_ERROR', payload: null });
+  }, []);
+
   const contextValue: AuthContextValue = useMemo(() => ({
     ...state,
     login,
     register,
     logout,
     initialize,
+    clearAuthError,
   }), [
     state.user,
     state.tokens,
     state.isAuthenticated,
     state.isLoading,
     state.error,
+    state.authError,
     initialize,
+    clearAuthError,
     // Intentionally excluding login, register, logout to prevent infinite loops
     // eslint-disable-next-line react-hooks/exhaustive-deps
   ]);

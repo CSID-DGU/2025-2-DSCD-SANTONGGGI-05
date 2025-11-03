@@ -55,12 +55,19 @@ export interface AuthState {
   tokens: AuthTokens | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  error: string | null;
+  error: string | null;      // initialization error
+  authError: string | null;  // auth flow error
+}
+
+export interface AuthResponse {
+  success: boolean;
+  message?: string;
 }
 
 export interface AuthContextValue extends AuthState {
-  login: (credentials: LoginCredentials) => Promise<void>;
-  register: (data: RegisterData) => Promise<void>;
+  login: (credentials: LoginCredentials) => Promise<AuthResponse>;
+  register: (data: RegisterData) => Promise<AuthResponse>;
   logout: () => void;
   initialize: () => void;
+  clearAuthError: () => void;
 }
