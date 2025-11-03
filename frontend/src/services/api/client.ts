@@ -52,10 +52,25 @@ const parseResponse = async <T>(response: Response): Promise<ApiResponse<T>> => 
   }
 
   if (!response.ok) {
-    const message =
-      (body && typeof body === 'object' && 'message' in body)
-        ? String(body.message)
-        : `Request failed with status ${response.status}`;
+    let message = `Request failed with status ${response.status}`;
+
+    if (body && typeof body === 'object') {
+      if ('message' in body && typeof body.message === 'string') {
+        message = String(body.message);
+      } else if ('detail' in body) {
+        const detail = (body as any).detail;
+        if (typeof detail === 'string') {
+          message = detail;
+        } else if (Array.isArray(detail) && detail.length > 0) {
+          const first = detail[0];
+          if (typeof first === 'string') {
+            message = first;
+          } else if (first && typeof first === 'object' && 'msg' in first) {
+            message = String(first.msg);
+          }
+        }
+      }
+    }
 
     return {
       success: false,
