@@ -1,97 +1,30 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo, ReactNode } from 'react';
-import { CartState, CartContextValue, CartItem, CartSummary } from '../types/cart';
+import {
+  CartState,
+  CartContextValue,
+  CartItem,
+  CartSummary,
+  AddCartItemParams,
+} from '../types/cart';
 import { cartApi, convertApiCartItemToUI, calculateCartSummary } from '../services/api/cart';
 import { useAuth } from './AuthContext';
 import { storageService } from '../services/storage/localStorage';
+import { DEFAULT_CART_IMAGE_URL, DEFAULT_CART_PRODUCT_URL } from '../constants/cart';
 
-// Sample data for testing mockup design
-const sampleCartItems: CartItem[] = [
-  {
-    id: '1',
-    productId: 'water-2l',
-    product: {
-      id: 'water-2l',
-      name: '미네랄 워터 2L',
-      description: '프리미엄 미네랄 워터',
-      price: 1500,
-      currency: 'KRW',
-      images: [{ id: 'img-1', url: 'https://cdn.pixabay.com/photo/2016/10/22/20/34/bottles-1761613_1280.jpg', alt: '미네랄 워터', isPrimary: true, order: 0 }],
-      brand: '에비안',
-      category: { id: '1', name: '음료', slug: 'beverages' },
-      sku: 'water-2l-001',
-      stock: 100,
-      url: 'https://www.coupang.com/vp/products/6305358952',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    unitPrice: 1500,
-    addedAt: new Date(),
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '2',
-    productId: 'cleaner-30',
-    product: {
-      id: 'cleaner-30',
-      name: '화장지 30롤',
-      description: '프리미엄 화장지',
-      price: 15000,
-      currency: 'KRW',
-      images: [{ id: 'img-2', url: 'https://cdn.pixabay.com/photo/2020/04/28/20/12/toilet-paper-5106638_1280.jpg', alt: '화장지', isPrimary: true, order: 0 }],
-      brand: '크리넥스',
-      category: { id: '2', name: '생활용품', slug: 'household' },
-      sku: 'cleaner-30-001',
-      stock: 50,
-      url: 'https://search.shopping.naver.com/catalog/35126752621',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    unitPrice: 15000,
-    addedAt: new Date(),
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '3',
-    productId: 'detergent-1l',
-    product: {
-      id: 'detergent-1l',
-      name: '주방세제 1L',
-      description: '친환경 주방세제',
-      price: 3500,
-      currency: 'KRW',
-      images: [{ id: 'img-3', url: 'https://cdn.pixabay.com/photo/2020/03/24/12/46/soap-4963471_1280.jpg', alt: '주방세제', isPrimary: true, order: 0 }],
-      brand: '참그린',
-      category: { id: '2', name: '생활용품', slug: 'household' },
-      sku: 'detergent-1l-001',
-      stock: 30,
-      url: 'https://www.coupang.com/vp/products/7234567890',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    unitPrice: 3500,
-    addedAt: new Date(),
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  }
-];
-
-// Initial state with sample data
 const initialState: CartState = {
-  items: sampleCartItems,
+  items: [],
   summary: {
-    subtotal: 20000, // 1500 + 15000 + 3500
+    subtotal: 0,
     tax: 0,
     shipping: 0,
     discount: 0,
-    total: 20000,
+    total: 0,
     currency: 'KRW',
-    itemCount: 3, // 상품 개수 (수량 아님)
+    itemCount: 0,
   },
   isLoading: false,
   error: null,
-  lastUpdated: new Date(),
+  lastUpdated: null,
 };
 
 // Action types
@@ -124,24 +57,27 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
         error: null,
       };
 
-    case 'ADD_ITEM':
-      // 이미 장바구니에 있는 상품인지 확인
+    case 'ADD_ITEM': {
       const existingItemIndex = state.items.findIndex(
-        item => item.productId === action.payload.productId &&
-                item.variantId === action.payload.variantId
+        item => item.productId === action.payload.productId && item.variantId === action.payload.variantId
       );
 
-      // 이미 있으면 추가하지 않음 (수량 개념 없음)
       if (existingItemIndex >= 0) {
-        return state;
+        const updatedItems = state.items.slice();
+        updatedItems[existingItemIndex] = action.payload;
+        return {
+          ...state,
+          items: updatedItems,
+          lastUpdated: new Date(),
+        };
       }
 
-      // 새 상품 추가
       return {
         ...state,
         items: [...state.items, action.payload],
         lastUpdated: new Date(),
       };
+    }
 
     case 'UPDATE_ITEM':
       return {
@@ -205,10 +141,11 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   useEffect(() => {
     const loadData = async () => {
       if (isAuthenticated && user) {
+        storageService.clearGuestCart();
         try {
           dispatch({ type: 'SET_LOADING', payload: true });
-          const response = await cartApi.getCart();
-          const uiItems = response.data.items.map(convertApiCartItemToUI);
+          const response = await cartApi.getCart(user.id);
+          const uiItems = response.items.map(convertApiCartItemToUI);
           const summary = calculateCartSummary(uiItems);
           dispatch({
             type: 'SET_CART_DATA',
@@ -219,6 +156,13 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
           });
         } catch (error: any) {
           dispatch({ type: 'SET_ERROR', payload: error.message });
+          dispatch({
+            type: 'SET_CART_DATA',
+            payload: {
+              items: [],
+              summary: calculateCartSummary([]),
+            },
+          });
         } finally {
           dispatch({ type: 'SET_LOADING', payload: false });
         }
@@ -250,15 +194,16 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         lastUpdated: state.lastUpdated,
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.items.length, isAuthenticated]); // Only track length and auth status
+  }, [isAuthenticated, state.items, state.summary, state.lastUpdated]);
 
   // Load cart data from API
   const loadCartData = useCallback(async () => {
+    if (!user) return;
+
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
-      const response = await cartApi.getCart();
-      const uiItems = response.data.items.map(convertApiCartItemToUI);
+      const response = await cartApi.getCart(user.id);
+      const uiItems = response.items.map(convertApiCartItemToUI);
       const summary = calculateCartSummary(uiItems);
       dispatch({
         type: 'SET_CART_DATA',
@@ -269,10 +214,17 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       });
     } catch (error: any) {
       dispatch({ type: 'SET_ERROR', payload: error.message });
+      dispatch({
+        type: 'SET_CART_DATA',
+        payload: {
+          items: [],
+          summary: calculateCartSummary([]),
+        },
+      });
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
-  }, []);
+  }, [user]);
 
   // Load guest cart from localStorage
   const loadGuestCart = useCallback(() => {
@@ -289,24 +241,76 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   }, []);
 
   // Add item to cart
-  const addItem = useCallback(async (productId: string, variantId?: string) => {
+  const addItem = useCallback(async ({
+    productId,
+    name,
+    price,
+    platformName,
+    imageUrl,
+    productUrl,
+  }: AddCartItemParams) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
+
+      const resolvedImageUrl = imageUrl && imageUrl.trim().length > 0
+        ? imageUrl
+        : DEFAULT_CART_IMAGE_URL;
+      const resolvedProductUrl = productUrl && productUrl.trim().length > 0
+        ? productUrl
+        : DEFAULT_CART_PRODUCT_URL;
 
       if (isAuthenticated && user) {
         const response = await cartApi.addToCart({
           user_id: user.id,
           product_id: Number(productId),
-          platform_name: '쿠팡',
-          price: 10000, // 임시 가격
+          name,
+          platform_name: platformName,
+          price,
+          imageUrl: resolvedImageUrl,
+          productUrl: resolvedProductUrl,
         });
 
-        const uiItem = convertApiCartItemToUI(response.data.item);
-        dispatch({ type: 'ADD_ITEM', payload: uiItem });
+        if (!response.item) {
+          throw new Error('장바구니 항목 정보를 받을 수 없습니다.');
+        }
 
-        // Recalculate summary with the new item
-        const updatedItems = [...state.items, uiItem];
-        dispatch({ type: 'UPDATE_SUMMARY', payload: calculateCartSummary(updatedItems) });
+        const converted = convertApiCartItemToUI(response.item);
+        const uiItem: CartItem = {
+          ...converted,
+          product: {
+            ...converted.product,
+            name: name || converted.product.name,
+            images: [
+              {
+                id: `img-${productId}`,
+                url: resolvedImageUrl,
+                alt: name || converted.product.name,
+                isPrimary: true,
+                order: 0,
+              },
+            ],
+            url: resolvedProductUrl,
+          },
+        };
+
+        const mergedItems = (() => {
+          const existingIndex = state.items.findIndex(item => item.productId === uiItem.productId);
+          if (existingIndex >= 0) {
+            const clone = state.items.slice();
+            clone[existingIndex] = uiItem;
+            return clone;
+          }
+          return [...state.items, uiItem];
+        })();
+
+        const summary = calculateCartSummary(mergedItems);
+        dispatch({
+          type: 'SET_CART_DATA',
+          payload: {
+            items: mergedItems,
+            summary,
+          },
+        });
       } else {
         // For guest users, simulate adding item
         // In a real app, you'd need product data to create the cart item
@@ -315,30 +319,51 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
           productId,
           product: {
             id: productId,
-            name: 'Product',
+            name,
             description: '',
-            price: 0,
+            price,
             currency: 'KRW',
-            images: [],
+            images: [
+              {
+                id: `img-${Date.now()}`,
+                url: resolvedImageUrl,
+                alt: name,
+                isPrimary: true,
+                order: 0,
+              },
+            ],
             category: { id: '', name: '', slug: '' },
-            brand: '',
+            brand: platformName,
             sku: '',
             stock: 0,
+            url: resolvedProductUrl,
             createdAt: new Date(),
             updatedAt: new Date(),
           },
-          ...(variantId && { variantId }),
-          unitPrice: 0, // Would come from product data
+          unitPrice: price,
           addedAt: new Date(),
           createdAt: new Date(),
           updatedAt: new Date(),
         };
 
-        dispatch({ type: 'ADD_ITEM', payload: newItem });
+        const mergedItems = (() => {
+          const existingIndex = state.items.findIndex(item => item.productId === newItem.productId);
+          if (existingIndex >= 0) {
+            const clone = state.items.slice();
+            clone[existingIndex] = newItem;
+            return clone;
+          }
+          return [...state.items, newItem];
+        })();
 
-        // Recalculate summary with the new item included
-        const updatedItems = [...state.items, newItem];
-        dispatch({ type: 'UPDATE_SUMMARY', payload: calculateCartSummary(updatedItems) });
+        const summary = calculateCartSummary(mergedItems);
+        dispatch({
+          type: 'SET_CART_DATA',
+          payload: {
+            items: mergedItems,
+            summary,
+          },
+        });
       }
     } catch (error: any) {
       dispatch({ type: 'SET_ERROR', payload: error.message });
@@ -346,8 +371,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, user]); // Include user for authenticated calls
+  }, [isAuthenticated, user, state.items]);
 
   // Remove item from cart
   const removeItem = useCallback(async (itemId: string) => {
@@ -358,12 +382,15 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         await cartApi.removeItem(Number(itemId), user.id);
       }
 
-      dispatch({ type: 'REMOVE_ITEM', payload: itemId });
-
-      // Recalculate summary
       const remainingItems = state.items.filter(item => item.id !== itemId);
       const newSummary = calculateCartSummary(remainingItems);
-      dispatch({ type: 'UPDATE_SUMMARY', payload: newSummary });
+      dispatch({
+        type: 'SET_CART_DATA',
+        payload: {
+          items: remainingItems,
+          summary: newSummary,
+        },
+      });
 
     } catch (error: any) {
       dispatch({ type: 'SET_ERROR', payload: error.message });
@@ -371,8 +398,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, user]); // Include user for authenticated calls
+  }, [isAuthenticated, user, state.items]);
 
   // Clear cart (local only - no API call needed)
   const clearCart = useCallback(async () => {
@@ -396,8 +422,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   // Get item by product ID
   const getItemByProductId = useCallback((productId: string): CartItem | undefined => {
     return state.items.find(item => item.productId === productId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.items.length]); // Use length to avoid full array dependency
+  }, [state.items]);
 
   // Refresh cart data
   const refreshCart = useCallback(async () => {
@@ -409,10 +434,16 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   }, [isAuthenticated, loadCartData, loadGuestCart]);
 
   // Add simplified methods for component compatibility
-  const addToCart = useCallback(async (item: { id: string; name: string; price: number; image?: string }) => {
-    // Simplified addToCart that matches component expectations
+  const addToCart = useCallback(async (item: { id: string; name: string; price: number; platformName: string; imageUrl?: string; productUrl?: string }) => {
     try {
-      await addItem(item.id);
+      await addItem({
+        productId: item.id,
+        name: item.name,
+        price: item.price,
+        platformName: item.platformName,
+        imageUrl: item.imageUrl ?? DEFAULT_CART_IMAGE_URL,
+        productUrl: item.productUrl ?? DEFAULT_CART_PRODUCT_URL,
+      });
     } catch (error) {
       console.error('Failed to add to cart:', error);
     }

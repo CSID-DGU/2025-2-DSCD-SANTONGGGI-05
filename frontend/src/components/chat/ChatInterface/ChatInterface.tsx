@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, KeyboardEvent } from 'react';
-import { useChat } from '../../../contexts/AppProvider';
+import { useChat, useAuth } from '../../../contexts/AppProvider';
 import { ChatMessages } from '../ChatMessages/ChatMessages';
 import { TypingIndicator } from '../TypingIndicator/TypingIndicator';
 import { ChatRecommendationModal } from '@/components/modals/ChatRecommendationModal';
@@ -26,6 +26,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
     connectionStatus,
     sendMessage,
   } = useChat();
+  const { user } = useAuth();
 
   const [inputValue, setInputValue] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -175,7 +176,9 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
       {/* Chat Header */}
       <div className={styles.chatHeader}>
         <div>
-          <h1 className={styles.headerTitle}>쇼비자 맞춤형 쇼핑 비서 서비스</h1>
+          <h1 className={styles.headerTitle}>
+            {user?.name ? `안녕하세요 ${user.name}님` : '쇼비자 맞춤형 쇼핑 비서 서비스'}
+          </h1>
           <p className={styles.headerSubtitle}>실시간 상품 추천 채팅</p>
         </div>
 

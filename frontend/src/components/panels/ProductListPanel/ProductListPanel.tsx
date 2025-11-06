@@ -3,6 +3,7 @@ import { Product } from '../../../types';
 import { useCart } from '../../../contexts/AppProvider';
 import { LoadingSpinner } from '../../ui/LoadingSpinner';
 import styles from './ProductListPanel.module.css';
+import { DEFAULT_CART_IMAGE_URL, DEFAULT_CART_PRODUCT_URL } from '../../../constants/cart';
 
 interface ProductListPanelProps {
   products: Product[];
@@ -23,11 +24,20 @@ export const ProductListPanel: React.FC<ProductListPanelProps> = ({
 
     setLoadingProducts(prev => new Set(prev).add(product.id));
     try {
+      const resolvedImageUrl = product.image && product.image.startsWith('http')
+        ? product.image
+        : DEFAULT_CART_IMAGE_URL;
+      const resolvedProductUrl = product.url && product.url.length > 0
+        ? product.url
+        : `${DEFAULT_CART_PRODUCT_URL}?q=${encodeURIComponent(product.name)}`;
+
       await addToCart({
         id: product.id,
         name: product.name,
         price: product.price,
-        ...(product.image && { image: product.image })
+        platformName: product.badge ?? '온라인몰',
+        imageUrl: resolvedImageUrl,
+        productUrl: resolvedProductUrl,
       });
     } finally {
       setLoadingProducts(prev => {

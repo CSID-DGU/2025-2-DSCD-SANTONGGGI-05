@@ -90,8 +90,11 @@ class CartItem(Base):
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )
+    name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     platform_name: Mapped[str] = mapped_column(String(255), nullable=False)
     price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
+    image_url: Mapped[str] = mapped_column(String(512), nullable=False, default="")
+    product_url: Mapped[str] = mapped_column(String(512), nullable=False, default="")
     quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -120,6 +123,7 @@ class PurchaseHistory(Base):
         nullable=True,
     )
     date: Mapped[datetime] = mapped_column(Date, nullable=False)
+    name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     platform_name: Mapped[str] = mapped_column(String(255), nullable=False)
     price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     category: Mapped[str | None] = mapped_column(String(255), nullable=True)

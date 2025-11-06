@@ -83,21 +83,30 @@ export interface CartState {
   lastUpdated: Date | null;
 }
 
-  export interface CartContextValue extends Omit<CartState, 'items'> {
+export interface AddCartItemParams {
+  productId: string;
+  name: string;
+  price: number;
+  platformName: string;
+  imageUrl: string;
+  productUrl: string;
+}
+
+export interface CartContextValue extends Omit<CartState, 'items'> {
   // Simplified properties for component compatibility
   items: CartItemType[];
   total: number;
   itemCount: number;
 
   // Original methods
-  addItem: (productId: string, variantId?: string) => Promise<void>;
+  addItem: (params: AddCartItemParams) => Promise<void>;
   removeItem: (itemId: string) => Promise<void>;
   clearCart: () => Promise<void>;
   getItemByProductId: (productId: string) => CartItem | undefined;
   refreshCart: () => Promise<void>;
 
   // Simplified methods for component compatibility
-  addToCart: (item: { id: string; name: string; price: number; image?: string }) => Promise<void>;
+  addToCart: (item: { id: string; name: string; price: number; platformName: string; imageUrl?: string; productUrl?: string }) => Promise<void>;
 }
 
 export interface CartUpdate {
