@@ -1,5 +1,6 @@
 import React from 'react';
 import { useCart } from '@/contexts/AppProvider';
+import { DEFAULT_CART_IMAGE_URL, DEFAULT_CART_PRODUCT_URL } from '@/constants/cart';
 import styles from './ChatRecommendationModal.module.css';
 
 // Type 1: 채팅 응답에서 받은 상품 추천 데이터
@@ -10,6 +11,8 @@ interface Product {
   platform_name: string;
   category: string;
   review: number;
+  image_url?: string;
+  product_url?: string;
 }
 
 interface ChatRecommendationModalProps {
@@ -37,7 +40,14 @@ export const ChatRecommendationModal: React.FC<ChatRecommendationModalProps> = (
 
   const handleAddToCart = async (product: Product) => {
     try {
-      await addItem(String(product.product_id));
+      await addItem({
+        productId: String(product.product_id),
+        name: product.name,
+        price: product.price,
+        platformName: product.platform_name,
+        imageUrl: product.image_url ?? DEFAULT_CART_IMAGE_URL,
+        productUrl: product.product_url ?? DEFAULT_CART_PRODUCT_URL,
+      });
       alert(`${product.name}을(를) 장바구니에 추가했습니다!`);
     } catch (error) {
       console.error('장바구니 추가 실패:', error);

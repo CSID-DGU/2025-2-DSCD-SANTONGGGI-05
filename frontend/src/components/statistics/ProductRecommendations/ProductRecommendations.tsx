@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import styles from './ProductRecommendations.module.css';
 import { recommendationsApi, UIRecommendedProduct } from '../../../services/api/recommendations';
 import { LoadingSpinner } from '../../ui/LoadingSpinner';
-import { useModal, useAuth } from '../../../contexts/AppProvider';
+import { useModal, useAuth, useCart } from '../../../contexts/AppProvider';
+import { DEFAULT_CART_IMAGE_URL, DEFAULT_CART_PRODUCT_URL } from '../../../constants/cart';
 
 interface ProductRecommendationsProps {
   className?: string;
@@ -18,6 +19,7 @@ export const ProductRecommendations: React.FC<ProductRecommendationsProps> = ({
   const [error, setError] = useState<string | null>(null);
   const { openProductModal } = useModal();
   const { user } = useAuth();
+  const { addItem } = useCart();
 
   const recommendationsClasses = [
     styles.productRecommendations,
@@ -57,9 +59,26 @@ export const ProductRecommendations: React.FC<ProductRecommendationsProps> = ({
     }
   };
 
-  const handleAddToCart = (product: UIRecommendedProduct) => {
-    console.log('Adding to cart:', product.name);
-    // TODO: Integrate with cart context
+  const handleAddToCart = async (product: UIRecommendedProduct) => {
+    try {
+      const resolvedImageUrl = product.image && product.image.startsWith('http')
+        ? product.image
+        : DEFAULT_CART_IMAGE_URL;
+      const resolvedProductUrl = product.url && product.url.length > 0
+        ? product.url
+        : `${DEFAULT_CART_PRODUCT_URL}?q=${encodeURIComponent(product.name)}`;
+
+      await addItem({
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        platformName: '추천 상품',
+        imageUrl: resolvedImageUrl,
+        productUrl: resolvedProductUrl,
+      });
+    } catch (error) {
+      console.error('Failed to add recommended product to cart:', error);
+    }
   };
 
   const handleViewProduct = (product: UIRecommendedProduct) => {

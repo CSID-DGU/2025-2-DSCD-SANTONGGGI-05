@@ -1,5 +1,6 @@
 import React from 'react';
 import { useCart } from '@/contexts/AppProvider';
+import { DEFAULT_CART_IMAGE_URL, DEFAULT_CART_PRODUCT_URL } from '@/constants/cart';
 import styles from './CustomRecommendationModal.module.css';
 
 interface Product {
@@ -8,6 +9,7 @@ interface Product {
   platform_name: string;
   category: string;
   url: string;
+  image_url?: string;
 }
 
 interface CustomRecommendationModalProps {
@@ -45,7 +47,14 @@ export const CustomRecommendationModal: React.FC<CustomRecommendationModalProps>
 
   const handleAddToCart = async (product: Product) => {
     try {
-      await addItem(product.product_id.toString());
+      await addItem({
+        productId: product.product_id.toString(),
+        name: `${product.category} - ${product.platform_name}`,
+        price: product.price,
+        platformName: product.platform_name,
+        imageUrl: product.image_url ?? DEFAULT_CART_IMAGE_URL,
+        productUrl: product.url || DEFAULT_CART_PRODUCT_URL,
+      });
       alert(`${product.category} 상품이 장바구니에 추가되었습니다.`);
     } catch (error) {
       console.error('Failed to add to cart:', error);
