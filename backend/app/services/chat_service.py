@@ -58,7 +58,7 @@ class ChatService:
 
         recommendations: list[RecommendationItem] = []
         response_type = 0
-        ai_message = "요청을 확인했습니다. 추가로 도와드릴 내용이 있을까요?"
+        ai_message = "<데이터사이언스 캡스톤디자인> 현재 서비스 개발중입니다.."
 
         if "물" in request.message or "추천" in request.message:
             response_type = 1
