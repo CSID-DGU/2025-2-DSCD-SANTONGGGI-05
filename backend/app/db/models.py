@@ -62,14 +62,7 @@ class Product(Base):
     review: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     url: Mapped[str | None] = mapped_column(String(512), nullable=True)
 
-    cart_items: Mapped[list["CartItem"]] = relationship(
-        back_populates="product",
-        cascade="all, delete-orphan",
-    )
-    purchase_history: Mapped[list["PurchaseHistory"]] = relationship(
-        back_populates="product",
-        cascade="all, delete-orphan",
-    )
+    # 제품은 카탈로그 용도로만 유지되며 장바구니/히스토리와 직접 관계를 맺지 않는다.
 
 
 class CartItem(Base):
@@ -80,11 +73,7 @@ class CartItem(Base):
         PrimaryKeyConstraint("product_id", "user_id", name="pk_cart_items"),
     )
 
-    product_id: Mapped[int] = mapped_column(
-        BigInteger,
-        ForeignKey("products.id", ondelete="CASCADE"),
-        nullable=False,
-    )
+    product_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     user_id: Mapped[int] = mapped_column(
         BigInteger,
         ForeignKey("users.id", ondelete="CASCADE"),
@@ -103,7 +92,6 @@ class CartItem(Base):
     )
 
     user: Mapped[User] = relationship(back_populates="cart_items")
-    product: Mapped[Product] = relationship(back_populates="cart_items")
 
 
 class PurchaseHistory(Base):
@@ -117,11 +105,7 @@ class PurchaseHistory(Base):
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )
-    product_id: Mapped[int | None] = mapped_column(
-        BigInteger,
-        ForeignKey("products.id", ondelete="SET NULL"),
-        nullable=True,
-    )
+    product_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     date: Mapped[datetime] = mapped_column(Date, nullable=False)
     name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     platform_name: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -134,7 +118,6 @@ class PurchaseHistory(Base):
     )
 
     user: Mapped[User] = relationship(back_populates="purchase_history")
-    product: Mapped[Product | None] = relationship(back_populates="purchase_history")
 
 
 class ChatMessage(Base):

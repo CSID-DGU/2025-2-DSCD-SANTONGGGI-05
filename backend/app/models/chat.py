@@ -6,15 +6,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
-
-class RecommendationItem(BaseModel):
-    """추천 상품 한 건의 정보를 표현한다."""
-
-    product_id: int
-    price: float
-    platform_name: str
-    category: str
-    review: int
+from app.models.recommendation import RecommendationItem
 
 
 class SendChatMessageRequest(BaseModel):
