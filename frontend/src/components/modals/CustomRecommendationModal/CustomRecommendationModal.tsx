@@ -5,11 +5,13 @@ import styles from './CustomRecommendationModal.module.css';
 
 interface Product {
   product_id: number;
+  name: string;
   price: number;
   platform_name: string;
   category: string;
-  url: string;
+  review: number;
   image_url?: string;
+  product_url: string;
 }
 
 interface CustomRecommendationModalProps {
@@ -47,15 +49,16 @@ export const CustomRecommendationModal: React.FC<CustomRecommendationModalProps>
 
   const handleAddToCart = async (product: Product) => {
     try {
+      const fallbackName = `${product.category} - ${product.platform_name}`;
       await addItem({
         productId: product.product_id.toString(),
-        name: `${product.category} - ${product.platform_name}`,
+        name: product.name || fallbackName,
         price: product.price,
         platformName: product.platform_name,
         imageUrl: product.image_url ?? DEFAULT_CART_IMAGE_URL,
-        productUrl: product.url || DEFAULT_CART_PRODUCT_URL,
+        productUrl: product.product_url || DEFAULT_CART_PRODUCT_URL,
       });
-      alert(`${product.category} 상품이 장바구니에 추가되었습니다.`);
+      alert(`${product.name || fallbackName} 상품이 장바구니에 추가되었습니다.`);
     } catch (error) {
       console.error('Failed to add to cart:', error);
       alert('장바구니 추가에 실패했습니다.');
@@ -63,6 +66,10 @@ export const CustomRecommendationModal: React.FC<CustomRecommendationModalProps>
   };
 
   const handleProductClick = (url: string) => {
+    if (!url) {
+      alert('상품 상세 URL이 제공되지 않았습니다.');
+      return;
+    }
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
@@ -122,7 +129,7 @@ export const CustomRecommendationModal: React.FC<CustomRecommendationModalProps>
                     <div className={styles.productInfo}>
                       <div className={styles.productCategory}>{product.category}</div>
                       <h4 className={styles.productName}>
-                        {product.category} - {product.platform_name}
+                        {product.name || `${product.category} - ${product.platform_name}`}
                       </h4>
 
                       {/* Pricing */}
@@ -165,7 +172,7 @@ export const CustomRecommendationModal: React.FC<CustomRecommendationModalProps>
                           장바구니
                         </button>
                         <button
-                          onClick={() => handleProductClick(product.url)}
+                          onClick={() => handleProductClick(product.product_url)}
                           className={styles.viewProductBtn}
                           type="button"
                         >

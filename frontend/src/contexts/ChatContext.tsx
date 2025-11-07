@@ -245,11 +245,13 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
       if (response.data.type === 1 && response.data.recommendationItems.length > 0) {
         const products = response.data.recommendationItems.map(item => ({
           product_id: item.product_id,
-          name: item.category,
+          name: item.name || `${item.category} - ${item.platform_name}`,
           price: item.price,
           platform_name: item.platform_name,
           category: item.category,
-          review: item.review
+          review: item.review,
+          image_url: item.image_url,
+          product_url: item.product_url
         }));
 
         dispatch({ type: 'OPEN_RECOMMENDATION_MODAL', payload: products });

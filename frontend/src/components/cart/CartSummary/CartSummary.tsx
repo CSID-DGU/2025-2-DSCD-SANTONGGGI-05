@@ -15,10 +15,13 @@ interface CartSummaryProps {
 
 interface CustomRecommendedProduct {
   product_id: number;
+  name: string;
   price: number;
   platform_name: string;
   category: string;
-  url: string;
+  review: number;
+  image_url: string;
+  product_url: string;
 }
 
 export const CartSummary: React.FC<CartSummaryProps> = ({
