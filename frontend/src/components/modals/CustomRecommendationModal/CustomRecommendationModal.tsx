@@ -102,6 +102,9 @@ export const CustomRecommendationModal: React.FC<CustomRecommendationModalProps>
               {products.map((product, index) => {
                 const emoji = categoryEmojis[product.category] || '📦';
                 const reason = categoryReasons[product.category] || '추천 상품입니다';
+                const imageSrc = product.image_url && product.image_url.length > 0
+                  ? product.image_url
+                  : undefined;
 
                 // 일부 상품에 할인 적용 (Mock)
                 const hasDiscount = index % 3 === 0;
@@ -117,7 +120,16 @@ export const CustomRecommendationModal: React.FC<CustomRecommendationModalProps>
 
                     {/* Product Image */}
                     <div className={styles.productImage}>
-                      <span className={styles.productEmoji}>{emoji}</span>
+                      {imageSrc ? (
+                        <img
+                          src={imageSrc}
+                          alt={product.name || `${product.category} - ${product.platform_name}`}
+                          className={styles.productThumbnail}
+                          loading="lazy"
+                        />
+                      ) : (
+                        <span className={styles.productEmoji}>{emoji}</span>
+                      )}
                       {discount && (
                         <div className={styles.discountBadge}>
                           -{discount}%

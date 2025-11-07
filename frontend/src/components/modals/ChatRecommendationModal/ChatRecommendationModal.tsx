@@ -82,15 +82,27 @@ export const ChatRecommendationModal: React.FC<ChatRecommendationModalProps> = (
             <div className={styles.productList}>
               {products.map((product, index) => {
                 const emoji = categoryEmojis[product.category] || '📦';
+                const imageSrc = product.image_url && product.image_url.length > 0
+                  ? product.image_url
+                  : undefined;
 
                 return (
                   <div key={product.product_id} className={styles.productCard}>
                     {/* Rank Badge */}
                     <div className={styles.rankBadge}>#{index + 1}</div>
 
-                    {/* Product Image (Emoji) */}
+                    {/* Product Image */}
                     <div className={styles.productImage}>
-                      <span className={styles.productEmoji}>{emoji}</span>
+                      {imageSrc ? (
+                        <img
+                          src={imageSrc}
+                          alt={product.name}
+                          className={styles.productThumbnail}
+                          loading="lazy"
+                        />
+                      ) : (
+                        <span className={styles.productEmoji}>{emoji}</span>
+                      )}
                     </div>
 
                     {/* Product Info Container */}

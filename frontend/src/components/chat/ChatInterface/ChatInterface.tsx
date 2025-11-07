@@ -17,6 +17,9 @@ const SUGGESTED_PROMPTS = [
   "Help me plan a gift for my mom",
 ];
 
+// 개발용 디버그 버튼은 디폴트로 숨긴다.
+const SHOW_DEV_BUTTONS = false;
+
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
   const {
     currentSession,
@@ -182,23 +185,24 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
           <p className={styles.headerSubtitle}>실시간 상품 추천 채팅</p>
         </div>
 
-        {/* 개발용 테스트 버튼 */}
-        <div className={styles.devButtons}>
-          <button
-            className={styles.devButton}
-            onClick={handleTestRecommendationModal}
-            title="상품 추천 모달 테스트 (Type 1)"
-          >
-            🧪 상품추천
-          </button>
-          <button
-            className={styles.devButton}
-            onClick={handleTestStatisticsModal}
-            title="통계 이미지 모달 테스트 (Type 2)"
-          >
-            🧪 통계이미지
-          </button>
-        </div>
+        {SHOW_DEV_BUTTONS && (
+          <div className={styles.devButtons}>
+            <button
+              className={styles.devButton}
+              onClick={handleTestRecommendationModal}
+              title="상품 추천 모달 테스트 (Type 1)"
+            >
+              🧪 상품추천
+            </button>
+            <button
+              className={styles.devButton}
+              onClick={handleTestStatisticsModal}
+              title="통계 이미지 모달 테스트 (Type 2)"
+            >
+              🧪 통계이미지
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Messages Area */}
