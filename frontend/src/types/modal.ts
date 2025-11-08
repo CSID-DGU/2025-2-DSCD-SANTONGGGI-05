@@ -11,6 +11,8 @@ export interface ProductModalData {
   reviewCount?: number;
   url?: string; // 외부 쇼핑몰 URL
   description?: string;
+  platformName?: string;
+  cartIndex?: number;
 }
 
 export interface ModalState {

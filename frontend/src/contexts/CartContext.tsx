@@ -455,6 +455,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       id: item.id,
       name: item.product?.name || `Product ${item.productId}`,
       price: item.unitPrice,
+      productId: item.productId,
     };
 
     if (item.product?.images?.[0]?.url) {
@@ -467,6 +468,14 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
     if (item.product?.url) {
       mappedItem.url = item.product.url;
+    }
+
+    if (item.product?.category?.name) {
+      mappedItem.category = item.product.category.name;
+    }
+
+    if (item.product?.brand) {
+      mappedItem.platformName = item.product.brand;
     }
 
     return mappedItem;

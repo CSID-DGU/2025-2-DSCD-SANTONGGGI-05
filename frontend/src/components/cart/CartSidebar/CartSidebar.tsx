@@ -148,10 +148,11 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
         {!isEmpty && !isMinimized && (
           <>
             <div className={styles.itemsList} role="list">
-              {items.map((item) => (
+              {items.map((item, index) => (
                 <div key={item.id} role="listitem">
                   <CartItem
                     item={item}
+                    index={index}
                     onRemove={() => removeItem(item.id)}
                     isLoading={isLoading}
                   />
