@@ -26,9 +26,11 @@ def upgrade() -> None:
         sa.Column("product_url", sa.String(length=512), nullable=False, server_default=""),
     )
 
-    # Remove server defaults to keep application-level validation in control
-    op.alter_column("cart_items", "image_url", server_default=None)
-    op.alter_column("cart_items", "product_url", server_default=None)
+    bind = op.get_bind()
+    if bind.dialect.name != "sqlite":
+        # Remove server defaults to keep application-level validation in control
+        op.alter_column("cart_items", "image_url", server_default=None)
+        op.alter_column("cart_items", "product_url", server_default=None)
 
 
 def downgrade() -> None:

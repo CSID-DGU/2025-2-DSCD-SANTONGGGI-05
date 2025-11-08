@@ -5,11 +5,13 @@ import styles from './CustomRecommendationModal.module.css';
 
 interface Product {
   product_id: number;
+  name: string;
   price: number;
   platform_name: string;
   category: string;
-  url: string;
+  review: number;
   image_url?: string;
+  product_url: string;
 }
 
 interface CustomRecommendationModalProps {
@@ -28,16 +30,6 @@ const categoryEmojis: Record<string, string> = {
   '기타': '📦'
 };
 
-// 카테고리별 추천 이유
-const categoryReasons: Record<string, string> = {
-  '생수': '자주 구매하시는 생수 카테고리 상품입니다',
-  '음료': '음료 카테고리에서 인기 있는 상품입니다',
-  '생활용품': '생활에 필요한 필수 아이템입니다',
-  '청소용품': '청소에 효과적인 추천 상품입니다',
-  '식품': '건강한 식생활을 위한 추천입니다',
-  '기타': '고객님께 추천하는 상품입니다'
-};
-
 export const CustomRecommendationModal: React.FC<CustomRecommendationModalProps> = ({
   isOpen,
   onClose,
@@ -47,23 +39,20 @@ export const CustomRecommendationModal: React.FC<CustomRecommendationModalProps>
 
   const handleAddToCart = async (product: Product) => {
     try {
+      const fallbackName = `${product.category} - ${product.platform_name}`;
       await addItem({
         productId: product.product_id.toString(),
-        name: `${product.category} - ${product.platform_name}`,
+        name: product.name || fallbackName,
         price: product.price,
         platformName: product.platform_name,
         imageUrl: product.image_url ?? DEFAULT_CART_IMAGE_URL,
-        productUrl: product.url || DEFAULT_CART_PRODUCT_URL,
+        productUrl: product.product_url || DEFAULT_CART_PRODUCT_URL,
       });
-      alert(`${product.category} 상품이 장바구니에 추가되었습니다.`);
+      alert(`${product.name || fallbackName} 상품이 장바구니에 추가되었습니다.`);
     } catch (error) {
       console.error('Failed to add to cart:', error);
       alert('장바구니 추가에 실패했습니다.');
     }
-  };
-
-  const handleProductClick = (url: string) => {
-    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   if (!isOpen) return null;
@@ -94,13 +83,8 @@ export const CustomRecommendationModal: React.FC<CustomRecommendationModalProps>
             <div className={styles.productList}>
               {products.map((product, index) => {
                 const emoji = categoryEmojis[product.category] || '📦';
-                const reason = categoryReasons[product.category] || '추천 상품입니다';
-
-                // 일부 상품에 할인 적용 (Mock)
-                const hasDiscount = index % 3 === 0;
-                const discount = hasDiscount ? Math.floor(Math.random() * 20) + 10 : undefined;
-                const originalPrice = hasDiscount
-                  ? Math.floor(product.price / (1 - discount! / 100))
+                const imageSrc = product.image_url && product.image_url.length > 0
+                  ? product.image_url
                   : undefined;
 
                 return (
@@ -110,11 +94,15 @@ export const CustomRecommendationModal: React.FC<CustomRecommendationModalProps>
 
                     {/* Product Image */}
                     <div className={styles.productImage}>
-                      <span className={styles.productEmoji}>{emoji}</span>
-                      {discount && (
-                        <div className={styles.discountBadge}>
-                          -{discount}%
-                        </div>
+                      {imageSrc ? (
+                        <img
+                          src={imageSrc}
+                          alt={product.name || `${product.category} - ${product.platform_name}`}
+                          className={styles.productThumbnail}
+                          loading="lazy"
+                        />
+                      ) : (
+                        <span className={styles.productEmoji}>{emoji}</span>
                       )}
                     </div>
 
@@ -122,36 +110,19 @@ export const CustomRecommendationModal: React.FC<CustomRecommendationModalProps>
                     <div className={styles.productInfo}>
                       <div className={styles.productCategory}>{product.category}</div>
                       <h4 className={styles.productName}>
-                        {product.category} - {product.platform_name}
+                        {product.name || `${product.category} - ${product.platform_name}`}
                       </h4>
 
                       {/* Pricing */}
                       <div className={styles.productPricing}>
-                        {discount && originalPrice ? (
-                          <>
-                            <span className={styles.originalPrice}>
-                              ₩{originalPrice.toLocaleString()}
-                            </span>
-                            <span className={styles.discountPrice}>
-                              ₩{product.price.toLocaleString()}
-                            </span>
-                          </>
-                        ) : (
-                          <span className={styles.regularPrice}>
-                            ₩{product.price.toLocaleString()}
-                          </span>
-                        )}
+                        <span className={styles.regularPrice}>
+                          ₩{product.price.toLocaleString()}
+                        </span>
                       </div>
 
                       {/* Platform Badge */}
                       <div className={styles.platformBadge}>
                         {product.platform_name}
-                      </div>
-
-                      {/* Recommendation Reason */}
-                      <div className={styles.recommendationReason}>
-                        <span className={styles.reasonIcon}>💡</span>
-                        <span className={styles.reasonText}>{reason}</span>
                       </div>
 
                       {/* Actions */}
@@ -163,13 +134,6 @@ export const CustomRecommendationModal: React.FC<CustomRecommendationModalProps>
                         >
                           <span className={styles.cartIcon}>🛒</span>
                           장바구니
-                        </button>
-                        <button
-                          onClick={() => handleProductClick(product.url)}
-                          className={styles.viewProductBtn}
-                          type="button"
-                        >
-                          상세보기
                         </button>
                       </div>
                     </div>

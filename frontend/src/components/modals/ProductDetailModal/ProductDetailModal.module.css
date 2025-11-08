@@ -13,14 +13,14 @@
   padding: 20px;
 }
 
-/* Modal Container - 왼쪽 iframe + 오른쪽 요약 패널 */
+/* Modal Container - 왼쪽 프리뷰 + 오른쪽 요약 패널 */
 .modalContainer {
   position: relative;
   display: flex;
-  width: 95%;
-  max-width: 1400px;
+  width: 96%;
+  max-width: 1500px;
   height: 90vh;
-  max-height: 900px;
+  max-height: 960px;
   background: #f5f5f5;
   border-radius: 12px;
   overflow: hidden;
@@ -58,84 +58,95 @@
   transform: scale(0.95);
 }
 
-/* Left Side - iframe Section */
-.iframeSection {
-  flex: 1;
-  position: relative;
-  background: white;
+/* Left Side - Preview Section */
+.previewSection {
+  flex: 1.4;
+  background: linear-gradient(135deg, #0f172a, #1e1b4b);
+  padding: 32px;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
 }
 
-.productIframe {
+.previewCard {
+  flex: 1;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #111827, #1f2937);
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.4);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.previewImage {
+  width: 100%;
+  max-height: 500px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: white;
+  padding: 16px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.previewIframe {
   width: 100%;
   height: 100%;
   border: none;
+  border-radius: 12px;
+  background: white;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
-/* Loading State */
-.loadingContainer {
+.previewPlaceholder {
+  flex: 1;
+  min-height: 260px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  padding: 40px;
-}
-
-.loadingSpinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid #e5e7eb;
-  border-top-color: #3b82f6;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.loadingText {
-  font-size: 16px;
-  color: #6b7280;
-  margin: 0;
-}
-
-/* Error State */
-.errorContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  padding: 40px;
-  text-align: center;
-}
-
-.errorIcon {
   font-size: 64px;
 }
 
-.errorTitle {
-  font-size: 24px;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0;
+.previewFallback {
+  flex: 1;
+  min-height: 260px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  gap: 12px;
 }
 
-.errorMessage {
-  font-size: 16px;
-  color: #6b7280;
+.fallbackTitle {
   margin: 0;
-  max-width: 400px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.previewActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Loading State */
+.helperText {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
 }
 
 .openExternalButton {
-  margin-top: 16px;
   padding: 12px 24px;
   background: #3b82f6;
   color: white;
@@ -155,8 +166,8 @@
 
 /* Right Side - Summary Panel */
 .summaryPanel {
-  width: 420px;
-  background: white;
+  width: 440px;
+  background: #fdfdfd;
   border-left: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
@@ -164,199 +175,134 @@
 }
 
 .summaryContent {
-  padding: 24px;
+  padding: 28px;
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-/* Summary Header */
 .summaryHeader {
-  margin-bottom: 8px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.summaryEyebrow {
+  margin: 0;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #9ca3af;
 }
 
 .summaryTitle {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1f2937;
-  margin: 0;
-}
-
-/* Product Info */
-.productInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.productName {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0;
-  line-height: 1.5;
-}
-
-.priceRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.priceLabel {
   font-size: 22px;
   font-weight: 700;
-  color: #10b981;
+  color: #111827;
+  margin: 4px 0 0;
+  line-height: 1.4;
 }
 
-.quantityBadge {
-  padding: 4px 8px;
-  background: #10b981;
-  color: white;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 600;
+.priceBlock {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
 }
 
-/* Add to Cart Button */
-.addToCartButton {
-  width: 100%;
-  padding: 12px;
-  background: #10b981;
-  color: white;
-  border: none;
-  border-radius: 8px;
+.originalPrice {
   font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  color: #9ca3af;
+  text-decoration: line-through;
 }
 
-.addToCartButton:hover {
-  background: #059669;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+.currentPrice {
+  font-size: 30px;
+  font-weight: 700;
+  color: #111827;
 }
 
-.addToCartButton:active {
-  transform: translateY(0);
+.metaGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
 }
 
-/* Divider */
-.divider {
-  height: 1px;
-  background: #e5e7eb;
-  margin: 8px 0;
-}
-
-/* Payment Section */
-.paymentSection {
+.metaItem {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 10px 12px;
+  border: 1px solid #edf0f4;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 4px;
+}
+
+.metaLabel {
+  font-size: 12px;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metaValue {
+  font-size: 15px;
+  color: #1f2937;
+}
+
+.descriptionBox {
+  background: #fff8ef;
+  border-radius: 10px;
+  padding: 14px 16px;
+  color: #92400e;
+  border: 1px solid #fde7c7;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 4px 0;
+}
+
+.linkRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.linkLabel {
+  font-size: 13px;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.linkValue {
+  font-size: 15px;
+  color: #2563eb;
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.linkValue:hover {
+  text-decoration: underline;
+}
+
+.reviewSection {
+  padding: 14px;
+  background: #f9fafb;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .sectionTitle {
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
   color: #1f2937;
-  margin: 0 0 8px 0;
+  margin: 0;
   display: flex;
   align-items: center;
   gap: 6px;
-}
-
-.paymentRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 14px;
-}
-
-.paymentLabel {
-  color: #6b7280;
-}
-
-.paymentValue {
-  color: #1f2937;
-  font-weight: 500;
-}
-
-.totalRow {
-  margin-top: 8px;
-  padding-top: 12px;
-  border-top: 1px solid #e5e7eb;
-}
-
-.totalLabel {
-  font-size: 16px;
-  font-weight: 700;
-  color: #1f2937;
-}
-
-.totalValue {
-  font-size: 18px;
-  font-weight: 700;
-  color: #10b981;
-}
-
-/* Delivery Section */
-.deliverySection {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.deliveryIcon {
-  font-size: 18px;
-}
-
-.deliveryText {
-  font-size: 14px;
-  color: #6b7280;
-  margin: 0;
-}
-
-/* Benefits Section */
-.benefitsSection {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.benefitIcon {
-  font-size: 18px;
-}
-
-.benefitsList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.benefitItem {
-  font-size: 14px;
-  color: #6b7280;
-  padding-left: 16px;
-  position: relative;
-}
-
-.benefitItem::before {
-  content: '•';
-  position: absolute;
-  left: 0;
-  color: #10b981;
-  font-weight: bold;
-}
-
-/* Review Section */
-.reviewSection {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
 }
 
 .reviewIcon {
@@ -366,12 +312,13 @@
 .ratingRow {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 600;
 }
 
 .rating {
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 24px;
   color: #f59e0b;
 }
 
@@ -381,37 +328,35 @@
 }
 
 .reviewSnippet {
-  font-size: 13px;
-  color: #6b7280;
-  font-style: italic;
   margin: 0;
-  padding-left: 8px;
-  border-left: 3px solid #f59e0b;
+  font-size: 14px;
+  color: #6b7280;
 }
 
-/* Purchase Button */
-.purchaseButton {
-  width: 100%;
-  padding: 16px;
-  background: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 18px;
-  font-weight: 700;
+.navActions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+}
+
+.navButton {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: white;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
   cursor: pointer;
   transition: all 0.2s ease;
-  margin-top: 8px;
 }
 
-.purchaseButton:hover {
-  background: #2563eb;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-}
-
-.purchaseButton:active {
-  transform: translateY(0);
+.navButton:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.15);
 }
 
 /* Responsive Design */
@@ -431,7 +376,7 @@
     border-top: 1px solid #e5e7eb;
   }
 
-  .iframeSection {
+  .previewSection {
     min-height: 50%;
   }
 
@@ -442,38 +387,37 @@
 }
 
 @media (max-width: 640px) {
+  .previewSection {
+    padding: 18px;
+  }
+
+  .previewCard {
+    padding: 20px;
+  }
+
   .summaryContent {
-    padding: 16px;
+    padding: 20px;
   }
 
   .summaryTitle {
     font-size: 18px;
   }
 
-  .productName {
-    font-size: 14px;
+  .currentPrice {
+    font-size: 24px;
   }
 
-  .priceLabel {
-    font-size: 20px;
-  }
-
-  .purchaseButton {
-    padding: 14px;
-    font-size: 16px;
+  .navButton {
+    font-size: 13px;
+    padding: 9px 12px;
   }
 }
 
 /* Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
-  .loadingSpinner {
-    animation: none;
-  }
-
   .closeButton,
-  .addToCartButton,
-  .purchaseButton,
-  .openExternalButton {
+  .openExternalButton,
+  .navButton {
     transition: none;
   }
 }

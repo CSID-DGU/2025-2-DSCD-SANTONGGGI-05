@@ -150,6 +150,9 @@ export interface CartItemType {
   image?: string;
   variant?: string;
   url?: string; // 외부 쇼핑몰 URL (쿠팡, 네이버쇼핑 등)
+  productId?: string;
+  category?: string;
+  platformName?: string;
 }
 
 export interface Category {

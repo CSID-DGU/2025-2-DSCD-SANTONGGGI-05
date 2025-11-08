@@ -56,11 +56,22 @@ export interface SendMessageRequest {
   message: string;
 }
 
+export interface RecommendationItemResponse {
+  product_id: number;
+  name: string;
+  price: number;
+  platform_name: string;
+  category: string;
+  review: number;
+  image_url?: string;
+  product_url?: string;
+}
+
 export interface SendMessageResponse {
   user_id: number;
   ai_message: string;
   type: number;
-  recommendationItems: any[];
+  recommendationItems: RecommendationItemResponse[];
 }
 
 export interface GetChatHistoryRequest {

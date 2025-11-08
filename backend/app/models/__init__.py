@@ -3,7 +3,6 @@
 from .chat import (
     ChatMessage,
     GetChatHistoryResponse,
-    RecommendationItem,
     SendChatMessageRequest,
     SendChatMessageResponse,
 )
@@ -12,6 +11,11 @@ from .cart import (
     CartItemOut,
     CartListResponse,
     CartOperationResult,
+)
+from .recommendation import (
+    CustomRecommendationRequest,
+    CustomRecommendationResponse,
+    RecommendationItem,
 )
 from .auth import (
     UserOut,
@@ -40,4 +44,6 @@ __all__ = [
     "LoginResponse",
     "AuthTokens",
     "default_tokens",
+    "CustomRecommendationRequest",
+    "CustomRecommendationResponse",
 ]

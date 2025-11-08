@@ -1,56 +1,56 @@
-import React, { useState, useEffect } from 'react';
-import { useModal } from '../../../contexts/ModalContext';
-import styles from './ProductDetailModal.module.css';
+import React, { useEffect, useMemo, useState } from "react";
+import { useCart } from "../../../contexts/AppProvider";
+import { useModal } from "../../../contexts/ModalContext";
+import styles from "./ProductDetailModal.module.css";
 
 export const ProductDetailModal: React.FC = () => {
-  const { isOpen, product, closeModal } = useModal();
-  const [isIframeLoading, setIsIframeLoading] = useState(true);
+  const { items: cartItems } = useCart();
+  const { isOpen, product, closeModal, openProductModal } = useModal();
+  const [isIframeLoading, setIsIframeLoading] = useState(false);
   const [iframeError, setIframeError] = useState(false);
 
   // Reset iframe state when modal opens
   useEffect(() => {
     if (isOpen) {
+      document.body.style.overflow = "hidden";
       setIsIframeLoading(true);
       setIframeError(false);
-      document.body.style.overflow = 'hidden';
     } else {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
+      setIsIframeLoading(false);
     }
 
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     };
   }, [isOpen]);
 
   // Close modal on ESC key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === "Escape" && isOpen) {
         closeModal();
       }
     };
 
     if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
+      document.addEventListener("keydown", handleEscape);
     }
 
     return () => {
-      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener("keydown", handleEscape);
     };
   }, [isOpen, closeModal]);
 
-  if (!isOpen || !product) {
-    return null;
-  }
-
-  const handleIframeLoad = () => {
-    setIsIframeLoading(false);
-  };
-
-  const handleIframeError = () => {
-    setIsIframeLoading(false);
-    setIframeError(true);
-  };
+  const derivedCartIndex = useMemo(() => {
+    if (!product) {
+      return -1;
+    }
+    if (typeof product.cartIndex === "number") {
+      return product.cartIndex;
+    }
+    return cartItems.findIndex((item) => item.id === product.id);
+  }, [product, cartItems]);
 
   const handleBackgroundClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
@@ -58,14 +58,90 @@ export const ProductDetailModal: React.FC = () => {
     }
   };
 
+  if (!isOpen || !product) {
+    return null;
+  }
+  const currentCartItem =
+    derivedCartIndex >= 0 ? cartItems[derivedCartIndex] : undefined;
+  const displayName = currentCartItem?.name ?? product.name;
+  const displayPrice = currentCartItem?.price ?? product.price;
+  const displayOriginalPrice =
+    typeof product.originalPrice === "number"
+      ? product.originalPrice
+      : undefined;
+  const displayImage = currentCartItem?.image ?? product.image;
+  const displayCategory = currentCartItem?.category ?? product.category;
+  const displayRating = product.rating;
+  const displayReviewCount = product.reviewCount;
+  const displayDescription = product.description;
+  const displayUrl = currentCartItem?.url ?? product.url;
+  const displayPlatform = currentCartItem?.platformName ?? product.platformName;
+
   const handleDirectPurchase = () => {
-    if (product.url) {
-      window.open(product.url, '_blank', 'noopener,noreferrer');
+    if (displayUrl) {
+      window.open(displayUrl, "_blank", "noopener,noreferrer");
     }
   };
 
-  const shippingFee = 0; // 무료 배송
-  const totalAmount = (product.price || 0) + shippingFee;
+  const formattedPrice =
+    typeof displayPrice === "number"
+      ? `₩${displayPrice.toLocaleString()}`
+      : null;
+
+  const formattedOriginalPrice =
+    typeof displayOriginalPrice === "number"
+      ? `₩${displayOriginalPrice.toLocaleString()}`
+      : null;
+
+  const detailRows: { label: string; value: string }[] = [];
+  if (displayCategory) {
+    detailRows.push({ label: "카테고리", value: displayCategory });
+  }
+  if (displayPlatform) {
+    detailRows.push({ label: "플랫폼", value: displayPlatform });
+  }
+  if (displayRating) {
+    detailRows.push({ label: "평점", value: `${displayRating} / 5` });
+  }
+  if (typeof displayReviewCount === "number") {
+    detailRows.push({
+      label: "리뷰 수",
+      value: `${displayReviewCount.toLocaleString()}개`,
+    });
+  }
+
+  const linkHost = (() => {
+    if (!displayUrl) return null;
+    try {
+      const url = new URL(displayUrl);
+      return url.hostname.replace("www.", "");
+    } catch {
+      return displayUrl;
+    }
+  })();
+
+  const handleNavigate = (direction: "prev" | "next") => {
+    if (!cartItems.length) return;
+    const total = cartItems.length;
+    const baseIndex = derivedCartIndex >= 0 ? derivedCartIndex : 0;
+    const nextIndex =
+      direction === "next"
+        ? (baseIndex + 1) % total
+        : (baseIndex - 1 + total) % total;
+    const nextItem = cartItems[nextIndex];
+    openProductModal({
+      id: nextItem.id,
+      name: nextItem.name,
+      price: nextItem.price,
+      ...(nextItem.image && { image: nextItem.image }),
+      ...(nextItem.url && { url: nextItem.url }),
+      ...(nextItem.category && { category: nextItem.category }),
+      ...(nextItem.platformName && { platformName: nextItem.platformName }),
+      cartIndex: nextIndex,
+    });
+  };
+
+  const hasCartNavigation = derivedCartIndex >= 0 && cartItems.length > 1;
 
   return (
     <div
@@ -86,139 +162,155 @@ export const ProductDetailModal: React.FC = () => {
           ✕
         </button>
 
-        {/* Left Side - iframe */}
-        <div className={styles.iframeSection}>
-          {isIframeLoading && (
-            <div className={styles.loadingContainer}>
-              <div className={styles.loadingSpinner}></div>
-              <p className={styles.loadingText}>상품 페이지를 불러오는 중...</p>
-            </div>
-          )}
-
-          {iframeError ? (
-            <div className={styles.errorContainer}>
-              <div className={styles.errorIcon}>⚠️</div>
-              <h3 className={styles.errorTitle}>페이지를 불러올 수 없습니다</h3>
-              <p className={styles.errorMessage}>
-                일부 쇼핑몰은 보안 정책상 외부 사이트에서 표시할 수 없습니다.
-              </p>
-              <button
-                onClick={handleDirectPurchase}
-                className={styles.openExternalButton}
-                type="button"
-              >
-                새 탭에서 열기 →
-              </button>
-            </div>
-          ) : (
-            product.url && (
+        {/* Left Side - preview */}
+        <div className={styles.previewSection}>
+          <div className={styles.previewCard}>
+            {displayUrl && !iframeError ? (
               <iframe
-                src={product.url}
-                className={styles.productIframe}
-                title={`${product.name} 상세 정보`}
-                onLoad={handleIframeLoad}
-                onError={handleIframeError}
+                src={displayUrl}
+                title={`${displayName} 미리보기`}
+                className={styles.previewIframe}
                 sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-popups-to-escape-sandbox"
                 referrerPolicy="no-referrer"
-                allow="payment"
+                onLoad={() => setIsIframeLoading(false)}
+                onError={() => {
+                  setIsIframeLoading(false);
+                  setIframeError(true);
+                }}
               />
-            )
-          )}
+            ) : iframeError ? (
+              <div className={styles.previewFallback}>
+                <p className={styles.fallbackTitle}>외부 사이트를 표시할 수 없습니다.</p>
+                <p className={styles.helperText}>
+                  쇼핑몰이 프레임 내 표시를 제한하고 있어 새 탭에서 확인해주세요.
+                </p>
+              </div>
+            ) : displayImage ? (
+              <img
+                src={displayImage}
+                alt={displayName}
+                className={styles.previewImage}
+                loading="lazy"
+              />
+            ) : (
+              <div className={styles.previewPlaceholder}>
+                <span role="img" aria-label="상품 이미지 없음">
+                  🛍️
+                </span>
+              </div>
+            )}
+
+            <div className={styles.previewActions}>
+              {displayUrl ? (
+                <button
+                  type="button"
+                  className={styles.openExternalButton}
+                  onClick={handleDirectPurchase}
+                >
+                  새 탭에서 보기
+                </button>
+              ) : (
+                <p className={styles.helperText}>연결할 상품 URL이 없습니다.</p>
+              )}
+              {displayUrl && isIframeLoading && !iframeError && (
+                <p className={styles.helperText}>페이지 불러오는 중...</p>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* Right Side - Order Summary Panel */}
+        {/* Right Side - Product Summary Panel */}
         <div className={styles.summaryPanel}>
           <div className={styles.summaryContent}>
-            {/* Header */}
             <div className={styles.summaryHeader}>
-              <h2 className={styles.summaryTitle}>주문 요약</h2>
-            </div>
-
-            {/* Product Info */}
-            <div className={styles.productInfo}>
-              <h3 className={styles.productName}>{product.name}</h3>
-              <div className={styles.priceRow}>
-                <span className={styles.priceLabel}>{product.price?.toLocaleString()}원</span>
-                {product.discount && (
-                  <span className={styles.quantityBadge}>{product.discount}%</span>
-                )}
+              <div>
+                <p className={styles.summaryEyebrow}>선택한 상품</p>
+                <h2 className={styles.summaryTitle}>{displayName}</h2>
               </div>
             </div>
 
-            {/* Add to Cart Button */}
-            <button className={styles.addToCartButton} type="button">
-              추가
-            </button>
-
-            {/* Divider */}
-            <div className={styles.divider}></div>
-
-            {/* Payment Summary */}
-            <div className={styles.paymentSection}>
-              <h4 className={styles.sectionTitle}>결제 금액</h4>
-
-              <div className={styles.paymentRow}>
-                <span className={styles.paymentLabel}>상품금액</span>
-                <span className={styles.paymentValue}>{(product.price || 0).toLocaleString()}원</span>
-              </div>
-
-              <div className={styles.paymentRow}>
-                <span className={styles.paymentLabel}>배송비</span>
-                <span className={styles.paymentValue}>무료</span>
-              </div>
-
-              <div className={`${styles.paymentRow} ${styles.totalRow}`}>
-                <span className={styles.totalLabel}>총 결제금액</span>
-                <span className={styles.totalValue}>{totalAmount.toLocaleString()}원</span>
-              </div>
+            <div className={styles.priceBlock}>
+              {formattedOriginalPrice && (
+                <span className={styles.originalPrice}>
+                  {formattedOriginalPrice}
+                </span>
+              )}
+              {formattedPrice && (
+                <span className={styles.currentPrice}>{formattedPrice}</span>
+              )}
             </div>
 
-            {/* Divider */}
-            <div className={styles.divider}></div>
+            {detailRows.length > 0 && (
+              <div className={styles.metaGrid}>
+                {detailRows.map((meta) => (
+                  <div
+                    key={`${meta.label}-${meta.value}`}
+                    className={styles.metaItem}
+                  >
+                    <span className={styles.metaLabel}>{meta.label}</span>
+                    <strong className={styles.metaValue}>{meta.value}</strong>
+                  </div>
+                ))}
+              </div>
+            )}
 
-            {/* Delivery Info */}
-            <div className={styles.deliverySection}>
-              <h4 className={styles.sectionTitle}>
-                <span className={styles.deliveryIcon}>📦</span> 배송 정보
-              </h4>
-              <p className={styles.deliveryText}>로켓 배송 · 내일 도착 예정</p>
-            </div>
+            {displayDescription && (
+              <div className={styles.descriptionBox}>
+                <p>{displayDescription}</p>
+              </div>
+            )}
 
-            {/* Benefits */}
-            <div className={styles.benefitsSection}>
-              <h4 className={styles.sectionTitle}>
-                <span className={styles.benefitIcon}>🎁</span> 적용 가능 혜택
-              </h4>
-              <ul className={styles.benefitsList}>
-                <li className={styles.benefitItem}>첫 구매 5% 할인</li>
-                <li className={styles.benefitItem}>적립금 15원</li>
-              </ul>
-            </div>
+            {displayUrl && (
+              <div className={styles.linkRow}>
+                <span className={styles.linkLabel}>상품 페이지</span>
+                <a
+                  href={displayUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={styles.linkValue}
+                >
+                  {linkHost || "새 탭에서 열기"}
+                </a>
+              </div>
+            )}
 
-            {/* Reviews */}
-            {product.rating && (
+            {displayRating && (
               <div className={styles.reviewSection}>
                 <h4 className={styles.sectionTitle}>
                   <span className={styles.reviewIcon}>⭐</span> 고객 리뷰
                 </h4>
                 <div className={styles.ratingRow}>
-                  <span className={styles.rating}>{product.rating}</span>
+                  <span className={styles.rating}>{displayRating}</span>
                   <span className={styles.reviewCount}>
-                    {product.reviewCount ? `(${product.reviewCount.toLocaleString()})` : ''}
+                    {displayReviewCount
+                      ? `(${displayReviewCount.toLocaleString()})`
+                      : ""}
                   </span>
                 </div>
-                <p className={styles.reviewSnippet}>*배송도 빠르고 품질도 만족입니다!*</p>
+                <p className={styles.reviewSnippet}>
+                  쇼핑몰에서 자세한 후기를 확인해보세요.
+                </p>
               </div>
             )}
 
-            {/* Direct Purchase Button */}
-            <button
-              className={styles.purchaseButton}
-              onClick={handleDirectPurchase}
-              type="button"
-            >
-              바로 구매
-            </button>
+            {hasCartNavigation && (
+              <div className={styles.navActions}>
+                <button
+                  type="button"
+                  className={styles.navButton}
+                  onClick={() => handleNavigate("prev")}
+                >
+                  ← 이전 상품
+                </button>
+                <button
+                  type="button"
+                  className={styles.navButton}
+                  onClick={() => handleNavigate("next")}
+                >
+                  다음 상품 →
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -3,10 +3,13 @@ import type { ApiResponse } from '@/types';
 
 interface Product {
   product_id: number;
+  name: string;
   price: number;
   platform_name: string;
   category: string;
   review: number;
+  image_url?: string;
+  product_url?: string;
 }
 
 export interface SendMessageResponse {

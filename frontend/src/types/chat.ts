@@ -22,6 +22,8 @@ export interface RecommendationProduct {
   platform_name: string;
   category: string;
   review: number;
+  image_url?: string;
+  product_url?: string;
 }
 
 export interface ChatState {

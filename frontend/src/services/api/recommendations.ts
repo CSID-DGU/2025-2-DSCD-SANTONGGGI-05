@@ -1,27 +1,28 @@
+import { apiClient } from './client';
 import { ApiResponse } from '../../types';
 
-// CLAUDE.md ERD 기반 Recommendations API
-// ERD: products { product_id: number, price: number, platform_name: string, category: string, review: number }
-
-// POST /api/recommendations
+// POST /api/recommendations/custom
 interface GetRecommendationsRequest {
   user_id: number;
-  rating: number; // 평점 가중치
-  review: number; // 리뷰 가중치
+  rating: number;
+  review: number;
 }
 
-interface RecommendedProduct {
+export interface RecommendedProduct {
   product_id: number;
+  name: string;
   price: number;
   platform_name: string;
   category: string;
-  url: string;
+  review: number;
+  image_url: string;
+  product_url: string;
 }
 
 interface RecommendationsResponse {
   user_id: number;
   recommendations: RecommendedProduct[];
-  generated_at: string; // ISO 8601
+  generated_at: string;
 }
 
 // ===================================
@@ -52,55 +53,7 @@ export const recommendationsApi = {
   getRecommendations: async (
     request: GetRecommendationsRequest
   ): Promise<ApiResponse<RecommendationsResponse>> => {
-    await new Promise(resolve => setTimeout(resolve, 600));
-
-    // Mock 추천 상품 - CustomRecommendation용 (Type 2) 5개
-    const mockRecommendations: RecommendedProduct[] = [
-      {
-        product_id: 601,
-        price: 8500,
-        platform_name: '쿠팡',
-        category: '생수',
-        url: 'https://www.coupang.com/vp/products/6012345678'
-      },
-      {
-        product_id: 602,
-        price: 25000,
-        platform_name: '네이버쇼핑',
-        category: '청소용품',
-        url: 'https://search.shopping.naver.com/catalog/60123456789'
-      },
-      {
-        product_id: 603,
-        price: 13500,
-        platform_name: '11번가',
-        category: '생활용품',
-        url: 'https://www.11st.co.kr/products/6034567890'
-      },
-      {
-        product_id: 604,
-        price: 19000,
-        platform_name: '쿠팡',
-        category: '음료',
-        url: 'https://www.coupang.com/vp/products/6045678901'
-      },
-      {
-        product_id: 605,
-        price: 11000,
-        platform_name: '네이버쇼핑',
-        category: '식품',
-        url: 'https://search.shopping.naver.com/catalog/60567890123'
-      }
-    ];
-
-    return {
-      success: true,
-      data: {
-        user_id: request.user_id,
-        recommendations: mockRecommendations,
-        generated_at: new Date().toISOString()
-      }
-    };
+    return apiClient.post<RecommendationsResponse>('/recommendations/custom', request);
   },
 
   // ===================================
@@ -161,13 +114,13 @@ export const recommendationsApi = {
 
         return {
           id: String(item.product_id),
-          name: `${item.category} - ${item.platform_name}`,
+          name: item.name || `${item.category} - ${item.platform_name}`,
           price: basePrice,
           image: categoryEmojis[item.category] || '📦',
           category: item.category,
           rating: 4.0 + Math.random(), // 4.0-5.0 범위의 랜덤 평점
-          reviewCount: Math.floor(Math.random() * 500) + 50, // 50-550 범위의 리뷰 수
-          url: item.url,
+          reviewCount: item.review || (Math.floor(Math.random() * 500) + 50),
+          url: item.product_url,
           reason: categoryReasons[item.category] || '추천 상품입니다',
           ...(hasDiscount && discount !== undefined && originalPrice !== undefined && {
             originalPrice,

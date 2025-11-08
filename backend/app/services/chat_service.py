@@ -16,10 +16,14 @@ from app.models import (
     SendChatMessageRequest,
     SendChatMessageResponse,
 )
+from app.services.recommendation_service import RecommendationService
 
 
 class ChatService:
     """프론트엔드가 사용할 채팅 관련 기능을 담당한다."""
+
+    def __init__(self, recommendation_service: RecommendationService | None = None) -> None:
+        self._recommendation_service = recommendation_service or RecommendationService()
 
     def get_history(
         self,
@@ -62,22 +66,7 @@ class ChatService:
 
         if "물" in request.message or "추천" in request.message:
             response_type = 1
-            recommendations = [
-                RecommendationItem(
-                    product_id=501,
-                    price=12000,
-                    platform_name="쿠팡",
-                    category="생수",
-                    review=250,
-                ),
-                RecommendationItem(
-                    product_id=502,
-                    price=15000,
-                    platform_name="네이버쇼핑",
-                    category="생수",
-                    review=180,
-                ),
-            ]
+            recommendations = self._recommendation_service.generate_chat_recommendations(limit=6)
             ai_message = "요청하신 조건에 맞는 상품을 추천해드렸어요."
         elif "통계" in request.message:
             response_type = 2

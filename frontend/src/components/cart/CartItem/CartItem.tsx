@@ -7,12 +7,14 @@ interface CartItemProps {
   item: CartItemType;
   onRemove: () => void;
   isLoading?: boolean;
+  index?: number;
 }
 
 export const CartItem: React.FC<CartItemProps> = ({
   item,
   onRemove,
-  isLoading = false
+  isLoading = false,
+  index,
 }) => {
   const [isUpdating, setIsUpdating] = useState(false);
   const { openProductModal } = useModal();
@@ -31,15 +33,16 @@ export const CartItem: React.FC<CartItemProps> = ({
   const isDisabled = isLoading || isUpdating;
 
   const handleProductClick = () => {
-    if (item.url) {
-      openProductModal({
-        id: item.id,
-        name: item.name,
-        price: item.price,
-        ...(item.image && { image: item.image }),
-        ...(item.url && { url: item.url }),
-      });
-    }
+    openProductModal({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      ...(item.image && { image: item.image }),
+      ...(item.url && { url: item.url }),
+      ...(item.category && { category: item.category }),
+      ...(item.platformName && { platformName: item.platformName }),
+      ...(typeof index === 'number' ? { cartIndex: index } : {}),
+    });
   };
 
   return (
@@ -50,17 +53,17 @@ export const CartItem: React.FC<CartItemProps> = ({
     >
       {/* Product Image */}
       <div
-        className={`${styles.imageContainer} ${item.url ? styles.clickable : ''}`}
-        onClick={item.url ? handleProductClick : undefined}
-        role={item.url ? 'button' : undefined}
-        tabIndex={item.url ? 0 : undefined}
-        onKeyDown={item.url ? (e) => {
+        className={`${styles.imageContainer} ${styles.clickable}`}
+        onClick={handleProductClick}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             handleProductClick();
           }
-        } : undefined}
-        aria-label={item.url ? `${item.name} 상세보기` : undefined}
+        }}
+        aria-label={`${item.name} 상세보기`}
       >
         {item.image ? (
           <img
@@ -80,17 +83,17 @@ export const CartItem: React.FC<CartItemProps> = ({
       <div className={styles.details}>
         <div className={styles.productInfo}>
           <h3
-            className={`${styles.productName} ${item.url ? styles.clickable : ''}`}
+            className={`${styles.productName} ${styles.clickable}`}
             title={item.name}
-            onClick={item.url ? handleProductClick : undefined}
-            role={item.url ? 'button' : undefined}
-            tabIndex={item.url ? 0 : undefined}
-            onKeyDown={item.url ? (e) => {
+            onClick={handleProductClick}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 handleProductClick();
               }
-            } : undefined}
+            }}
           >
             {item.name}
           </h3>
