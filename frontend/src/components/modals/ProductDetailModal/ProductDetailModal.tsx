@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useCart } from "../../../contexts/AppProvider";
 import { useModal } from "../../../contexts/ModalContext";
 import styles from "./ProductDetailModal.module.css";
@@ -6,13 +6,18 @@ import styles from "./ProductDetailModal.module.css";
 export const ProductDetailModal: React.FC = () => {
   const { items: cartItems } = useCart();
   const { isOpen, product, closeModal, openProductModal } = useModal();
+  const [isIframeLoading, setIsIframeLoading] = useState(false);
+  const [iframeError, setIframeError] = useState(false);
 
   // Reset iframe state when modal opens
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
+      setIsIframeLoading(true);
+      setIframeError(false);
     } else {
       document.body.style.overflow = "unset";
+      setIsIframeLoading(false);
     }
 
     return () => {
@@ -160,7 +165,27 @@ export const ProductDetailModal: React.FC = () => {
         {/* Left Side - preview */}
         <div className={styles.previewSection}>
           <div className={styles.previewCard}>
-            {displayImage ? (
+            {displayUrl && !iframeError ? (
+              <iframe
+                src={displayUrl}
+                title={`${displayName} 미리보기`}
+                className={styles.previewIframe}
+                sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-popups-to-escape-sandbox"
+                referrerPolicy="no-referrer"
+                onLoad={() => setIsIframeLoading(false)}
+                onError={() => {
+                  setIsIframeLoading(false);
+                  setIframeError(true);
+                }}
+              />
+            ) : iframeError ? (
+              <div className={styles.previewFallback}>
+                <p className={styles.fallbackTitle}>외부 사이트를 표시할 수 없습니다.</p>
+                <p className={styles.helperText}>
+                  쇼핑몰이 프레임 내 표시를 제한하고 있어 새 탭에서 확인해주세요.
+                </p>
+              </div>
+            ) : displayImage ? (
               <img
                 src={displayImage}
                 alt={displayName}
@@ -186,6 +211,9 @@ export const ProductDetailModal: React.FC = () => {
                 </button>
               ) : (
                 <p className={styles.helperText}>연결할 상품 URL이 없습니다.</p>
+              )}
+              {displayUrl && isIframeLoading && !iframeError && (
+                <p className={styles.helperText}>페이지 불러오는 중...</p>
               )}
             </div>
           </div>
