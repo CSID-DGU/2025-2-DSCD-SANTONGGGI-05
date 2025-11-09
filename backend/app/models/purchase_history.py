@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, Field
@@ -12,7 +12,7 @@ class PurchaseItemOut(BaseModel):
     id: int
     user_id: int
     product_id: Optional[int] = None
-    date: date
+    date: datetime
     name: Optional[str] = None
     platform_name: str
     price: float

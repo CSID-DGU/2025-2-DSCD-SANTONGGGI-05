@@ -29,34 +29,47 @@ def _safe_float(value: object, default: float = 0.0) -> float:
         return default
 
 
-def _month_key(value: str | date | datetime | None) -> str | None:
+def _parse_datetime(value: str | date | datetime | None) -> datetime | None:
     if value is None:
         return None
-    if isinstance(value, str):
+    if isinstance(value, datetime):
+        return value
+    if isinstance(value, date):
+        return datetime.combine(value, datetime.min.time())
+    try:
+        return datetime.fromisoformat(value)
+    except (TypeError, ValueError):
+        pass
+
+    # Fallback patterns (e.g., 25.10.18., 2025.10.18.)
+    patterns = [
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%d",
+        "%y.%m.%d.",
+        "%y.%m.%d",
+        "%Y.%m.%d.",
+        "%Y.%m.%d",
+        "%d.%m.%Y.",
+        "%d.%m.%Y",
+    ]
+    for fmt in patterns:
         try:
-            parsed = datetime.fromisoformat(value)
+            return datetime.strptime(value, fmt)
         except ValueError:
-            return None
-    elif isinstance(value, datetime):
-        parsed = value
-    else:  # date
-        parsed = datetime.combine(value, datetime.min.time())
-    return parsed.strftime("%Y-%m")
+            continue
+    return None
+
+
+def _time_key(value: str | date | datetime | None, *, daily: bool = False) -> str | None:
+    parsed = _parse_datetime(value)
+    if not parsed:
+        return None
+    return parsed.strftime("%Y-%m-%d") if daily else parsed.strftime("%Y-%m")
 
 
 def _hour_key(value: str | date | datetime | None) -> str | None:
-    if value is None:
-        return None
-    if isinstance(value, str):
-        try:
-            parsed = datetime.fromisoformat(value)
-        except ValueError:
-            return None
-    elif isinstance(value, datetime):
-        parsed = value
-    else:
-        parsed = datetime.combine(value, datetime.min.time())
-    return f"{parsed.hour}시"
+    parsed = _parse_datetime(value)
+    return f"{parsed.hour}시" if parsed else None
 
 
 class StatisticsService:
@@ -123,7 +136,19 @@ class StatisticsService:
             most_used_platform=most_platform[0][0] if most_platform else None,
         )
 
+    def _should_use_daily_axis(self, records: list[dict]) -> bool:
+        months: set[str] = set()
+        days: set[str] = set()
+        for r in records:
+            parsed = _parse_datetime(r.get("purchase_date"))
+            if not parsed:
+                continue
+            months.add(parsed.strftime("%Y-%m"))
+            days.add(parsed.strftime("%Y-%m-%d"))
+        return len(months) <= 1 and len(days) > 1
+
     def _build_category_stats(self, records: list[dict], top_n: int = 5) -> CategoryStatistics:
+        use_daily_axis = self._should_use_daily_axis(records)
         share_map: dict[str, float] = defaultdict(float)
         for r in records:
             share_map[r.get("category") or "기타"] += _safe_float(r.get("total_price"))
@@ -140,23 +165,23 @@ class StatisticsService:
         include_others = len(cat_totals) > top_n
 
         series_map: dict[str, dict[str, float]] = defaultdict(lambda: defaultdict(float))
-        months_set: set[str] = set()
+        time_labels: set[str] = set()
         for r in records:
-            month_key = _month_key(r.get("purchase_date"))
-            if not month_key:
+            time_key = _time_key(r.get("purchase_date"), daily=use_daily_axis)
+            if not time_key:
                 continue
-            months_set.add(month_key)
+            time_labels.add(time_key)
             raw_cat = r.get("category") or "기타"
             cat = raw_cat if raw_cat in top_categories else ("기타" if include_others else raw_cat)
-            series_map[cat][month_key] += _safe_float(r.get("total_price"))
+            series_map[cat][time_key] += _safe_float(r.get("total_price"))
 
-        month_domain = sorted(months_set)
+        time_domain = sorted(time_labels)
         monthly_trend = [
             LineSeries(
                 id=cat,
                 data=[
-                    LinePoint(x=month, y=round(month_map.get(month, 0.0), 2))
-                    for month in month_domain
+                    LinePoint(x=label, y=round(month_map.get(label, 0.0), 2))
+                    for label in time_domain
                 ],
             )
             for cat, month_map in series_map.items()
@@ -173,18 +198,19 @@ class StatisticsService:
         return CategoryStatistics(share=share, monthly_trend=monthly_trend)
 
     def _build_platform_stats(self, records: list[dict]) -> PlatformStatistics:
+        use_daily_axis = self._should_use_daily_axis(records)
         ratio_map: dict[str, float] = defaultdict(float)
         series_map: dict[str, dict[str, float]] = defaultdict(lambda: defaultdict(float))
-        months_set: set[str] = set()
+        time_labels: set[str] = set()
 
         for r in records:
             platform = r.get("platform") or "기타"
             amount = _safe_float(r.get("total_price"))
             ratio_map[platform] += amount
-            month_key = _month_key(r.get("purchase_date"))
-            if month_key:
-                months_set.add(month_key)
-                series_map[platform][month_key] += amount
+            time_key = _time_key(r.get("purchase_date"), daily=use_daily_axis)
+            if time_key:
+                time_labels.add(time_key)
+                series_map[platform][time_key] += amount
 
         ratio = [
             PieDatum(id=platform, label=platform, value=round(total, 2))
@@ -192,13 +218,13 @@ class StatisticsService:
         ]
         ratio.sort(key=lambda item: item.value, reverse=True)
 
-        month_domain = sorted(months_set)
+        time_domain = sorted(time_labels)
         monthly_trend = [
             LineSeries(
                 id=platform,
                 data=[
-                    LinePoint(x=month, y=round(month_map.get(month, 0.0), 2))
-                    for month in month_domain
+                    LinePoint(x=label, y=round(month_map.get(label, 0.0), 2))
+                    for label in time_domain
                 ],
             )
             for platform, month_map in series_map.items()
@@ -207,13 +233,14 @@ class StatisticsService:
         return PlatformStatistics(ratio=ratio, monthly_trend=monthly_trend)
 
     def _build_pattern_stats(self, records: list[dict]) -> PatternStatistics:
+        use_daily_axis = self._should_use_daily_axis(records)
         hourly_totals: dict[str, float] = defaultdict(float)
         monthly_totals: dict[str, float] = defaultdict(float)
 
         for r in records:
             amount = _safe_float(r.get("total_price"))
             hour_key = _hour_key(r.get("purchase_date"))
-            month_key = _month_key(r.get("purchase_date"))
+            month_key = _time_key(r.get("purchase_date"), daily=use_daily_axis)
             if hour_key:
                 hourly_totals[hour_key] += amount
             if month_key:
