@@ -38,6 +38,7 @@ export const ProductListPanel: React.FC<ProductListPanelProps> = ({
         platformName: product.badge ?? '온라인몰',
         imageUrl: resolvedImageUrl,
         productUrl: resolvedProductUrl,
+        category: product.category || '기타',
       });
     } finally {
       setLoadingProducts(prev => {

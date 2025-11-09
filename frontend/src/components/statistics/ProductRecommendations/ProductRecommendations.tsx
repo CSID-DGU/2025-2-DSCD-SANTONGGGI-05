@@ -75,6 +75,7 @@ export const ProductRecommendations: React.FC<ProductRecommendationsProps> = ({
         platformName: '추천 상품',
         imageUrl: resolvedImageUrl,
         productUrl: resolvedProductUrl,
+        category: product.category,
       });
     } catch (error) {
       console.error('Failed to add recommended product to cart:', error);
@@ -87,13 +88,13 @@ export const ProductRecommendations: React.FC<ProductRecommendationsProps> = ({
       id: product.id,
       name: product.name,
       price: product.price,
-      originalPrice: product.originalPrice,
-      image: product.image,
-      category: product.category,
-      discount: product.discount,
-      rating: product.rating,
-      reviewCount: product.reviewCount,
-      url: product.url,
+      ...(typeof product.originalPrice === 'number' && { originalPrice: product.originalPrice }),
+      ...(product.image && { image: product.image }),
+      ...(product.category && { category: product.category }),
+      ...(typeof product.discount === 'number' && { discount: product.discount }),
+      ...(typeof product.rating === 'number' && { rating: product.rating }),
+      ...(typeof product.reviewCount === 'number' && { reviewCount: product.reviewCount }),
+      ...(product.url && { url: product.url }),
     });
   };
 

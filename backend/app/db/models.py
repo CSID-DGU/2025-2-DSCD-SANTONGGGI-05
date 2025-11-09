@@ -81,6 +81,7 @@ class CartItem(Base):
     )
     name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     platform_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    category: Mapped[str | None] = mapped_column(String(255), nullable=True)
     price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     image_url: Mapped[str] = mapped_column(String(512), nullable=False, default="")
     product_url: Mapped[str] = mapped_column(String(512), nullable=False, default="")
@@ -111,6 +112,8 @@ class PurchaseHistory(Base):
     platform_name: Mapped[str] = mapped_column(String(255), nullable=False)
     price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     category: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    image_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    product_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),

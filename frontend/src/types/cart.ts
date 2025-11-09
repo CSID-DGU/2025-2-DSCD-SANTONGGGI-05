@@ -90,6 +90,7 @@ export interface AddCartItemParams {
   platformName: string;
   imageUrl: string;
   productUrl: string;
+  category?: string;
 }
 
 export interface CartContextValue extends Omit<CartState, 'items'> {
@@ -106,7 +107,7 @@ export interface CartContextValue extends Omit<CartState, 'items'> {
   refreshCart: () => Promise<void>;
 
   // Simplified methods for component compatibility
-  addToCart: (item: { id: string; name: string; price: number; platformName: string; imageUrl?: string; productUrl?: string }) => Promise<void>;
+  addToCart: (item: { id: string; name: string; price: number; platformName: string; imageUrl?: string; productUrl?: string; category?: string }) => Promise<void>;
 }
 
 export interface CartUpdate {
@@ -172,5 +173,6 @@ export interface Product {
   image?: string;
   badge?: string;
   rating?: number;
+  category?: string;
   url?: string; // 외부 쇼핑몰 URL (쿠팡, 네이버쇼핑 등)
 }

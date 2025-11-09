@@ -54,6 +54,7 @@ class CartService:
                 user_id=payload.user_id,
                 name=payload.name,
                 platform_name=payload.platform_name,
+                category=payload.category,
                 price=payload.price,
                 image_url=image_url,
                 product_url=product_url,
@@ -64,6 +65,8 @@ class CartService:
             if payload.name is not None:
                 instance.name = payload.name
             instance.platform_name = payload.platform_name
+            if payload.category is not None:
+                instance.category = payload.category
             instance.price = payload.price
             instance.image_url = image_url
             instance.product_url = product_url

@@ -86,7 +86,8 @@ export const PurchaseHistoryDashboard: React.FC<PurchaseHistoryDashboardProps> =
   };
 
   const formatCurrency = (amount: number) => {
-    return `₩${amount.toLocaleString()}`;
+    const rounded = Math.round(amount || 0);
+    return `₩${rounded.toLocaleString()}`;
   };
 
   // Loading state
@@ -161,8 +162,8 @@ export const PurchaseHistoryDashboard: React.FC<PurchaseHistoryDashboardProps> =
               <div key={order.id} className={styles.orderCard}>
                 <div className={styles.orderHeader}>
                   <div className={styles.orderInfo}>
-                    <h3 className={styles.orderNumber}>{order.orderNumber}</h3>
-                    <p className={styles.orderDate}>{formatDate(order.date)}</p>
+                    <h3 className={styles.orderNumber}>{formatDate(order.date)}</h3>
+                    <p className={styles.orderDate}>총 {order.items.length}개 상품</p>
                   </div>
                   <div className={styles.orderStatus}>
                     <span
@@ -179,7 +180,16 @@ export const PurchaseHistoryDashboard: React.FC<PurchaseHistoryDashboardProps> =
                   {order.items.map((item) => (
                     <div key={item.id} className={styles.itemRow}>
                       <div className={styles.itemImage}>
-                        <span className={styles.itemEmoji}>{item.image}</span>
+                        {item.imageUrl ? (
+                          <img
+                            src={item.imageUrl}
+                            alt={item.name}
+                            className={styles.itemThumbnail}
+                            loading="lazy"
+                          />
+                        ) : (
+                          <span className={styles.itemEmoji}>{item.image}</span>
+                        )}
                       </div>
                       <div className={styles.itemInfo}>
                         <h4 className={styles.itemName}>{item.name}</h4>

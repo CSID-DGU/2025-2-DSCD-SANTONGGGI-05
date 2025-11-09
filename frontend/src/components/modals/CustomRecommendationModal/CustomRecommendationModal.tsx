@@ -47,6 +47,7 @@ export const CustomRecommendationModal: React.FC<CustomRecommendationModalProps>
         platformName: product.platform_name,
         imageUrl: product.image_url ?? DEFAULT_CART_IMAGE_URL,
         productUrl: product.product_url || DEFAULT_CART_PRODUCT_URL,
+        category: product.category,
       });
       alert(`${product.name || fallbackName} 상품이 장바구니에 추가되었습니다.`);
     } catch (error) {

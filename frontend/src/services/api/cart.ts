@@ -7,6 +7,7 @@ export interface ApiCartItem {
   user_id: number;
   name?: string | null;
   platform_name: string;
+  category?: string | null;
   price: number;
   imageUrl: string;
   productUrl: string;
@@ -22,6 +23,7 @@ export interface AddToCartRequest {
   product_id: number;
   name?: string | null;
   platform_name: string;
+  category?: string | null;
   price: number;
   imageUrl: string;
   productUrl: string;
@@ -41,6 +43,10 @@ export const convertApiCartItemToUI = (apiItem: ApiCartItem): UICartItem => {
   const productUrl = apiItem.productUrl && apiItem.productUrl.trim().length > 0
     ? apiItem.productUrl
     : DEFAULT_CART_PRODUCT_URL;
+  const categoryName = apiItem.category && apiItem.category.trim().length > 0
+    ? apiItem.category
+    : '기타';
+  const categorySlug = categoryName.toLowerCase().replace(/\s+/g, '-');
 
   return {
     id: `${apiItem.product_id}`,
@@ -60,7 +66,7 @@ export const convertApiCartItemToUI = (apiItem: ApiCartItem): UICartItem => {
           order: 0,
         },
       ],
-      category: { id: 'misc', name: '기타', slug: 'misc' },
+      category: { id: categorySlug || 'misc', name: categoryName, slug: categorySlug || 'misc' },
       brand: apiItem.platform_name,
       sku: `${apiItem.product_id}`,
       stock: 0,

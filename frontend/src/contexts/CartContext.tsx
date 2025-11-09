@@ -248,6 +248,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     platformName,
     imageUrl,
     productUrl,
+    category,
   }: AddCartItemParams) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
@@ -265,6 +266,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
           product_id: Number(productId),
           name,
           platform_name: platformName,
+          category,
           price,
           imageUrl: resolvedImageUrl,
           productUrl: resolvedProductUrl,
@@ -314,6 +316,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       } else {
         // For guest users, simulate adding item
         // In a real app, you'd need product data to create the cart item
+        const resolvedCategory = category ?? '기타';
         const newItem: CartItem = {
           id: `temp-${Date.now()}`,
           productId,
@@ -332,7 +335,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
                 order: 0,
               },
             ],
-            category: { id: '', name: '', slug: '' },
+            category: { id: resolvedCategory.toLowerCase(), name: resolvedCategory, slug: resolvedCategory.toLowerCase() },
             brand: platformName,
             sku: '',
             stock: 0,
@@ -434,7 +437,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   }, [isAuthenticated, loadCartData, loadGuestCart]);
 
   // Add simplified methods for component compatibility
-  const addToCart = useCallback(async (item: { id: string; name: string; price: number; platformName: string; imageUrl?: string; productUrl?: string }) => {
+  const addToCart = useCallback(async (item: { id: string; name: string; price: number; platformName: string; imageUrl?: string; productUrl?: string; category?: string }) => {
     try {
       await addItem({
         productId: item.id,
@@ -443,6 +446,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         platformName: item.platformName,
         imageUrl: item.imageUrl ?? DEFAULT_CART_IMAGE_URL,
         productUrl: item.productUrl ?? DEFAULT_CART_PRODUCT_URL,
+        category: item.category,
       });
     } catch (error) {
       console.error('Failed to add to cart:', error);

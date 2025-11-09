@@ -1,13 +1,16 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useCart } from "../../../contexts/AppProvider";
+import React, { useEffect, useState } from "react";
+import { useCart, useAuth } from "../../../contexts/AppProvider";
 import { useModal } from "../../../contexts/ModalContext";
+import { purchaseHistoryApi } from "../../../services/api/purchaseHistory";
 import styles from "./ProductDetailModal.module.css";
 
 export const ProductDetailModal: React.FC = () => {
-  const { items: cartItems } = useCart();
+  const { items: cartItems, refreshCart } = useCart();
+  const { user } = useAuth();
   const { isOpen, product, closeModal, openProductModal } = useModal();
   const [isIframeLoading, setIsIframeLoading] = useState(false);
   const [iframeError, setIframeError] = useState(false);
+  const [isPurchasing, setIsPurchasing] = useState(false);
 
   // Reset iframe state when modal opens
   useEffect(() => {
@@ -42,15 +45,11 @@ export const ProductDetailModal: React.FC = () => {
     };
   }, [isOpen, closeModal]);
 
-  const derivedCartIndex = useMemo(() => {
-    if (!product) {
-      return -1;
-    }
-    if (typeof product.cartIndex === "number") {
-      return product.cartIndex;
-    }
-    return cartItems.findIndex((item) => item.id === product.id);
-  }, [product, cartItems]);
+  const derivedCartIndex = product
+    ? typeof product.cartIndex === "number"
+      ? product.cartIndex
+      : cartItems.findIndex((item) => item.id === product.id)
+    : -1;
 
   const handleBackgroundClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
@@ -142,6 +141,35 @@ export const ProductDetailModal: React.FC = () => {
   };
 
   const hasCartNavigation = derivedCartIndex >= 0 && cartItems.length > 1;
+  const canPurchase = !!currentCartItem && !!user;
+
+  const handleCompletePurchase = async () => {
+    if (!canPurchase || !currentCartItem) {
+      alert("로그인 상태에서 장바구니 상품만 구매할 수 있습니다.");
+      return;
+    }
+    const productId = Number(currentCartItem.productId ?? currentCartItem.id);
+    if (!productId) {
+      alert("구매할 상품 정보를 찾을 수 없습니다.");
+      return;
+    }
+
+    try {
+      setIsPurchasing(true);
+      await purchaseHistoryApi.checkout({
+        user_id: user!.id,
+        product_ids: [productId],
+      });
+      await refreshCart();
+      alert("구매가 완료되었습니다.");
+      closeModal();
+    } catch (error: any) {
+      alert(error?.message || "구매 처리에 실패했습니다.");
+      console.error("checkout failed:", error);
+    } finally {
+      setIsPurchasing(false);
+    }
+  };
 
   return (
     <div
@@ -310,6 +338,16 @@ export const ProductDetailModal: React.FC = () => {
                   다음 상품 →
                 </button>
               </div>
+            )}
+            {canPurchase && (
+              <button
+                type="button"
+                className={styles.purchaseActionButton}
+                onClick={handleCompletePurchase}
+                disabled={isPurchasing}
+              >
+                {isPurchasing ? "구매 처리중..." : "구매 완료"}
+              </button>
             )}
           </div>
         </div>

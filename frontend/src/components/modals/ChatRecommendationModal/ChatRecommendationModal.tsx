@@ -47,6 +47,7 @@ export const ChatRecommendationModal: React.FC<ChatRecommendationModalProps> = (
         platformName: product.platform_name,
         imageUrl: product.image_url ?? DEFAULT_CART_IMAGE_URL,
         productUrl: product.product_url ?? DEFAULT_CART_PRODUCT_URL,
+        category: product.category,
       });
       alert(`${product.name}을(를) 장바구니에 추가했습니다!`);
     } catch (error) {
