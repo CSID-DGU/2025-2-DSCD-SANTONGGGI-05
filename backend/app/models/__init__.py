@@ -24,6 +24,16 @@ from .purchase_history import (
     PurchaseHistorySummary,
     PurchaseItemOut,
 )
+from .statistics import (
+    CategoryStatistics,
+    PatternStatistics,
+    PieDatum,
+    PlatformStatistics,
+    LinePoint,
+    LineSeries,
+    StatisticsDashboardResponse,
+    StatisticsSummary,
+)
 from .auth import (
     UserOut,
     RegisterRequest,
@@ -58,4 +68,12 @@ __all__ = [
     "PurchaseHistoryResponse",
     "CheckoutRequest",
     "CheckoutResponse",
+    "PieDatum",
+    "LinePoint",
+    "LineSeries",
+    "StatisticsSummary",
+    "CategoryStatistics",
+    "PlatformStatistics",
+    "PatternStatistics",
+    "StatisticsDashboardResponse",
 ]
