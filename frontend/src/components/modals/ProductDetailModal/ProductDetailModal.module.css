@@ -359,6 +359,31 @@
   box-shadow: 0 6px 16px rgba(59, 130, 246, 0.15);
 }
 
+.purchaseActionButton {
+  width: 100%;
+  margin-top: 16px;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: #10b981;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.purchaseActionButton:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.purchaseActionButton:not(:disabled):hover {
+  background: #059669;
+  box-shadow: 0 6px 18px rgba(5, 150, 105, 0.3);
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
   .modalContainer {

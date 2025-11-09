@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo, ReactNode } from 'react';
-import { AuthState, AuthContextValue, User, LoginCredentials, RegisterData, UserPreferences, AuthResponse } from '../types/auth';
+import { AuthState, AuthContextValue, User, LoginCredentials, RegisterData, AuthResponse, AuthTokens } from '../types/auth';
 import { authApi } from '../services/api/auth';
 import { storageService } from '../services/storage/localStorage';
 
@@ -8,9 +8,40 @@ const initialState: AuthState = {
   user: null,
   tokens: null,
   isAuthenticated: false,
-  isLoading: true,
+  isInitializing: true,
+  isLoading: false,
   error: null,
   authError: null,
+};
+
+const isValidStoredUser = (candidate: any): candidate is User => {
+  return Boolean(
+    candidate &&
+    typeof candidate === 'object' &&
+    typeof candidate.id === 'number' &&
+    typeof candidate.phone_number === 'string' &&
+    typeof candidate.name === 'string'
+  );
+};
+
+const reviveStoredTokens = (raw: any): AuthTokens | null => {
+  if (!raw || typeof raw !== 'object') {
+    return null;
+  }
+
+  const accessToken = raw.accessToken ?? raw.access_token;
+  const refreshToken = raw.refreshToken ?? raw.refresh_token;
+  const expiresAtSource = raw.expiresAt ?? raw.expires_at;
+
+  if (!accessToken || !refreshToken) {
+    return null;
+  }
+
+  return {
+    accessToken,
+    refreshToken,
+    expiresAt: expiresAtSource ? new Date(expiresAtSource) : new Date(),
+  };
 };
 
 // Action types
@@ -24,16 +55,17 @@ type AuthAction =
   | { type: 'LOGOUT' }
   | { type: 'REFRESH_TOKEN_SUCCESS'; payload: any }
   | { type: 'UPDATE_USER'; payload: User }
-  | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'CLEAR_ERROR' }
-  | { type: 'SET_AUTH_ERROR'; payload: string | null };
+  | { type: 'SET_AUTH_ERROR'; payload: string | null }
+  | { type: 'HYDRATE_AUTH'; payload: { user: User; tokens: AuthTokens } }
+  | { type: 'SET_INITIALIZING'; payload: boolean };
 
 // Reducer
 const authReducer = (state: AuthState, action: AuthAction): AuthState => {
   switch (action.type) {
     case 'LOGIN_START':
     case 'REGISTER_START':
-      return { ...state, isLoading: true, error: null, authError: null };
+      return { ...state, isLoading: true, isInitializing: false, error: null, authError: null };
 
     case 'LOGIN_SUCCESS':
     case 'REGISTER_SUCCESS':
@@ -42,6 +74,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         user: action.payload.user,
         tokens: action.payload.tokens,
         isAuthenticated: true,
+        isInitializing: false,
         isLoading: false,
         error: null,
         authError: null,
@@ -54,6 +87,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         user: null,
         tokens: null,
         isAuthenticated: false,
+        isInitializing: false,
         isLoading: false,
         authError: action.payload,
       };
@@ -61,6 +95,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
     case 'LOGOUT':
       return {
         ...initialState,
+        isInitializing: false,
         isLoading: false,
       };
 
@@ -68,6 +103,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
       return {
         ...state,
         tokens: action.payload,
+        isInitializing: false,
         error: null,
       };
 
@@ -77,10 +113,22 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         user: action.payload,
       };
 
-    case 'SET_LOADING':
+    case 'HYDRATE_AUTH':
       return {
         ...state,
-        isLoading: action.payload,
+        user: action.payload.user,
+        tokens: action.payload.tokens,
+        isAuthenticated: true,
+        isInitializing: false,
+        isLoading: false,
+        error: null,
+        authError: null,
+      };
+
+    case 'SET_INITIALIZING':
+      return {
+        ...state,
+        isInitializing: action.payload,
       };
 
     case 'CLEAR_ERROR':
@@ -112,22 +160,30 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  // Initialize auth state (simplified for demo)
-  useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        // For demo purposes, just set loading to false and no user
-        setTimeout(() => {
-          dispatch({ type: 'SET_LOADING', payload: false });
-        }, 100);
-      } catch (error) {
-        console.error('Auth initialization error:', error);
-        dispatch({ type: 'SET_LOADING', payload: false });
-      }
-    };
+  const hydrateFromStorage = useCallback(() => {
+    try {
+      const storedUser = storageService.getUser();
+      const storedTokensRaw = storageService.getTokens();
 
-    initializeAuth();
-  }, []);
+      if (isValidStoredUser(storedUser) && storedTokensRaw) {
+        const revivedTokens = reviveStoredTokens(storedTokensRaw);
+        if (revivedTokens) {
+          dispatch({
+            type: 'HYDRATE_AUTH',
+            payload: { user: storedUser, tokens: revivedTokens }
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Auth hydration error:', error);
+    }
+  }, [dispatch]);
+
+  // Initialize auth state from persisted storage
+  useEffect(() => {
+    hydrateFromStorage();
+    dispatch({ type: 'SET_INITIALIZING', payload: false });
+  }, [hydrateFromStorage, dispatch]);
 
   // Actions
   const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
@@ -183,12 +239,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const initialize = useCallback(() => {
-    dispatch({ type: 'SET_LOADING', payload: false });
-  }, []);
+    hydrateFromStorage();
+    dispatch({ type: 'SET_INITIALIZING', payload: false });
+  }, [hydrateFromStorage, dispatch]);
 
   const clearAuthError = useCallback(() => {
     dispatch({ type: 'SET_AUTH_ERROR', payload: null });
-  }, []);
+  }, [dispatch]);
 
   const contextValue: AuthContextValue = useMemo(() => ({
     ...state,
@@ -201,6 +258,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     state.user,
     state.tokens,
     state.isAuthenticated,
+    state.isInitializing,
     state.isLoading,
     state.error,
     state.authError,

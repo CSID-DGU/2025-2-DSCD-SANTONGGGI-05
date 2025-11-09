@@ -7,7 +7,7 @@ import { ErrorBoundary } from './components/ui/ErrorBoundary/ErrorBoundary';
 import './App.css';
 
 const App: React.FC = () => {
-  const { isAuthenticated, isLoading, error, initialize } = useAuth();
+  const { isAuthenticated, isInitializing, error, initialize } = useAuth();
 
   // Initialize the app on mount
   useEffect(() => {
@@ -15,7 +15,7 @@ const App: React.FC = () => {
   }, [initialize]);
 
   // Show loading state while initializing
-  if (isLoading) {
+  if (isInitializing) {
     return (
       <div className="app-loading">
         <LoadingSpinner size="large" message="Initializing Shopping Assistant..." />

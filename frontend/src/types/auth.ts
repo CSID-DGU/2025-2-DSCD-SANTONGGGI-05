@@ -54,6 +54,7 @@ export interface AuthState {
   user: User | null;
   tokens: AuthTokens | null;
   isAuthenticated: boolean;
+  isInitializing: boolean;
   isLoading: boolean;
   error: string | null;      // initialization error
   authError: string | null;  // auth flow error
