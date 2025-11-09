@@ -1,38 +1,43 @@
-import React from 'react';
+import React, { useMemo } from 'react';
+import { ResponsiveLine } from '@nivo/line';
 import styles from './StatisticsTabs.module.css';
-import { SimpleLineChart } from '../Charts/BasicCharts';
 import type { LineSeries } from '@/services/api/statistics';
+import { nivoTheme } from '../Charts/NivoTheme';
 
 interface PatternTabProps {
   hourlyTrend: LineSeries[];
   monthlyTotal: LineSeries[];
 }
 
-const formatCurrency = (value: number) => `₩${Math.round(value).toLocaleString()}`;
-
-const getTotalAmount = (series: LineSeries[]) =>
-  series.reduce((sum, serie) => sum + serie.data.reduce((acc, point) => acc + (point.y || 0), 0), 0);
-
-const getPeakHour = (hourlyTrend: LineSeries[]) => {
-  if (!hourlyTrend.length) return null;
-  let peakHour: string | null = null;
-  let peakValue = -Infinity;
-  hourlyTrend[0].data.forEach((point) => {
-    const value = point.y || 0;
-    if (value > peakValue) {
-      peakValue = value;
-      peakHour = point.x;
-    }
-  });
-  return peakHour;
-};
+const currency = (value: number) => `₩${Math.round(value).toLocaleString()}`;
 
 export const PatternTab: React.FC<PatternTabProps> = ({ hourlyTrend, monthlyTotal }) => {
-  const totalAmount = getTotalAmount(monthlyTotal);
-  const peakHour = getPeakHour(hourlyTrend);
+  const totalAmount = useMemo(
+    () =>
+      monthlyTotal.reduce(
+        (sum, serie) => sum + serie.data.reduce((acc, point) => acc + (point.y ?? 0), 0),
+        0,
+      ),
+    [monthlyTotal],
+  );
+
+  const peakHour = useMemo(() => {
+    if (!hourlyTrend.length) return null;
+    let maxVal = -Infinity;
+    let maxHour: string | null = null;
+    hourlyTrend[0].data.forEach((point) => {
+      const value = point.y || 0;
+      if (value > maxVal) {
+        maxVal = value;
+        maxHour = point.x as string;
+      }
+    });
+    return maxHour;
+  }, [hourlyTrend]);
+
   const insight =
     peakHour !== null
-      ? `총 ${formatCurrency(totalAmount)}을 지출했으며, 가장 소비가 집중된 시간대는 ${peakHour}입니다.`
+      ? `총 ${currency(totalAmount)}을 지출했으며, 가장 활발한 시간대는 ${peakHour}입니다.`
       : '소비 패턴을 분석할 데이터가 부족합니다.';
 
   return (
@@ -43,19 +48,98 @@ export const PatternTab: React.FC<PatternTabProps> = ({ hourlyTrend, monthlyTota
       </div>
 
       {hourlyTrend.length > 0 ? (
-        <div className={styles.fullWidthCard}>
-          <SimpleLineChart series={hourlyTrend} />
+        <div className={styles.fullWidthCard} style={{ height: 320 }}>
+          <ResponsiveLine
+            theme={nivoTheme}
+            data={hourlyTrend}
+            margin={{ top: 24, right: 24, bottom: 48, left: 56 }}
+            xScale={{ type: 'point' }}
+            yScale={{ type: 'linear' }}
+            lineWidth={3}
+            pointSize={8}
+            pointBorderWidth={2}
+            colors={{ scheme: 'paired' }}
+            useMesh
+            axisBottom={{
+              legend: '시간대',
+              legendOffset: 32,
+              legendPosition: 'middle',
+            }}
+            axisLeft={{
+              legend: '지출 금액',
+              legendOffset: -40,
+              legendPosition: 'middle',
+            }}
+            tooltip={({ point }) => (
+              <div style={{ background: 'white', padding: '6px 8px', borderRadius: 6, fontSize: 12 }}>
+                <div>{point.serieId}</div>
+                <strong>
+                  {point.data.xFormatted}: {currency(point.data.y as number)}
+                </strong>
+              </div>
+            )}
+            legends={[
+              {
+                anchor: 'bottom',
+                direction: 'row',
+                translateY: 32,
+                itemWidth: 120,
+                itemHeight: 18,
+                symbolSize: 12,
+              },
+            ]}
+          />
         </div>
       ) : (
         <div className={styles.emptyState}>시간대별 소비 데이터를 찾을 수 없습니다.</div>
       )}
 
       {monthlyTotal.length > 0 ? (
-        <div className={styles.fullWidthCard}>
-          <SimpleLineChart series={monthlyTotal} />
+        <div className={styles.fullWidthCard} style={{ height: 340 }}>
+          <ResponsiveLine
+            theme={nivoTheme}
+            data={monthlyTotal}
+            margin={{ top: 24, right: 24, bottom: 48, left: 56 }}
+            xScale={{ type: 'point' }}
+            yScale={{ type: 'linear' }}
+            lineWidth={3}
+            pointSize={8}
+            pointBorderWidth={2}
+            colors={{ scheme: 'category10' }}
+            useMesh
+            axisBottom={{
+              legend: '기간',
+              legendOffset: 32,
+              legendPosition: 'middle',
+              tickRotation: -30,
+            }}
+            axisLeft={{
+              legend: '지출 금액',
+              legendOffset: -40,
+              legendPosition: 'middle',
+            }}
+            tooltip={({ point }) => (
+              <div style={{ background: 'white', padding: '6px 8px', borderRadius: 6, fontSize: 12 }}>
+                <div>{point.serieId}</div>
+                <strong>
+                  {point.data.xFormatted}: {currency(point.data.y as number)}
+                </strong>
+              </div>
+            )}
+            legends={[
+              {
+                anchor: 'bottom',
+                direction: 'row',
+                translateY: 32,
+                itemWidth: 120,
+                itemHeight: 18,
+                symbolSize: 12,
+              },
+            ]}
+          />
         </div>
       ) : (
-        <div className={styles.emptyState}>월별 소비 추이를 표시할 데이터가 없습니다.</div>
+        <div className={styles.emptyState}>월별 소비 추세를 표시할 데이터가 없습니다.</div>
       )}
     </div>
   );

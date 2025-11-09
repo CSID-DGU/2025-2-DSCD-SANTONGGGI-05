@@ -77,7 +77,7 @@ interface OrderItem {
   price: number;
   quantity: number;
   image: string;
-  imageUrl?: string;
+  imageUrl?: string | null | undefined;
 }
 
 // Mock Purchase History API
@@ -117,7 +117,10 @@ export const purchaseHistoryApi = {
       const ordersMap = new Map<string, Order>();
 
       response.purchases.forEach((item) => {
-        const dateKey = item.date;
+        const dateObj = new Date(item.date);
+        const dateKey = Number.isNaN(dateObj.getTime())
+          ? item.date.split('T')[0]
+          : dateObj.toISOString().split('T')[0];
         const orderId = `order-${dateKey}`;
         let order = ordersMap.get(dateKey);
 
@@ -125,7 +128,7 @@ export const purchaseHistoryApi = {
           order = {
             id: orderId,
             orderNumber: dateKey,
-            date: item.date,
+            date: dateKey,
             status: 'completed' as const,
             totalAmount: 0,
             items: [],

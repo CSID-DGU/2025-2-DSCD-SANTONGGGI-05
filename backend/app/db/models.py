@@ -107,7 +107,7 @@ class PurchaseHistory(Base):
         nullable=False,
     )
     product_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
-    date: Mapped[datetime] = mapped_column(Date, nullable=False)
+    date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     platform_name: Mapped[str] = mapped_column(String(255), nullable=False)
     price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
