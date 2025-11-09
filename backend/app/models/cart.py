@@ -14,6 +14,7 @@ class CartItemOut(BaseModel):
     user_id: int
     name: str | None = None
     platform_name: str
+    category: str | None = None
     price: float
     image_url: str = Field(alias="imageUrl")
     product_url: str = Field(alias="productUrl")
@@ -38,6 +39,7 @@ class AddCartItemRequest(BaseModel):
     product_id: int
     name: str | None = None
     platform_name: str
+    category: str | None = None
     price: float
     image_url: str = Field(alias="imageUrl")
     product_url: str = Field(alias="productUrl")

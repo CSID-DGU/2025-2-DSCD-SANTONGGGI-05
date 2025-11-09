@@ -17,6 +17,13 @@ from .recommendation import (
     CustomRecommendationResponse,
     RecommendationItem,
 )
+from .purchase_history import (
+    CheckoutRequest,
+    CheckoutResponse,
+    PurchaseHistoryResponse,
+    PurchaseHistorySummary,
+    PurchaseItemOut,
+)
 from .auth import (
     UserOut,
     RegisterRequest,
@@ -46,4 +53,9 @@ __all__ = [
     "default_tokens",
     "CustomRecommendationRequest",
     "CustomRecommendationResponse",
+    "PurchaseItemOut",
+    "PurchaseHistorySummary",
+    "PurchaseHistoryResponse",
+    "CheckoutRequest",
+    "CheckoutResponse",
 ]
