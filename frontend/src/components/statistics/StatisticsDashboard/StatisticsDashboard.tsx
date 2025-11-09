@@ -1,54 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import styles from './StatisticsDashboard.module.css';
 import { StatisticsNavigation } from '../StatisticsNavigation/StatisticsNavigation';
-import { KPICards } from '../KPICards/KPICards';
-import { WeeklyChart } from '../Charts/WeeklyChart';
-import { CategoryChart } from '../Charts/CategoryChart';
 import { useNavigation, useAuth } from '../../../contexts/AppProvider';
-import { statisticsApi, StatisticsData } from '../../../services/api/statistics';
+import { statisticsApi, StatisticsDashboardData } from '../../../services/api/statistics';
 import { LoadingSpinner } from '../../ui/LoadingSpinner';
+import { CategoryTab } from '../Tabs/CategoryTab';
+import { PlatformTab } from '../Tabs/PlatformTab';
+import { PatternTab } from '../Tabs/PatternTab';
 
-export type StatisticsView = 'overview' | 'weekly' | 'category';
+export type StatisticsView = 'category' | 'platform' | 'pattern';
 
 interface StatisticsDashboardProps {
   className?: string;
 }
 
-export const StatisticsDashboard: React.FC<StatisticsDashboardProps> = ({
-  className
-}) => {
-  const [currentView, setCurrentView] = useState<StatisticsView>('overview');
-  const [statisticsData, setStatisticsData] = useState<StatisticsData | null>(null);
+export const StatisticsDashboard: React.FC<StatisticsDashboardProps> = ({ className }) => {
+  const [currentView, setCurrentView] = useState<StatisticsView>('category');
+  const [statisticsData, setStatisticsData] = useState<StatisticsDashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { navigateTo } = useNavigation();
   const { user } = useAuth();
 
-  // Load statistics data on mount
   useEffect(() => {
     loadStatisticsData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // loadStatisticsData is intentionally not in deps to avoid re-creation loop
+  }, []);
 
   const loadStatisticsData = async () => {
     try {
       setIsLoading(true);
       setError(null);
-
-      // user_id 사용 (없으면 기본값 1123)
       const userId = user?.id || 1123;
+      const response = await statisticsApi.getDashboard(userId);
 
-      // 통합 API 사용 - 모든 통계 데이터를 한 번에 가져옴
-      const response = await statisticsApi.getAllStatistics(userId);
-
-      if (response.success && response.data && response.data.statistics) {
+      if (response.success && response.data?.statistics) {
         setStatisticsData(response.data.statistics);
       } else {
-        setError('통계 데이터를 불러올 수 없습니다.');
+        setError(response.error || '통계 데이터를 불러올 수 없습니다.');
       }
     } catch (err) {
-      setError('서버 연결에 실패했습니다.');
       console.error('Statistics loading error:', err);
+      setError('서버 연결에 실패했습니다.');
     } finally {
       setIsLoading(false);
     }
@@ -58,12 +51,8 @@ export const StatisticsDashboard: React.FC<StatisticsDashboardProps> = ({
     navigateTo('chat');
   };
 
-  const dashboardClasses = [
-    styles.statisticsDashboard,
-    className
-  ].filter(Boolean).join(' ');
+  const dashboardClasses = [styles.statisticsDashboard, className].filter(Boolean).join(' ');
 
-  // Loading state
   if (isLoading) {
     return (
       <div className={dashboardClasses}>
@@ -74,7 +63,6 @@ export const StatisticsDashboard: React.FC<StatisticsDashboardProps> = ({
     );
   }
 
-  // Error state
   if (error || !statisticsData) {
     return (
       <div className={dashboardClasses}>
@@ -92,72 +80,42 @@ export const StatisticsDashboard: React.FC<StatisticsDashboardProps> = ({
     );
   }
 
-  const getViewTitle = () => {
-    switch (currentView) {
-      case 'overview':
-        return {
-          title: '사용자 통계 대시보드',
-          subtitle: '개인화된 쇼핑 분석 리포트'
-        };
-      case 'weekly':
-        return {
-          title: '주간 소비 확인',
-          subtitle: '요일별 소비 패턴 분석'
-        };
-      case 'category':
-        return {
-          title: '카테고리별 구매 분포',
-          subtitle: '구매 카테고리 분석'
-        };
-      default:
-        return {
-          title: '통계 분석',
-          subtitle: '데이터 분석 결과'
-        };
-    }
-  };
+  const summary = statisticsData.summary;
+  const summaryCards = [
+    { label: '총 지출', value: `₩${Math.round(summary.totalSpent).toLocaleString()}` },
+    { label: '총 주문', value: `${summary.totalOrders}건` },
+    { label: '평균 주문 금액', value: `₩${Math.round(summary.averageOrderValue).toLocaleString()}` },
+    { label: '최다 구매 카테고리', value: summary.mostPurchasedCategory ?? '-' },
+    { label: '최다 이용 플랫폼', value: summary.mostUsedPlatform ?? '-' },
+  ];
 
   const renderViewContent = () => {
     switch (currentView) {
-      case 'overview':
-        return (
-          <div className={styles.overviewContent}>
-            <KPICards data={statisticsData.kpis} />
-            <div className={styles.chartsGrid}>
-              <div className={styles.chartCard}>
-                <WeeklyChart data={statisticsData.weeklyData} />
-              </div>
-              <div className={styles.chartCard}>
-                <CategoryChart data={statisticsData.categoryData} />
-              </div>
-            </div>
-          </div>
-        );
-
-      case 'weekly':
-        return (
-          <div className={styles.weeklyContent}>
-            <div className={styles.fullChart}>
-              <WeeklyChart data={statisticsData.weeklyData} detailed />
-            </div>
-          </div>
-        );
-
       case 'category':
         return (
-          <div className={styles.categoryContent}>
-            <div className={styles.fullChart}>
-              <CategoryChart data={statisticsData.categoryData} detailed />
-            </div>
-          </div>
+          <CategoryTab
+            share={statisticsData.category.share}
+            monthlyTrend={statisticsData.category.monthlyTrend}
+          />
         );
-
+      case 'platform':
+        return (
+          <PlatformTab
+            ratio={statisticsData.platform.ratio}
+            monthlyTrend={statisticsData.platform.monthlyTrend}
+          />
+        );
+      case 'pattern':
+        return (
+          <PatternTab
+            hourlyTrend={statisticsData.pattern.hourlyTrend}
+            monthlyTotal={statisticsData.pattern.monthlyTotal}
+          />
+        );
       default:
         return null;
     }
   };
-
-  const { title, subtitle } = getViewTitle();
 
   return (
     <div className={dashboardClasses}>
@@ -167,21 +125,25 @@ export const StatisticsDashboard: React.FC<StatisticsDashboardProps> = ({
             <button onClick={handleGoBackToChat} className={styles.backToChat}>
               ← 채팅으로 돌아가기
             </button>
-            <h1 className={styles.title}>{title}</h1>
-            <p className={styles.subtitle}>{subtitle}</p>
+            <h1 className={styles.title}>사용자 통계 대시보드</h1>
+            <p className={styles.subtitle}>실제 구매 데이터를 기반으로 한 개인화된 분석 리포트</p>
           </div>
         </div>
 
-        <div className={styles.viewContent}>
-          {renderViewContent()}
+        <div className={styles.summaryGrid}>
+          {summaryCards.map((card) => (
+            <div key={card.label} className={styles.summaryCard}>
+              <span className={styles.summaryLabel}>{card.label}</span>
+              <strong className={styles.summaryValue}>{card.value}</strong>
+            </div>
+          ))}
         </div>
+
+        <div className={styles.viewContent}>{renderViewContent()}</div>
       </div>
 
       <div className={styles.sidebar}>
-        <StatisticsNavigation
-          currentView={currentView}
-          onViewChange={setCurrentView}
-        />
+        <StatisticsNavigation currentView={currentView} onViewChange={setCurrentView} />
       </div>
     </div>
   );

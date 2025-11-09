@@ -1,0 +1,104 @@
+.pieWrapper {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+}
+
+.pieSvg {
+  max-width: 240px;
+  flex-shrink: 0;
+}
+
+.legend {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legendColor {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.legendLabel {
+  min-width: 80px;
+  font-weight: 600;
+}
+
+.legendValue {
+  color: var(--color-text-secondary, #6b7280);
+  white-space: nowrap;
+}
+
+.barWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.barRow {
+  display: grid;
+  grid-template-columns: 120px 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.barLabel {
+  font-weight: 600;
+}
+
+.barTrack {
+  background: #f3f4f6;
+  border-radius: 999px;
+  height: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.barValue {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.barAmount {
+  font-variant-numeric: tabular-nums;
+}
+
+.lineWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lineWrapper svg {
+  width: 100%;
+  height: 100%;
+  background: #fff;
+}
+
+.xAxis {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.xAxis span {
+  flex: 1;
+  text-align: center;
+}
