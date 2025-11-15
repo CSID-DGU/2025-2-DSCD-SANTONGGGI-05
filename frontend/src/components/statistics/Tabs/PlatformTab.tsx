@@ -66,14 +66,16 @@ export const PlatformTab: React.FC<PlatformTabProps> = ({ ratio, monthlyTrend })
             colors={{ scheme: 'category10' }}
             axisBottom={{
               legend: '기간',
-              legendOffset: 36,
+              legendOffset: 48,
               legendPosition: 'middle',
               tickRotation: -30,
+              tickPadding: 8,
             }}
             axisLeft={{
               legend: '지출 금액',
               legendOffset: -40,
               legendPosition: 'middle',
+              tickPadding: 8,
             }}
             lineWidth={3}
             pointSize={8}

@@ -92,14 +92,16 @@ export const CategoryTab: React.FC<CategoryTabProps> = ({ share, monthlyTrend })
             useMesh
             axisBottom={{
               legend: '기간',
-              legendOffset: 36,
+              legendOffset: 48,
               legendPosition: 'middle',
               tickRotation: -30,
+              tickPadding: 8,
             }}
             axisLeft={{
               legend: '지출 금액',
               legendOffset: -40,
               legendPosition: 'middle',
+              tickPadding: 8,
             }}
             tooltip={({ point }) => (
               <div style={{ background: 'white', padding: '6px 8px', borderRadius: 6, fontSize: 12 }}>

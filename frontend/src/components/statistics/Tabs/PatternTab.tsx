@@ -62,13 +62,15 @@ export const PatternTab: React.FC<PatternTabProps> = ({ hourlyTrend, monthlyTota
             useMesh
             axisBottom={{
               legend: '시간대',
-              legendOffset: 32,
+              legendOffset: 44,
               legendPosition: 'middle',
+              tickPadding: 8,
             }}
             axisLeft={{
               legend: '지출 금액',
               legendOffset: -40,
               legendPosition: 'middle',
+              tickPadding: 8,
             }}
             tooltip={({ point }) => (
               <div style={{ background: 'white', padding: '6px 8px', borderRadius: 6, fontSize: 12 }}>
@@ -109,14 +111,16 @@ export const PatternTab: React.FC<PatternTabProps> = ({ hourlyTrend, monthlyTota
             useMesh
             axisBottom={{
               legend: '기간',
-              legendOffset: 32,
+              legendOffset: 44,
               legendPosition: 'middle',
               tickRotation: -30,
+              tickPadding: 8,
             }}
             axisLeft={{
               legend: '지출 금액',
               legendOffset: -40,
               legendPosition: 'middle',
+              tickPadding: 8,
             }}
             tooltip={({ point }) => (
               <div style={{ background: 'white', padding: '6px 8px', borderRadius: 6, fontSize: 12 }}>
