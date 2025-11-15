@@ -8,6 +8,8 @@ from typing import Optional
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.ai import AiOrchestrator
+from app.ai.types import AiOrchestratorResult
 from app.db.models import ChatMessage as ChatMessageORM
 from app.models import (
     ChatMessage,
@@ -22,8 +24,15 @@ from app.services.recommendation_service import RecommendationService
 class ChatService:
     """프론트엔드가 사용할 채팅 관련 기능을 담당한다."""
 
-    def __init__(self, recommendation_service: RecommendationService | None = None) -> None:
+    def __init__(
+        self,
+        recommendation_service: RecommendationService | None = None,
+        ai_orchestrator: AiOrchestrator | None = None,
+    ) -> None:
         self._recommendation_service = recommendation_service or RecommendationService()
+        self._ai_orchestrator = ai_orchestrator or AiOrchestrator(
+            recommendation_service=self._recommendation_service
+        )
 
     def get_history(
         self,
@@ -57,20 +66,17 @@ class ChatService:
         db: Session,
         request: SendChatMessageRequest,
     ) -> SendChatMessageResponse:
-        """들어온 메시지 내용을 바탕으로 간단한 응답과 추천을 생성한다."""
+        """들어온 메시지 내용을 바탕으로 AI 응답을 생성한다."""
         now = datetime.now(tz=timezone.utc)
 
-        recommendations: list[RecommendationItem] = []
-        response_type = 0
-        ai_message = "<데이터사이언스 캡스톤디자인> 현재 서비스 개발중입니다.."
+        ai_result: AiOrchestratorResult = self._ai_orchestrator.generate(
+            user_id=request.user_id,
+            message=request.message,
+        )
 
-        if "물" in request.message or "추천" in request.message:
-            response_type = 1
-            recommendations = self._recommendation_service.generate_chat_recommendations(limit=6)
-            ai_message = "요청하신 조건에 맞는 상품을 추천해드렸어요."
-        elif "통계" in request.message:
-            response_type = 2
-            ai_message = "최근 결제 통계 이미지를 첨부해드렸어요."
+        recommendations: list[RecommendationItem] = ai_result.recommendation_items
+        response_type = ai_result.response_type
+        ai_message = ai_result.ai_message
 
         db_message = ChatMessageORM(
             user_id=request.user_id,
