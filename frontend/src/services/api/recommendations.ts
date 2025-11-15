@@ -4,8 +4,6 @@ import { ApiResponse } from '../../types';
 // POST /api/recommendations/custom
 interface GetRecommendationsRequest {
   user_id: number;
-  rating: number;
-  review: number;
 }
 
 export interface RecommendedProduct {
@@ -68,9 +66,7 @@ export const recommendationsApi = {
       // ERD 기반 API 호출 (기본값 사용)
       const userId = params.user_id || 1123;
       const response = await recommendationsApi.getRecommendations({
-        user_id: userId,
-        rating: 4,
-        review: 6
+        user_id: userId
       });
 
       if (!response.success || !response.data) {
