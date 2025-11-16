@@ -2,44 +2,66 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-import sqlite3
+import os
 
 import numpy as np
 import pandas as pd
+from dotenv import load_dotenv
 from fastmcp import FastMCP
+from sqlalchemy import create_engine, text
 
 
+load_dotenv()
 mcp = FastMCP("recommendation_system")
 
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL must be set for recommendation MCP server.")
 
-def _load_dataframe(path: Path, table: str) -> pd.DataFrame:
-    conn = sqlite3.connect(path)
-    try:
-        return pd.read_sql_query(f"SELECT * FROM {table}", conn)
-    finally:
-        conn.close()
+engine = create_engine(DATABASE_URL, future=True)
+
+PURCHASES_QUERY = """
+SELECT
+    ph.user_id,
+    ph.product_id,
+    ph.name AS product_name,
+    ph.platform_name AS platform,
+    ph.category,
+    ph.price
+FROM purchase_history ph
+"""
+
+CATALOG_QUERY = """
+SELECT
+    p.id AS product_id,
+    p.title AS product_name,
+    p.platform_name AS platform,
+    p.category,
+    p.price,
+    p.review AS reviews,
+    p.url AS product_url
+FROM products p
+"""
+
+
+def _load_dataframe(sql: str) -> pd.DataFrame:
+    with engine.connect() as conn:
+        return pd.read_sql_query(text(sql), conn)
 
 
 @mcp.tool()
 def recommend_products_final_v4(
-    db_path: str,
     top_k: int = 30,
     exclude_bought: bool = True,
 ) -> list[dict]:
     """Return purchase-based product recommendations."""
-    db_file = Path(db_path).expanduser()
-    if not db_file.exists():
-        raise FileNotFoundError(f"Database not found: {db_file}")
+    purchases = _load_dataframe(PURCHASES_QUERY)
+    catalog = _load_dataframe(CATALOG_QUERY)
 
-    # Load data
-    purchases = _load_dataframe(db_file, "purchases")
-    catalog = _load_dataframe(db_file, "catalog")
-
-    rename_map = {"플랫폼": "platform", "가격": "price", "상품명": "product_name", "소분류": "category"}
-    for src, dest in rename_map.items():
-        if src in catalog.columns and dest not in catalog.columns:
-            catalog = catalog.rename(columns={src: dest})
+    if "rating" not in catalog.columns:
+        catalog["rating"] = 4.0
+    if "reviews" not in catalog.columns:
+        catalog["reviews"] = 0
 
     cat_ratio = purchases["category"].value_counts(normalize=True).to_dict()
     plat_ratio = purchases["platform"].value_counts(normalize=True).to_dict()
@@ -75,6 +97,8 @@ def recommend_products_final_v4(
 
     df = catalog.copy()
     df["similarity"] = similarity
+    if "similarity" not in df.columns:
+        df["similarity"] = 0.0
     if exclude_bought:
         bought = purchases["product_name"].dropna().unique().tolist()
         df = df[~df["product_name"].isin(bought)]
