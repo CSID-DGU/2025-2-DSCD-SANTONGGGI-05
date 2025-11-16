@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import json
+import logging
 from typing import Any, Dict, List, Optional
 
 from openai import OpenAI, OpenAIError
 
 from .config import AiConfig, get_ai_config
+
+logger = logging.getLogger(__name__)
 
 
 class OpenAIChatClient:
@@ -75,4 +78,5 @@ def safe_run(
             return client.run_prompt_as_json(prompt=prompt, tools=tools)
         return client.run_prompt(prompt=prompt, tools=tools)
     except (OpenAIError, json.JSONDecodeError, RuntimeError) as exc:
+        logger.exception("OpenAI prompt failed: %s", exc)
         raise OpenAIErrorWrapper("Failed to execute OpenAI prompt", original=exc) from exc
