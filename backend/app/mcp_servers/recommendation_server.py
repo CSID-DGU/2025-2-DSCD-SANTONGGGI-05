@@ -10,6 +10,10 @@ from dotenv import load_dotenv
 from fastmcp import FastMCP
 from sqlalchemy import create_engine, text
 
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 mcp = FastMCP("recommendation_system")
@@ -37,9 +41,12 @@ SELECT
     p.title AS product_name,
     p.platform_name AS platform,
     p.category,
+    p.small_category,
     p.price,
     p.review AS reviews,
-    p.url AS product_url
+    p.rating,
+    p.url AS product_url,
+    p.image_url
 FROM products p
 """
 
@@ -57,6 +64,7 @@ def recommend_products_final_v4(
     """Return purchase-based product recommendations."""
     purchases = _load_dataframe(PURCHASES_QUERY)
     catalog = _load_dataframe(CATALOG_QUERY)
+    logger.info("Loaded purchases rows: %s, catalog rows: %s", len(purchases), len(catalog))
 
     if "rating" not in catalog.columns:
         catalog["rating"] = 4.0
@@ -144,6 +152,7 @@ def recommend_products_final_v4(
         "reviews",
         "rating",
         "similarity(%)",
+        "image_url",
     ]
     existing_cols = [col for col in columns if col in recs.columns]
     return recs[existing_cols].to_dict(orient="records")

@@ -1,6 +1,6 @@
 import type { ApiClientConfig, ApiResponse, RequestConfig } from '@/types';
 
-const DEFAULT_TIMEOUT = Number(import.meta.env.VITE_API_TIMEOUT ?? 60000);
+const DEFAULT_TIMEOUT = Number(import.meta.env.VITE_API_TIMEOUT ?? 120000);
 const DEFAULT_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000/api';
 
 const defaultConfig: ApiClientConfig = {

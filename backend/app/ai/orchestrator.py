@@ -72,6 +72,7 @@ class AiOrchestrator:
         prompt = build_purchase_prompt(user_id)
         tools = build_purchase_toolset(self._config)
         data = safe_run(self._client, prompt=prompt, tools=tools, expect_json=True)
+        logger.info("Purchase MCP raw data: %s", data)
         items = self._map_purchase_recommendations(data, limit=limit)
         if not items:
             items = self._recommendation_service.generate_chat_recommendations(limit=limit)
