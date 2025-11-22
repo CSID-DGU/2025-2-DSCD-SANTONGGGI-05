@@ -65,9 +65,33 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
     clearAuthError();
   };
 
+  // 전화번호 자동 포맷팅 (010-0000-0000)
+  const formatPhoneNumber = (value: string): string => {
+    const numbers = value.replace(/[^0-9]/g, '');
+    if (numbers.length <= 3) {
+      return numbers;
+    } else if (numbers.length <= 7) {
+      return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
+    } else {
+      return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`;
+    }
+  };
+
+  // 전화번호 형식 검증 (010-0000-0000)
+  const isValidPhoneNumber = (phone: string): boolean => {
+    const phoneRegex = /^010-\d{4}-\d{4}$/;
+    return phoneRegex.test(phone);
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+
+    if (name === 'phone_number') {
+      const formatted = formatPhoneNumber(value);
+      setFormData(prev => ({ ...prev, [name]: formatted }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
     setFormError('');
   };
 
@@ -82,6 +106,11 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
 
     if (!formData.phone_number.trim()) {
       setFormError('전화번호를 입력해주세요');
+      return;
+    }
+
+    if (!isValidPhoneNumber(formData.phone_number)) {
+      setFormError('전화번호 형식이 올바르지 않습니다 (010-0000-0000)');
       return;
     }
 
