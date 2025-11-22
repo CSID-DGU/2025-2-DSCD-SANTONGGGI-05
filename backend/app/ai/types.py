@@ -15,3 +15,11 @@ class AiOrchestratorResult:
     ai_message: str
     response_type: int
     recommendation_items: List[RecommendationItem] = field(default_factory=list)
+
+
+@dataclass
+class ToolIntentPrediction:
+    """LLM-driven classification describing which MCP workflow to trigger."""
+
+    selected_tool: str = "none"
+    reason: str = ""

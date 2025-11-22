@@ -15,9 +15,11 @@ from .prompt_templates import (
     build_platform_search_prompt,
     build_purchase_prompt,
     build_smalltalk_prompt,
+    build_tool_selection_prompt,
 )
-from .types import AiOrchestratorResult
+from .types import AiOrchestratorResult, ToolIntentPrediction
 
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -40,17 +42,41 @@ class AiOrchestrator:
         if not self._client.is_configured:
             return self._fallback_response(message=message, user_id=user_id)
 
-        if self._should_trigger_platform_search(message):
+        selected_tool = "none"
+        available_tools = self._available_tool_options()
+        if available_tools:
+            try:
+                intent = self._classify_tool_intent(message, available_tools=available_tools)
+                if intent:
+                    selected_tool = intent.selected_tool
+                    if intent.reason:
+                        logger.info("Tool intent selected=%s (%s)", intent.selected_tool, intent.reason)
+            except OpenAIErrorWrapper as exc:
+                logger.warning("Tool intent classification failed: %s", exc)
+
+        if selected_tool == "platform_search" and self._config.has_search_mcp:
             try:
                 return self._run_platform_search(message)
             except OpenAIErrorWrapper as exc:
                 logger.warning("Platform search failed: %s", exc)
 
-        if self._config.has_purchase_mcp:
+        if selected_tool == "purchase_recommendation" and self._config.has_purchase_mcp:
             try:
                 return self._run_purchase_recommendation(user_id=user_id, limit=6)
             except OpenAIErrorWrapper as exc:
                 logger.warning("Purchase MCP failed: %s", exc)
+
+        if self._should_trigger_platform_search(message) and self._config.has_search_mcp:
+            try:
+                return self._run_platform_search(message)
+            except OpenAIErrorWrapper as exc:
+                logger.warning("Fallback platform search failed: %s", exc)
+
+        if self._config.has_purchase_mcp:
+            try:
+                return self._run_purchase_recommendation(user_id=user_id, limit=6)
+            except OpenAIErrorWrapper as exc:
+                logger.warning("Fallback purchase MCP failed: %s", exc)
 
         # Fallback to lightweight small talk.
         try:
@@ -138,6 +164,8 @@ class AiOrchestrator:
         if isinstance(payload, dict):
             if isinstance(payload.get("recommendations"), list):
                 raw_items = payload.get("recommendations", [])  # type: ignore[assignment]
+            elif isinstance(payload.get("recommendationItems"), list):
+                raw_items = payload.get("recommendationItems", [])  # type: ignore[assignment]
             elif isinstance(payload.get("items"), list):
                 raw_items = payload.get("items", [])  # type: ignore[assignment]
             elif isinstance(payload.get("data"), list):
@@ -200,6 +228,33 @@ class AiOrchestrator:
         except OpenAIErrorWrapper as exc:
             logger.warning("Purchase recommendation failed: %s", exc)
             return self._recommendation_service.generate_chat_recommendations(limit=limit)
+
+    def _classify_tool_intent(
+        self,
+        message: str,
+        *,
+        available_tools: List[str],
+    ) -> ToolIntentPrediction | None:
+        if not available_tools:
+            return None
+        prompt = build_tool_selection_prompt(message, available_tools=available_tools)
+        data = safe_run(self._client, prompt=prompt, expect_json=True)
+        if not isinstance(data, dict):
+            return None
+        selected = str(data.get("selected_tool") or "none").strip()
+        allowed = set(available_tools) | {"none"}
+        if selected not in allowed:
+            selected = "none"
+        reason = str(data.get("reason") or "").strip()
+        return ToolIntentPrediction(selected_tool=selected, reason=reason)
+
+    def _available_tool_options(self) -> List[str]:
+        options: List[str] = []
+        if self._config.has_search_mcp:
+            options.append("platform_search")
+        if self._config.has_purchase_mcp:
+            options.append("purchase_recommendation")
+        return options
 
     @staticmethod
     def _should_trigger_platform_search(message: str) -> bool:
