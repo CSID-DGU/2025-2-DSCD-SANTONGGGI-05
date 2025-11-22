@@ -1,0 +1,124 @@
+version: '3.8'
+
+services:
+  # ===========================================
+  # Nginx (리버스 프록시 + 정적 파일 서빙)
+  # ===========================================
+  nginx:
+    image: nginx:alpine
+    container_name: shopping-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./frontend/dist:/usr/share/nginx/html:ro
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - shopping-network
+
+  # ===========================================
+  # Backend API (FastAPI)
+  # ===========================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: shopping-backend
+    expose:
+      - "8000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o}
+      - MCP_PURCHASE_URL=http://mcp-recommend:8001/mcp
+      - MCP_SEARCH_URL=http://mcp-shopping:8002/mcp
+      - MCP_RECOMMEND_TOOL=${MCP_RECOMMEND_TOOL}
+      - MCP_SEARCH_11ST_TOOL=${MCP_SEARCH_11ST_TOOL}
+      - MCP_SEARCH_NAVER_TOOL=${MCP_SEARCH_NAVER_TOOL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mcp-recommend:
+        condition: service_started
+      mcp-shopping:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - shopping-network
+
+  # ===========================================
+  # MCP Recommendation Server
+  # ===========================================
+  mcp-recommend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.mcp
+    container_name: shopping-mcp-recommend
+    expose:
+      - "8001"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    command: ["python", "-m", "mcp_servers.recommendation_server"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - shopping-network
+
+  # ===========================================
+  # MCP Shopping Server
+  # ===========================================
+  mcp-shopping:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.mcp
+    container_name: shopping-mcp-shopping
+    expose:
+      - "8002"
+    environment:
+      - ELEVENST_API_KEY=${ELEVENST_API_KEY}
+      - NAVER_CLIENT_ID=${NAVER_CLIENT_ID}
+      - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}
+    command: ["python", "-m", "mcp_servers.shopping_server"]
+    restart: unless-stopped
+    networks:
+      - shopping-network
+
+  # ===========================================
+  # PostgreSQL Database
+  # ===========================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: shopping-postgres
+    expose:
+      - "5432"
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-capstone_db}
+      - POSTGRES_USER=${POSTGRES_USER:-capstone}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-capstone}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - shopping-network
+
+# ===========================================
+# Networks
+# ===========================================
+networks:
+  shopping-network:
+    driver: bridge
+
+# ===========================================
+# Volumes
+# ===========================================
+volumes:
+  postgres_data:

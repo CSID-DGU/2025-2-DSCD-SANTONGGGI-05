@@ -1,0 +1,24 @@
+# MCP Servers Dockerfile (Recommend + Shopping 통합)
+FROM python:3.11-slim
+
+# 작업 디렉토리 설정
+WORKDIR /app
+
+# 시스템 의존성 설치
+RUN apt-get update && apt-get install -y \
+    gcc \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Python 의존성 설치
+COPY requirements-mcp.txt .
+RUN pip install --no-cache-dir -r requirements-mcp.txt
+
+# MCP 서버 코드 복사
+COPY app/mcp_servers/ ./mcp_servers/
+
+# 포트 노출 (추천: 8001, 검색: 8002)
+EXPOSE 8001 8002
+
+# 기본 명령어 (docker-compose에서 오버라이드)
+CMD ["python", "-m", "mcp_servers.recommendation_server"]
