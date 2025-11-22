@@ -242,7 +242,7 @@ docker-compose logs -f backend
 
 | 항목 | 권장 값 |
 |------|---------|
-| AMI | Amazon Linux 2023 |
+| AMI | Ubuntu 22.04 LTS 또는 Amazon Linux 2023 |
 | 인스턴스 타입 | t3.medium (최소) |
 | 스토리지 | 30GB |
 | 키 페어 | 새로 생성 또는 기존 사용 |
@@ -261,12 +261,39 @@ docker-compose logs -f backend
 # 키 파일 권한 설정
 chmod 400 your-key.pem
 
-# EC2 접속
+# EC2 접속 (Ubuntu)
+ssh -i "your-key.pem" ubuntu@<EC2-퍼블릭-IP>
+
+# EC2 접속 (Amazon Linux)
 ssh -i "your-key.pem" ec2-user@<EC2-퍼블릭-IP>
 ```
 
 ### 4-3. Docker 설치 (EC2)
 
+**Ubuntu 사용 시:**
+```bash
+# 시스템 업데이트
+sudo apt update && sudo apt upgrade -y
+
+# Docker 설치
+sudo apt install -y docker.io
+
+# Docker 서비스 시작 및 자동 시작 설정
+sudo systemctl enable docker
+sudo systemctl start docker
+
+# 현재 사용자를 docker 그룹에 추가
+sudo usermod -aG docker $USER
+
+# Docker Compose 설치
+sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+
+# 재접속 (그룹 권한 적용)
+exit
+```
+
+**Amazon Linux 사용 시:**
 ```bash
 # 시스템 업데이트
 sudo yum update -y
@@ -291,7 +318,9 @@ exit
 
 ```bash
 # 다시 접속
-ssh -i "your-key.pem" ec2-user@<EC2-퍼블릭-IP>
+ssh -i "your-key.pem" ubuntu@<EC2-퍼블릭-IP>  # Ubuntu
+# 또는
+ssh -i "your-key.pem" ec2-user@<EC2-퍼블릭-IP>  # Amazon Linux
 
 # 설치 확인
 docker --version
