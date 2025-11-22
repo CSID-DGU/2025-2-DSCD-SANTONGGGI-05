@@ -11,6 +11,7 @@ from .api.chat import router as chat_router
 from .api.auth import router as auth_router
 from .api.cart import router as cart_router
 from .api.recommendations import router as recommendations_router
+from .api.statistics import router as statistics_router
 from .api.purchase_history import router as purchase_history_router
 from .core.database import init_db
 
@@ -44,6 +45,7 @@ def create_app() -> FastAPI:
     app.include_router(chat_router, prefix="/api")
     app.include_router(cart_router, prefix="/api")
     app.include_router(recommendations_router, prefix="/api")
+    app.include_router(statistics_router, prefix="/api")
     app.include_router(purchase_history_router, prefix="/api")
 
     if RUN_INIT_DB:

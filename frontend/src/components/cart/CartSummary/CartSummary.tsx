@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useCart, useNavigation, useAuth } from '../../../contexts/AppProvider';
 import { LoadingSpinner } from '../../ui/LoadingSpinner';
-import { RecommendationWeightModal } from '../../modals/RecommendationWeightModal';
 import { CustomRecommendationModal } from '../../modals/CustomRecommendationModal';
 import { recommendationsApi } from '../../../services/api/recommendations';
 import styles from './CartSummary.module.css';
@@ -34,7 +33,7 @@ export const CartSummary: React.FC<CartSummaryProps> = ({
   const { navigateTo } = useNavigation();
   const { user } = useAuth();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
-  const [isWeightModalOpen, setIsWeightModalOpen] = useState(false);
+  const [isFetchingRecommendations, setIsFetchingRecommendations] = useState(false);
   const [isCustomRecommendationModalOpen, setIsCustomRecommendationModalOpen] = useState(false);
   const [customRecommendations, setCustomRecommendations] = useState<CustomRecommendedProduct[]>([]);
 
@@ -68,25 +67,16 @@ export const CartSummary: React.FC<CartSummaryProps> = ({
     navigateTo('statistics');
   };
 
-  const handleRecommendations = () => {
-    if (isLoading) return;
-    console.log('Open weight input modal for custom recommendations');
-    setIsWeightModalOpen(true);
-  };
+  const handleRecommendations = async () => {
+    if (isLoading || isFetchingRecommendations) return;
 
-  const handleWeightSubmit = async (rating: number, review: number) => {
     try {
-      console.log(`Fetching custom recommendations with rating: ${rating}, review: ${review}`);
-
-      // 가중치 모달 닫기
-      setIsWeightModalOpen(false);
+      setIsFetchingRecommendations(true);
 
       // API 호출
       const userId = user?.id || 1123;
       const response = await recommendationsApi.getRecommendations({
-        user_id: userId,
-        rating,
-        review
+        user_id: userId
       });
 
       if (response.success && response.data) {
@@ -102,6 +92,8 @@ export const CartSummary: React.FC<CartSummaryProps> = ({
     } catch (error) {
       console.error('Failed to fetch custom recommendations:', error);
       alert('추천 상품을 가져오는데 실패했습니다.');
+    } finally {
+      setIsFetchingRecommendations(false);
     }
   };
 
@@ -147,7 +139,7 @@ export const CartSummary: React.FC<CartSummaryProps> = ({
           <div className={styles.actionButtons}>
             <button
               onClick={handleRecommendations}
-              disabled={isLoading}
+              disabled={isLoading || isFetchingRecommendations}
               className={styles.actionButton}
               type="button"
               aria-label="상품추천 보기"
@@ -177,13 +169,6 @@ export const CartSummary: React.FC<CartSummaryProps> = ({
           </div>
         </div>
       )}
-
-      {/* Weight Input Modal (Type 2 - Custom Recommendation) */}
-      <RecommendationWeightModal
-        isOpen={isWeightModalOpen}
-        onClose={() => setIsWeightModalOpen(false)}
-        onSubmit={handleWeightSubmit}
-      />
 
       {/* Custom Recommendation Results Modal (Type 2) */}
       <CustomRecommendationModal

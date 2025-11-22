@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends
 
+from app.ai import AiOrchestrator
 from app.models import (
     CustomRecommendationRequest,
     CustomRecommendationResponse,
@@ -17,6 +18,11 @@ def get_recommendation_service() -> RecommendationService:
     return RecommendationService()
 
 
+def get_ai_orchestrator() -> AiOrchestrator:
+    service = RecommendationService()
+    return AiOrchestrator(recommendation_service=service)
+
+
 @router.post(
     "/custom",
     response_model=CustomRecommendationResponse,
@@ -24,8 +30,11 @@ def get_recommendation_service() -> RecommendationService:
 )
 async def create_custom_recommendations(
     payload: CustomRecommendationRequest,
-    recommendation_service: RecommendationService = Depends(get_recommendation_service),
+    orchestrator: AiOrchestrator = Depends(get_ai_orchestrator),
 ) -> CustomRecommendationResponse:
-    """Generate mock recommendations that match the requested preference."""
-
-    return recommendation_service.generate_custom_recommendations(payload=payload)
+    """Generate purchase-history powered recommendations."""
+    items = orchestrator.generate_purchase_recommendations(user_id=payload.user_id, limit=5)
+    return CustomRecommendationResponse(
+        user_id=payload.user_id,
+        recommendations=items,
+    )

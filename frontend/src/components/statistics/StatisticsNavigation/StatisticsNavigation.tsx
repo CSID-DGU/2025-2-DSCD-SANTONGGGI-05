@@ -17,22 +17,22 @@ interface StatisticsNavigationProps {
 
 const navigationItems: NavigationItem[] = [
   {
-    id: 'overview',
-    label: '전체 통계 분석',
-    icon: '📊',
-    description: '종합적인 쇼핑 분석'
-  },
-  {
-    id: 'weekly',
-    label: '주간 소비 확인',
-    icon: '📅',
-    description: '요일별 소비 패턴'
-  },
-  {
     id: 'category',
-    label: '카테고리별 구매 분포',
+    label: '카테고리 분석',
     icon: '🏷️',
-    description: '구매 카테고리 분석'
+    description: '카테고리 비율 및 추이'
+  },
+  {
+    id: 'platform',
+    label: '플랫폼 분석',
+    icon: '🛒',
+    description: '플랫폼별 이용 현황'
+  },
+  {
+    id: 'pattern',
+    label: '소비 패턴',
+    icon: '⏰',
+    description: '시간/월별 소비 패턴'
   }
 ];
 

@@ -24,8 +24,6 @@ class CustomRecommendationRequest(BaseModel):
     """Payload for generating tailored recommendations."""
 
     user_id: int = Field(..., ge=1)
-    rating: int = Field(..., ge=0, le=10, description="가중치 - 평점 중요도")
-    review: int = Field(..., ge=0, le=10, description="가중치 - 리뷰수 중요도")
 
 
 class CustomRecommendationResponse(BaseModel):

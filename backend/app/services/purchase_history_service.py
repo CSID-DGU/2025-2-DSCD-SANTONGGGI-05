@@ -74,7 +74,6 @@ class PurchaseHistoryService:
             raise ValueError("장바구니에서 구매할 상품을 찾을 수 없습니다.")
 
         purchased_rows: list[PurchaseHistory] = []
-        today = date.today()
         now = datetime.now(timezone.utc)
 
         for item in cart_items:
@@ -87,7 +86,7 @@ class PurchaseHistoryService:
             history = PurchaseHistory(
                 user_id=item.user_id,
                 product_id=item.product_id,
-                date=today,
+                date=now,
                 name=item.name,
                 platform_name=item.platform_name,
                 price=item.price,

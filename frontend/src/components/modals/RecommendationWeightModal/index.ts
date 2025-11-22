@@ -1,1 +1,0 @@
-export { RecommendationWeightModal } from './RecommendationWeightModal';
