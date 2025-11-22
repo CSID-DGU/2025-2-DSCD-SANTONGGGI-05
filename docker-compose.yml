@@ -32,8 +32,8 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o}
-      - MCP_PURCHASE_URL=http://mcp-recommend:8001/mcp
-      - MCP_SEARCH_URL=http://mcp-shopping:8002/mcp
+      - MCP_PURCHASE_URL=${MCP_PURCHASE_URL:-http://mcp-recommend:8001/mcp}
+      - MCP_SEARCH_URL=${MCP_SEARCH_URL:-http://mcp-shopping:8002/mcp}
       - MCP_RECOMMEND_TOOL=${MCP_RECOMMEND_TOOL}
       - MCP_SEARCH_11ST_TOOL=${MCP_SEARCH_11ST_TOOL}
       - MCP_SEARCH_NAVER_TOOL=${MCP_SEARCH_NAVER_TOOL}
@@ -93,8 +93,8 @@ services:
   postgres:
     image: postgres:15-alpine
     container_name: shopping-postgres
-    expose:
-      - "5432"
+    ports:
+      - "5433:5432"
     environment:
       - POSTGRES_DB=${POSTGRES_DB:-capstone_db}
       - POSTGRES_USER=${POSTGRES_USER:-capstone}
@@ -102,7 +102,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-capstone}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-capstone} -d ${POSTGRES_DB:-capstone_db}"]
       interval: 5s
       timeout: 5s
       retries: 5

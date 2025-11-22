@@ -62,7 +62,7 @@ capstoneProject/
 cd frontend
 
 # 의존성 설치
-npm install
+npm install --legacy-peer-deps
 ```
 
 ### 1-2. 프로덕션 빌드
