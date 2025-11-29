@@ -259,10 +259,10 @@ docker-compose logs -f backend
 
 ```bash
 # 키 파일 권한 설정
-chmod 400 your-key.pem
+chmod 400 ~/Desktop/key/capstoneKey/capstone-key.pem
 
-# EC2 접속 (Ubuntu)
-ssh -i "your-key.pem" ubuntu@<EC2-퍼블릭-IP>
+# EC2 접속
+ssh -i ~/Desktop/key/capstoneKey/capstone-key.pem ubuntu@54.180.224.226
 ```
 
 ### 4-3. Docker 설치 (EC2)
@@ -292,7 +292,7 @@ exit
 
 ```bash
 # 다시 접속
-ssh -i "your-key.pem" ubuntu@<EC2-퍼블릭-IP>  # Ubuntu
+ssh -i ~/Desktop/key/capstoneKey/capstone-key.pem ubuntu@54.180.224.226
 
 # 설치 확인
 docker --version
@@ -312,7 +312,7 @@ cd app
 **방법 2: SCP로 직접 전송**
 ```bash
 # 로컬에서
-scp -i "your-key.pem" -r ./capstoneProject ec2-user@<EC2-IP>:~/app
+scp -i ~/Desktop/key/capstoneKey/capstone-key.pem -r ./capstoneProject ubuntu@54.180.224.226:~/app
 ```
 
 ### 4-5. 환경변수 설정 (EC2)
@@ -359,7 +359,7 @@ curl http://localhost/health
 
 ### 4-8. 접속 확인
 
-브라우저에서 `http://<EC2-퍼블릭-IP>` 접속
+브라우저에서 `http://54.180.224.226` 접속
 
 ---
 
@@ -554,6 +554,9 @@ sudo swapon /swapfile
 
   # 전체 삭제 (데이터 포함!)
   docker-compose down -v
+
+  # 테이블 업데이트
+  docker-compose exec backend alembic upgrade head
 
 
 *문제가 발생하면 `docker-compose logs` 명령어로 로그를 확인하세요!*

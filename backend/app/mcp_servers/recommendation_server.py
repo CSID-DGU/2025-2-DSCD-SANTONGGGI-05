@@ -161,10 +161,11 @@ def recommend_products_final_v4(
 def run_server():
     """Run the FastMCP server."""
     mcp.run(
-        transport="http",
+        transport="streamable-http",
         host="0.0.0.0",
         port=8001,
         path="/mcp",
+        stateless_http=True,
     )
 
 
