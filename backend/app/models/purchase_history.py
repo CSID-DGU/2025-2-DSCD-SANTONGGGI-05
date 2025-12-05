@@ -19,6 +19,12 @@ class PurchaseItemOut(BaseModel):
     category: Optional[str] = None
     image_url: Optional[str] = None
     product_url: Optional[str] = None
+    unit_volume: Optional[str] = None
+    unit_price: Optional[float] = None
+    small_category: Optional[str] = None
+    review: int = 0
+    rating: Optional[float] = None
+    quantity: int = 1
 
     model_config = {"from_attributes": True}
 

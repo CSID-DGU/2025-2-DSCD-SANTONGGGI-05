@@ -125,6 +125,13 @@ export const ChatRecommendationModal: React.FC<ChatRecommendationModalProps> = (
                             </span>
                           </div>
 
+                          {/* Savings Information */}
+                          {product.savings_ratio_pct !== undefined && product.savings_ratio_pct > 0 && (
+                            <div className={styles.savingsInfo}>
+                              💰 {product.savings_ratio_pct.toFixed(1)}% 절약
+                            </div>
+                          )}
+
                           <div className={styles.reviewSection}>
                             <span className={styles.reviewIcon}>⭐</span>
                             <span className={styles.reviewCount}>

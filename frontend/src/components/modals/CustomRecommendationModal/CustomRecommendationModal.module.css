@@ -193,6 +193,63 @@
   color: var(--color-text-primary);
 }
 
+.metricRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.metricBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  background: #f1f5f9;
+  border-radius: 999px;
+  font-size: 12px;
+  color: #0f172a;
+  font-weight: 500;
+}
+
+/* Grade Badge (상단 우측) */
+.gradeBadge {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.gradeIcon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.gradeLabel {
+  letter-spacing: 0.3px;
+}
+
+/* Grade Description (상품 정보 내부) */
+.gradeDescription {
+  padding: 8px 12px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(249, 250, 251, 0.9));
+  border-left: 3px solid;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  margin-top: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
 /* Platform Badge */
 .platformBadge {
   display: inline-flex;

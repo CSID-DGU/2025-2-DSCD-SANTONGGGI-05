@@ -304,3 +304,14 @@
     font-size: var(--font-size-xs);
   }
 }
+
+ .savingsBadge {
+    padding: 4px 8px;
+    background-color: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 4px;
+    color: #856404;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin: 8px 0;
+  }

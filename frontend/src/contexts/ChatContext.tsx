@@ -1,9 +1,13 @@
-import React, { createContext, useContext, useReducer, useEffect, ReactNode, useCallback, useMemo } from 'react';
-import { ChatState, ChatContextValue, ChatMessage, ChatSession } from '../types/chat';
+import React, { createContext, useContext, useReducer, useEffect, ReactNode, useCallback } from 'react';
+import {
+  ChatState,
+  ChatContextValue,
+  ChatMessage,
+  ChatSession,
+  RecommendationProduct,
+} from '../types/chat';
 import { chatApi } from '../services/api/chat';
 import { useAuth } from './AuthContext';
-import { usePanel } from './PanelContext';
-import { useCart } from './CartContext';
 
 // Initial empty session (messages will be loaded from API)
 const emptySession: ChatSession = {
@@ -36,7 +40,7 @@ type ChatAction =
   | { type: 'UPDATE_MESSAGE'; payload: { messageId: string; updates: Partial<ChatMessage> } }
   | { type: 'SET_MESSAGES'; payload: ChatMessage[] }
   | { type: 'CLEAR_CURRENT_SESSION' }
-  | { type: 'OPEN_RECOMMENDATION_MODAL'; payload: any[] }
+  | { type: 'OPEN_RECOMMENDATION_MODAL'; payload: RecommendationProduct[] }
   | { type: 'CLOSE_RECOMMENDATION_MODAL' };
 
 // Reducer (ERD 기반 단순화)
@@ -183,7 +187,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   }, [user]);
 
   // Send message (POST /api/chat/messages)
-  const sendMessage = useCallback(async (content: string) => {
+  const sendMessage = useCallback(async (content: string, onRecommendation?: (products: any[]) => void) => {
     if (!user) {
       dispatch({ type: 'SET_ERROR', payload: '로그인이 필요합니다' });
       return;
@@ -241,20 +245,20 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
         payload: aiMessage
       });
 
-      // Handle product recommendations (type === 1) - Open ChatRecommendationModal
+      // Handle product recommendations
       if (response.data.type === 1 && response.data.recommendationItems.length > 0) {
-        const products = response.data.recommendationItems.map(item => ({
-          product_id: item.product_id,
-          name: item.name || `${item.category} - ${item.platform_name}`,
-          price: item.price,
-          platform_name: item.platform_name,
-          category: item.category,
-          review: item.review,
-          image_url: item.image_url,
-          product_url: item.product_url
-        }));
+        const products = response.data.recommendationItems as RecommendationProduct[];
+        const isCustomRecommendation = products.some(
+          (item) =>
+            (typeof item.savings_ratio_pct === 'number' && item.savings_ratio_pct > 0) ||
+            typeof item.similarity === 'number',
+        );
 
-        dispatch({ type: 'OPEN_RECOMMENDATION_MODAL', payload: products });
+        if (isCustomRecommendation) {
+          onRecommendation?.(products);
+        } else {
+          dispatch({ type: 'OPEN_RECOMMENDATION_MODAL', payload: products });
+        }
       }
     } catch (error: any) {
       // Update message status to failed
@@ -277,39 +281,17 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     dispatch({ type: 'CLEAR_CURRENT_SESSION' });
   }, []);
 
-  // Open recommendation modal
-  const openRecommendationModal = useCallback((products: any[]) => {
-    dispatch({ type: 'OPEN_RECOMMENDATION_MODAL', payload: products });
-  }, []);
-
-  // Close recommendation modal
   const closeRecommendationModal = useCallback(() => {
     dispatch({ type: 'CLOSE_RECOMMENDATION_MODAL' });
   }, []);
 
-  const contextValue: ChatContextValue = useMemo(() => ({
+  const contextValue: ChatContextValue = {
     ...state,
     sendMessage,
     clearCurrentSession,
     loadHistory,
-    openRecommendationModal,
     closeRecommendationModal,
-  }), [
-    state.sessions.length,
-    state.currentSession?.id,
-    state.currentSession?.messages.length,
-    state.isLoading,
-    state.isTyping,
-    state.error,
-    state.connectionStatus,
-    state.isRecommendationModalOpen,
-    state.recommendationProducts.length,
-    sendMessage,
-    clearCurrentSession,
-    loadHistory,
-    openRecommendationModal,
-    closeRecommendationModal,
-  ]);
+  };
 
   return (
     <ChatContext.Provider value={contextValue}>

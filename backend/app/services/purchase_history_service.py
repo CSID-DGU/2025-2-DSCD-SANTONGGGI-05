@@ -78,10 +78,22 @@ class PurchaseHistoryService:
 
         for item in cart_items:
             category = item.category
-            if not category and item.product_id:
+            unit_volume = None
+            unit_price = None
+            small_category = None
+            review = 0
+            rating = None
+
+            if item.product_id:
                 product = db.get(Product, item.product_id)
                 if product:
-                    category = getattr(product, "category", None)
+                    if not category:
+                        category = getattr(product, "category", None)
+                    unit_volume = getattr(product, "unit_volume", None)
+                    unit_price = getattr(product, "unit_price", None)
+                    small_category = getattr(product, "small_category", None)
+                    review = getattr(product, "review", 0)
+                    rating = getattr(product, "rating", None)
 
             history = PurchaseHistory(
                 user_id=item.user_id,
@@ -93,6 +105,12 @@ class PurchaseHistoryService:
                 category=category,
                 image_url=item.image_url,
                 product_url=item.product_url,
+                unit_volume=unit_volume,
+                unit_price=unit_price,
+                small_category=small_category,
+                review=review,
+                rating=rating,
+                quantity=item.quantity,
                 created_at=now,
             )
             db.add(history)

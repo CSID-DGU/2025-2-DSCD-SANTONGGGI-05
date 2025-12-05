@@ -209,6 +209,26 @@ class AiOrchestrator:
         except (TypeError, ValueError):
             product_id = hash((platform_name, name, idx)) & 0xFFFFFFFF
 
+        # Extract additional recommendation fields
+        unit_volume = data.get("unit_volume")
+        unit_price_raw = data.get("unit_price")
+        try:
+            unit_price = float(unit_price_raw) if unit_price_raw is not None else None
+        except (TypeError, ValueError):
+            unit_price = None
+
+        savings_ratio_raw = data.get("savings_ratio_pct")
+        try:
+            savings_ratio_pct = float(savings_ratio_raw) if savings_ratio_raw is not None else None
+        except (TypeError, ValueError):
+            savings_ratio_pct = None
+
+        similarity_raw = data.get("similarity")
+        try:
+            similarity = float(similarity_raw) if similarity_raw is not None else None
+        except (TypeError, ValueError):
+            similarity = None
+
         return RecommendationItem(
             product_id=product_id,
             name=str(name),
@@ -218,6 +238,10 @@ class AiOrchestrator:
             review=review,
             image_url=str(image_url),
             product_url=str(product_url),
+            unit_volume=unit_volume,
+            unit_price=unit_price,
+            savings_ratio_pct=savings_ratio_pct,
+            similarity=similarity,
         )
 
     def generate_purchase_recommendations(self, *, user_id: int, limit: int = 5) -> list[RecommendationItem]:

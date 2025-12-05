@@ -18,6 +18,10 @@ class RecommendationItem(BaseModel):
     review: int
     image_url: str
     product_url: str
+    unit_volume: str | None = None
+    unit_price: float | None = None
+    savings_ratio_pct: float | None = None
+    similarity: float | None = None
 
 
 class CustomRecommendationRequest(BaseModel):
