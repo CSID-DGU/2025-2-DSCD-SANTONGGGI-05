@@ -61,3 +61,36 @@ def build_search_toolset(config: AiConfig | None = None) -> List[dict[str, Any]]
         allowed_tools=allowed,
     )
     return [definition.as_openai_tool()]
+
+
+def build_statistics_toolset(config: AiConfig | None = None) -> List[dict[str, Any]]:
+    """Return MCP tool declarations for purchase history statistics analysis."""
+    cfg = config or get_ai_config()
+    if not cfg.statistics_mcp_url:
+        return []
+
+    allowed = []
+    if cfg.stat_category_tool:
+        allowed.append(cfg.stat_category_tool)
+    if cfg.stat_platform_tool:
+        allowed.append(cfg.stat_platform_tool)
+    if cfg.stat_monthly_category_tool:
+        allowed.append(cfg.stat_monthly_category_tool)
+    if cfg.stat_monthly_platform_tool:
+        allowed.append(cfg.stat_monthly_platform_tool)
+    if cfg.stat_monthly_total_tool:
+        allowed.append(cfg.stat_monthly_total_tool)
+    if cfg.stat_hourly_tool:
+        allowed.append(cfg.stat_hourly_tool)
+    if cfg.stat_top_product_tool:
+        allowed.append(cfg.stat_top_product_tool)
+
+    if not allowed:
+        return []
+
+    definition = McpToolDefinition(
+        server_label="purchase_statistics",
+        server_url=cfg.statistics_mcp_url,
+        allowed_tools=allowed,
+    )
+    return [definition.as_openai_tool()]

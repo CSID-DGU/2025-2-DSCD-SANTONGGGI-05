@@ -36,15 +36,25 @@ services:
       - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o}
       - MCP_PURCHASE_URL=${MCP_PURCHASE_URL:-http://mcp-recommend:8001/mcp}
       - MCP_SEARCH_URL=${MCP_SEARCH_URL:-http://mcp-shopping:8002/mcp}
+      - MCP_STATISTICS_URL=${MCP_STATISTICS_URL:-http://mcp-statistics:8003/mcp}
       - MCP_RECOMMEND_TOOL=${MCP_RECOMMEND_TOOL}
       - MCP_SEARCH_11ST_TOOL=${MCP_SEARCH_11ST_TOOL}
       - MCP_SEARCH_NAVER_TOOL=${MCP_SEARCH_NAVER_TOOL}
+      - MCP_STAT_CATEGORY_TOOL=${MCP_STAT_CATEGORY_TOOL}
+      - MCP_STAT_PLATFORM_TOOL=${MCP_STAT_PLATFORM_TOOL}
+      - MCP_STAT_MONTHLY_CATEGORY_TOOL=${MCP_STAT_MONTHLY_CATEGORY_TOOL}
+      - MCP_STAT_MONTHLY_PLATFORM_TOOL=${MCP_STAT_MONTHLY_PLATFORM_TOOL}
+      - MCP_STAT_MONTHLY_TOTAL_TOOL=${MCP_STAT_MONTHLY_TOTAL_TOOL}
+      - MCP_STAT_HOURLY_TOOL=${MCP_STAT_HOURLY_TOOL}
+      - MCP_STAT_TOP_PRODUCT_TOOL=${MCP_STAT_TOP_PRODUCT_TOOL}
     depends_on:
       postgres:
         condition: service_healthy
       mcp-recommend:
         condition: service_started
       mcp-shopping:
+        condition: service_started
+      mcp-statistics:
         condition: service_started
     restart: unless-stopped
     networks:
@@ -85,6 +95,26 @@ services:
       - NAVER_CLIENT_ID=${NAVER_CLIENT_ID}
       - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}
     command: ["python", "-m", "mcp_servers.shopping_server"]
+    restart: unless-stopped
+    networks:
+      - shopping-network
+
+  # ===========================================
+  # MCP Statistics Server
+  # ===========================================
+  mcp-statistics:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.mcp
+    container_name: shopping-mcp-statistics
+    ports:
+      - "8003:8003"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    command: ["python", "-m", "mcp_servers.statistics_server"]
+    depends_on:
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - shopping-network

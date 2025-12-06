@@ -25,7 +25,7 @@ class PurchaseHistoryService:
         *,
         db: Session,
         user_id: int,
-        limit: int = 50,
+        limit: int = 1000,
         offset: int = 0,
     ) -> PurchaseHistoryResponse:
         self._ensure_user(db, user_id)

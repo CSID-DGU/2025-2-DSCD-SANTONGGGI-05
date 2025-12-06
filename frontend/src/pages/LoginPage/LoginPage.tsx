@@ -281,6 +281,20 @@ export const LoginPage: React.FC = () => {
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
 
+  const formatLoginPhoneNumber = (value: string): string => {
+    const digitsOnly = value.replace(/[^\d]/g, '');
+
+    if (digitsOnly.length === 8) {
+      return `${digitsOnly.slice(0, 4)}-${digitsOnly.slice(4)}`;
+    }
+
+    if (digitsOnly.length === 11) {
+      return `${digitsOnly.slice(0, 3)}-${digitsOnly.slice(3, 7)}-${digitsOnly.slice(7)}`;
+    }
+
+    return value;
+  };
+
   const handleCloseErrorModal = () => {
     setErrorModalOpen(false);
     clearAuthError();
@@ -288,7 +302,10 @@ export const LoginPage: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
-    setCredentials(prev => ({ ...prev, [name]: value }));
+    const nextValue =
+      name === 'phone_number' ? formatLoginPhoneNumber(value) : value;
+
+    setCredentials(prev => ({ ...prev, [name]: nextValue }));
     setValidationError('');
   };
 
@@ -296,7 +313,8 @@ export const LoginPage: React.FC = () => {
     e.preventDefault();
     setValidationError('');
 
-    if (!credentials.phone_number.trim()) {
+    const trimmedPhoneNumber = credentials.phone_number.trim();
+    if (!trimmedPhoneNumber) {
       setValidationError('전화번호를 입력해주세요');
       return;
     }
@@ -306,9 +324,14 @@ export const LoginPage: React.FC = () => {
       return;
     }
 
+    const formattedPhoneNumber = formatLoginPhoneNumber(trimmedPhoneNumber);
+    if (formattedPhoneNumber !== credentials.phone_number) {
+      setCredentials(prev => ({ ...prev, phone_number: formattedPhoneNumber }));
+    }
+
     setIsLoading(true);
     const result = await login({
-      phone_number: credentials.phone_number,
+      phone_number: formattedPhoneNumber,
       password: credentials.password
     });
 
