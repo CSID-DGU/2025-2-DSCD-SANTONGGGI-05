@@ -53,12 +53,15 @@ def build_tool_selection_prompt(user_message: str, *, available_tools: Iterable[
         "   - \"새벽에 주로 뭐 사?\" → statistics_analysis\n\n"
         "2️⃣ platform_search - 특정 상품 \"실시간 검색\"\n"
         "   [핵심 의도] 지금 살 수 있는 상품을 찾고 싶다\n"
-        "   [키워드] 찾아줘, 검색, 어디서 팔아, 가격 비교, [구체적인 상품명/브랜드]\n"
+        "   [키워드] 찾아줘, 검색, 어디서 팔아, 가격 비교, [구체적인 상품명/브랜드/스펙]\n"
+        "   ⚠️ 중요: 용량(500ml, 2L), 사이즈(XL, 32인치), 색상 등 구체적 스펙이 있으면 무조건 platform_search\n"
         "   [예시]\n"
         "   - \"다이슨 청소기 찾아줘\" → platform_search\n"
         "   - \"아이폰 15 어디가 싸?\" → platform_search\n"
         "   - \"나이키 운동화 검색해줘\" → platform_search\n"
-        "   - \"생수 가격 비교해줘\" → platform_search\n\n"
+        "   - \"생수 가격 비교해줘\" → platform_search\n"
+        "   - \"500ml 생수 추천해줘\" → platform_search (구체적 용량 스펙)\n"
+        "   - \"2L 생수 어디가 싸?\" → platform_search (구체적 용량 스펙)\n\n"
         "3️⃣ purchase_recommendation - 개인화 상품 \"추천\"\n"
         "   [핵심 의도] 내 취향/구매 이력에 맞는 새로운 상품을 추천받고 싶다\n"
         "   [키워드] 추천, 뭐 살까, 좋을까, 어울릴까, [모호한 상황/취향 설명]\n"
@@ -79,11 +82,16 @@ def build_tool_selection_prompt(user_message: str, *, available_tools: Iterable[
         "⚠️ \"플랫폼\" 키워드 구분\n"
         "   - \"쿠팡에서 얼마나 샀지?\" → statistics_analysis (소비 분석)\n"
         "   - \"쿠팡에서 OO 찾아줘\" → platform_search (상품 검색)\n\n"
-        "========== 최종 판단 규칙 ==========\n"
-        "✅ 질문이 과거(이미 산 것)에 대한 것이면 → statistics_analysis\n"
-        "✅ 질문이 미래(지금 살 것)에 대한 것이면 → platform_search 또는 purchase_recommendation\n"
-        "✅ 구체적 상품명이 있으면 → platform_search\n"
-        "✅ 모호한 상황/취향만 있으면 → purchase_recommendation\n\n"
+        "⚠️ \"추천\" 키워드 + 구체적 스펙\n"
+        "   - \"생수 추천해줘\" → purchase_recommendation (모호함)\n"
+        "   - \"500ml 생수 추천해줘\" → platform_search (구체적 용량)\n"
+        "   - \"2L 생수 6개 추천\" → platform_search (구체적 용량+수량)\n"
+        "   - \"저렴한 생수 추천\" → purchase_recommendation (모호한 취향)\n\n"
+        "========== 최종 판단 규칙 (우선순위 순) ==========\n"
+        "1️⃣ 질문이 과거(이미 산 것)에 대한 것 → statistics_analysis\n"
+        "2️⃣ 구체적 상품 스펙(용량/사이즈/색상/모델명) 포함 → platform_search (\"추천\" 키워드와 무관!)\n"
+        "3️⃣ 구체적 브랜드/상품명 포함 → platform_search\n"
+        "4️⃣ 모호한 상황/취향만 있음 → purchase_recommendation\n\n"
         "사용 가능한 MCP 옵션:\n"
         f"{options}\n\n"
         "사용자 메시지:\n"
@@ -190,10 +198,31 @@ def build_statistics_prompt() -> str:
   단순한 추세 수준만 조심스럽게 언급해라.
 
 [7. 최종 응답 형식]
-항상 아래 형식을 지켜라.
+반드시 아래 형식을 지켜라. **각 섹션과 항목 사이에 빈 줄(줄바꿈)을 적극 활용**해서 가독성을 높여라.
 
-1) 한 줄 요약
-2) bullet로 2~5개의 핵심 내용
-3) 마지막에 반드시 이 문장을 붙이기:
-   → "추가로 궁금한 점 있으면 편하게 물어봐!"
+📊 **[한 줄 요약]**
+기간, 총액, 주요 카테고리/플랫폼을 한 문장으로 요약
+
+(빈 줄)
+
+📋 **[핵심 내용]**
+
+• **기간·총액**:
+분석 기간과 총 지출액 (연도 가정이 필요하면 명시)
+
+• **카테고리별**:
+상위 카테고리 비중과 금액 (비율 내림차순, 비교/배수 포함)
+
+• **플랫폼별**:
+상위 플랫폼 비중과 금액 (비율 내림차순, 비교/배수 포함)
+
+• **시간대별** (데이터 있는 경우):
+주요 구매 시간대와 패턴 설명
+
+• **주요 상품** (데이터 있는 경우):
+금액 기준 상위 3개 상품 (상품명, 금액, 플랫폼)
+
+(빈 줄)
+
+💬 추가로 궁금한 점 있으면 편하게 물어봐!
 """
