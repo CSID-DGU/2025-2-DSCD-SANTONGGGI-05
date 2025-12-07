@@ -88,10 +88,23 @@ def build_feature_df(df: pd.DataFrame):
     df["unit_base"] = df["unit_volume"].apply(extract_unit_base)
     df["unit_base"] = df["unit_base"].replace(0, 1)
 
-    # Calculate normalized price
-    df["normalized_price"] = df["unit_price"]
-    missing_norm = ~np.isfinite(df["normalized_price"]) | (df["normalized_price"] <= 1)
-    df.loc[missing_norm, "normalized_price"] = df.loc[missing_norm, "price"] / df.loc[missing_norm, "unit_base"]
+    # 🔥 Calculate normalized price (근본 수정)
+    # unit_volume이 "1"이면 unit_price가 1.0으로 잘못 저장되어 있음
+    # 이 경우 price/unit_base를 사용 (개당 가격)
+
+    # unit_price가 유효한 경우 (100원 이상)만 사용
+    valid_unit_price = (
+        np.isfinite(df["unit_price"]) &
+        (df["unit_price"] >= 100)
+    )
+
+    df["normalized_price"] = np.where(
+        valid_unit_price,
+        df["unit_price"],  # 유효하면 unit_price 사용
+        df["price"] / df["unit_base"]  # 무효하면 price/unit_base 사용
+    )
+
+    # Inf/-Inf 처리
     df["normalized_price"] = df["normalized_price"].replace([np.inf, -np.inf], np.nan)
     df["normalized_price"] = df["normalized_price"].fillna(df["normalized_price"].median())
 
@@ -141,16 +154,62 @@ def compute_user_profiles_by_subcategory(df, feature_cols):
     return profiles
 
 
-def compute_baseline_normalized_price(df):
-    """Compute baseline normalized price per subcategory."""
+def compute_dual_baseline(df):
+    """카테고리별로 용량형/단품형 baseline을 각각 계산.
+
+    Returns:
+        dict: {
+            "카테고리명": {
+                "unit_based": 용량당 가격 baseline,
+                "item_based": 개당 가격 baseline,
+                "avg_quantity": 평균 구매 수량
+            }
+        }
+    """
     df = df.copy()
     df["normalized_price"] = pd.to_numeric(df["normalized_price"], errors="coerce").fillna(0)
+    df["price"] = pd.to_numeric(df["price"], errors="coerce").fillna(0)
     df["quantity"] = pd.to_numeric(df.get("quantity", 1), errors="coerce").fillna(1)
+    df["unit_volume"] = df["unit_volume"].astype(str)
 
-    # Weighted average
-    return df.groupby("small_category").apply(
-        lambda g: (g["normalized_price"] * g["quantity"]).sum() / max(g["quantity"].sum(), 1)
-    )
+    baselines = {}
+
+    for category, group in df.groupby("small_category"):
+        # 용량형 상품 (unit_volume != "1")
+        unit_based_items = group[group["unit_volume"] != "1"]
+        # 단품형 상품 (unit_volume == "1")
+        item_based_items = group[group["unit_volume"] == "1"]
+
+        # 용량당 baseline 계산
+        if len(unit_based_items) > 0:
+            unit_baseline = (
+                (unit_based_items["normalized_price"] * unit_based_items["quantity"]).sum()
+                / max(unit_based_items["quantity"].sum(), 1)
+            )
+        else:
+            unit_baseline = 0
+
+        # 개당 baseline 계산
+        if len(item_based_items) > 0:
+            item_baseline = (
+                (item_based_items["price"] * item_based_items["quantity"]).sum()
+                / max(item_based_items["quantity"].sum(), 1)
+            )
+        else:
+            item_baseline = 0
+
+        # 평균 구매 수량
+        avg_qty = group["quantity"].mean()
+
+        baselines[category] = {
+            "unit_based": float(unit_baseline),
+            "item_based": float(item_baseline),
+            "avg_quantity": float(avg_qty),
+            "unit_count": len(unit_based_items),
+            "item_count": len(item_based_items)
+        }
+
+    return baselines
 
 
 def compute_avg_quantity(df):
@@ -203,8 +262,17 @@ def recommend_products_final_v4(
     user_profiles = compute_user_profiles_by_subcategory(purchase_feat, all_feat_cols)
     # 전체 구매 이력의 평균 프로필 (fallback용)
     user_profile_overall = purchase_feat[all_feat_cols].values.mean(axis=0)
-    base_norm_price = compute_baseline_normalized_price(purchase_feat)
-    avg_qty = compute_avg_quantity(purchases)
+
+    # 🆕 이중 baseline 계산 (용량형/단품형 분리)
+    dual_baselines = compute_dual_baseline(purchase_feat)
+
+    # 🔍 Debug: 이중 baseline prices
+    logger.info("🔍 사용자 카테고리별 이중 baseline:")
+    for cat, baselines in dual_baselines.items():
+        logger.info(f"  {cat}:")
+        logger.info(f"    - 용량당 baseline: {baselines['unit_based']:,.2f}원 (용량형 {baselines['unit_count']}개)")
+        logger.info(f"    - 개당 baseline: {baselines['item_based']:,.2f}원 (단품형 {baselines['item_count']}개)")
+        logger.info(f"    - 평균 수량: {baselines['avg_quantity']:.2f}개")
 
     # 카테고리 매칭 로깅
     user_categories = set(user_profiles.keys())
@@ -218,18 +286,43 @@ def recommend_products_final_v4(
     for _, row in product_feat.iterrows():
         sub = row["small_category"]
 
-        # 하이브리드 방식: 카테고리 매칭 우선, 안 되면 전체 프로필 사용
-        if sub in user_profiles:
-            # 1순위: 카테고리 매칭 (정확한 개인화)
-            user_vec = user_profiles[sub]
-            base = float(base_norm_price.get(sub, 0))
-            qty = float(avg_qty.get(sub, 1))
+        # 카테고리 baseline 정보 가져오기
+        if sub not in dual_baselines:
+            # 구매 이력 없는 카테고리는 전체 프로필 사용
+            if sub in user_profiles:
+                user_vec = user_profiles[sub]
+            else:
+                user_vec = user_profile_overall
+            base = 0
+            qty = 1
+            comparison_price = float(row["normalized_price"])
         else:
-            # 2순위: 전체 프로필 사용 (일반 개인화)
-            user_vec = user_profile_overall
-            # 전체 평균 가격과 수량 사용
-            base = float(base_norm_price.mean()) if len(base_norm_price) > 0 else 0
-            qty = float(avg_qty.mean()) if len(avg_qty) > 0 else 1
+            baseline_info = dual_baselines[sub]
+
+            # 🆕 상품 타입 감지 (용량형 vs 단품형)
+            product_type = "item_based" if str(row["unit_volume"]) == "1" else "unit_based"
+
+            # 타입에 맞는 baseline 선택
+            if product_type == "unit_based":
+                # 용량형 상품: 용량당 가격으로 비교
+                base = baseline_info["unit_based"]
+                comparison_price = float(row["normalized_price"])
+            else:
+                # 단품형 상품: 개당 가격으로 비교
+                base = baseline_info["item_based"]
+                comparison_price = float(row["price"])
+
+            qty = baseline_info["avg_quantity"]
+
+            # 🔥 필터링: baseline의 3배 이상 비싼 상품 제외
+            if base > 0 and comparison_price > base * 3:
+                continue  # 너무 비싼 상품은 건너뛰기
+
+            # User vector 설정
+            if sub in user_profiles:
+                user_vec = user_profiles[sub]
+            else:
+                user_vec = user_profile_overall
 
         item_vec = row["_vec"]
 
@@ -237,11 +330,9 @@ def recommend_products_final_v4(
         sim = float(np.dot(user_vec, item_vec) /
                    (np.linalg.norm(user_vec) * np.linalg.norm(item_vec) + 1e-8))
 
-        # Savings calculation (normalized price based)
-        norm_price = float(row["normalized_price"])
-
+        # 🆕 Savings calculation (타입별 가격 비교)
         if base > 0:
-            save = max(0, base - norm_price)
+            save = max(0, base - comparison_price)
             save_ratio = save / base
             # dampen excessive ratios
             save_ratio = save_ratio / (1 + save_ratio)
@@ -258,6 +349,10 @@ def recommend_products_final_v4(
         # Final score with frequency weight
         score = (alpha * sim + beta * save_ratio) * np.log1p(freq_weight)
 
+        # 🆕 추가 정보 계산
+        product_type = "item_based" if str(row["unit_volume"]) == "1" else "unit_based"
+        norm_price = float(row["normalized_price"])
+
         records.append({
             "product_id": row["product_id"],
             "small_category": sub,
@@ -269,7 +364,9 @@ def recommend_products_final_v4(
             "unit_base": row["unit_base"],
             "unit_price": row["unit_price"],
             "normalized_price": norm_price,
-            "user_avg_normalized_price": base,
+            "product_type": product_type,  # 🆕 상품 타입 추가
+            "comparison_price": comparison_price,  # 🆕 실제 비교 가격
+            "user_avg_baseline": base,  # 🆕 타입에 맞는 baseline
             "savings_normalized": save,
             "savings_ratio_pct": save_ratio * 100,
             "expected_total_savings": total_save,
@@ -341,6 +438,9 @@ def recommend_products_final_v4(
         "unit_volume",
         "unit_price",
         "normalized_price",
+        "product_type",  # 🆕 상품 타입 (unit_based/item_based)
+        "comparison_price",  # 🆕 실제 비교한 가격
+        "user_avg_baseline",  # 🆕 사용자 평균 baseline
         "savings_ratio_pct",
         "similarity",
         "final_score",

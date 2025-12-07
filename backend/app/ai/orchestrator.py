@@ -63,7 +63,7 @@ class AiOrchestrator:
 
         if selected_tool == "purchase_recommendation" and self._config.has_purchase_mcp:
             try:
-                return self._run_purchase_recommendation(user_id=user_id, limit=6)
+                return self._run_purchase_recommendation(user_id=user_id, limit=5)
             except OpenAIErrorWrapper as exc:
                 logger.warning("Purchase MCP failed: %s", exc)
 
@@ -87,7 +87,7 @@ class AiOrchestrator:
 
         if self._config.has_purchase_mcp:
             try:
-                return self._run_purchase_recommendation(user_id=user_id, limit=6)
+                return self._run_purchase_recommendation(user_id=user_id, limit=5)
             except OpenAIErrorWrapper as exc:
                 logger.warning("Fallback purchase MCP failed: %s", exc)
 

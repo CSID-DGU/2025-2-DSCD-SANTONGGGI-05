@@ -312,8 +312,9 @@ cd app
 **방법 2: SCP로 직접 전송**
 ```bash
 # 로컬에서
-scp -i ~/Desktop/key/capstoneKey/capstone-key.pem -r ./capstoneProject ubuntu@54.180.224.226:~/app
+scp -i ~/Desktop/key/capstoneKey/capstone-key.pem -r ~/Desktop/capstoneProject ubuntu@54.180.224.226:~/app
 ```
+
 
 ### 4-5. 환경변수 설정 (EC2)
 

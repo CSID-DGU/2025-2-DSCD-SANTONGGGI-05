@@ -139,11 +139,15 @@ def filter_records_by_date(
         else:
             continue
 
+        # Convert to date only for comparison (ignore time and timezone)
+        dt_date = dt.date()
+
         # Apply start_date filter
         if start_date:
             try:
                 start_dt = datetime.fromisoformat(start_date)
-                if dt < start_dt:
+                start_date_only = start_dt.date()
+                if dt_date < start_date_only:
                     continue
             except Exception:
                 continue
@@ -152,7 +156,8 @@ def filter_records_by_date(
         if end_date:
             try:
                 end_dt = datetime.fromisoformat(end_date)
-                if dt > end_dt:
+                end_date_only = end_dt.date()
+                if dt_date > end_date_only:
                     continue
             except Exception:
                 continue
