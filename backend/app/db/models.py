@@ -64,6 +64,8 @@ class Product(Base):
     rating: Mapped[float] = mapped_column(Numeric(3, 2), nullable=True, default=None)
     url: Mapped[str | None] = mapped_column(String(512), nullable=True)
     image_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    unit_volume: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    unit_price: Mapped[float | None] = mapped_column(Numeric(10, 2), nullable=True)
 
     # 제품은 카탈로그 용도로만 유지되며 장바구니/히스토리와 직접 관계를 맺지 않는다.
 
@@ -117,6 +119,12 @@ class PurchaseHistory(Base):
     category: Mapped[str | None] = mapped_column(String(255), nullable=True)
     image_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
     product_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    unit_volume: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    unit_price: Mapped[float | None] = mapped_column(Numeric(10, 2), nullable=True)
+    small_category: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    review: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    rating: Mapped[float | None] = mapped_column(Numeric(3, 2), nullable=True)
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),

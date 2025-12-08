@@ -8,19 +8,14 @@ export const ProductDetailModal: React.FC = () => {
   const { items: cartItems, refreshCart } = useCart();
   const { user } = useAuth();
   const { isOpen, product, closeModal, openProductModal } = useModal();
-  const [isIframeLoading, setIsIframeLoading] = useState(false);
-  const [iframeError, setIframeError] = useState(false);
   const [isPurchasing, setIsPurchasing] = useState(false);
 
-  // Reset iframe state when modal opens
+  // Handle body scroll when modal opens
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
-      setIsIframeLoading(true);
-      setIframeError(false);
     } else {
       document.body.style.overflow = "unset";
-      setIsIframeLoading(false);
     }
 
     return () => {
@@ -76,11 +71,6 @@ export const ProductDetailModal: React.FC = () => {
   const displayUrl = currentCartItem?.url ?? product.url;
   const displayPlatform = currentCartItem?.platformName ?? product.platformName;
 
-  const handleDirectPurchase = () => {
-    if (displayUrl) {
-      window.open(displayUrl, "_blank", "noopener,noreferrer");
-    }
-  };
 
   const formattedPrice =
     typeof displayPrice === "number"
@@ -190,30 +180,10 @@ export const ProductDetailModal: React.FC = () => {
           ✕
         </button>
 
-        {/* Left Side - preview */}
+        {/* Left Side - Product Image */}
         <div className={styles.previewSection}>
           <div className={styles.previewCard}>
-            {displayUrl && !iframeError ? (
-              <iframe
-                src={displayUrl}
-                title={`${displayName} 미리보기`}
-                className={styles.previewIframe}
-                sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-popups-to-escape-sandbox"
-                referrerPolicy="no-referrer"
-                onLoad={() => setIsIframeLoading(false)}
-                onError={() => {
-                  setIsIframeLoading(false);
-                  setIframeError(true);
-                }}
-              />
-            ) : iframeError ? (
-              <div className={styles.previewFallback}>
-                <p className={styles.fallbackTitle}>외부 사이트를 표시할 수 없습니다.</p>
-                <p className={styles.helperText}>
-                  쇼핑몰이 프레임 내 표시를 제한하고 있어 새 탭에서 확인해주세요.
-                </p>
-              </div>
-            ) : displayImage ? (
+            {displayImage ? (
               <img
                 src={displayImage}
                 alt={displayName}
@@ -227,23 +197,6 @@ export const ProductDetailModal: React.FC = () => {
                 </span>
               </div>
             )}
-
-            <div className={styles.previewActions}>
-              {displayUrl ? (
-                <button
-                  type="button"
-                  className={styles.openExternalButton}
-                  onClick={handleDirectPurchase}
-                >
-                  새 탭에서 보기
-                </button>
-              ) : (
-                <p className={styles.helperText}>연결할 상품 URL이 없습니다.</p>
-              )}
-              {displayUrl && isIframeLoading && !iframeError && (
-                <p className={styles.helperText}>페이지 불러오는 중...</p>
-              )}
-            </div>
           </div>
         </div>
 
@@ -289,17 +242,18 @@ export const ProductDetailModal: React.FC = () => {
             )}
 
             {displayUrl && (
-              <div className={styles.linkRow}>
-                <span className={styles.linkLabel}>상품 페이지</span>
-                <a
-                  href={displayUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={styles.linkValue}
-                >
-                  {linkHost || "새 탭에서 열기"}
-                </a>
-              </div>
+              <button
+                type="button"
+                className={styles.productLinkCard}
+                onClick={() => window.open(displayUrl, "_blank", "noopener,noreferrer")}
+              >
+                <div className={styles.cardIcon}>🛒</div>
+                <div className={styles.cardContent}>
+                  <span className={styles.cardTitle}>상품으로 이동하기</span>
+                  <span className={styles.cardSubtitle}>{linkHost || "쇼핑몰에서 확인"}</span>
+                </div>
+                <div className={styles.cardArrow}>→</div>
+              </button>
             )}
 
             {displayRating && (

@@ -24,7 +24,7 @@ def get_service() -> PurchaseHistoryService:
 def list_purchase_history(
     user_id: int = Query(..., ge=1),
     page: int = Query(1, ge=1),
-    page_size: int = Query(50, ge=1, le=200),
+    page_size: int = Query(1000, ge=1, le=10000),
     db: Session = Depends(get_db),
     service: PurchaseHistoryService = Depends(get_service),
 ) -> PurchaseHistoryResponse:

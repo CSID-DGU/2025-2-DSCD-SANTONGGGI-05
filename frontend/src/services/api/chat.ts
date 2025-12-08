@@ -10,6 +10,16 @@ interface Product {
   review: number;
   image_url?: string;
   product_url?: string;
+  // 추천 시스템 추가 필드
+  savings_ratio_pct?: number;
+  similarity?: number;
+  final_score?: number;
+  normalized_price?: number;
+  unit_volume?: string;
+  unit_price?: number;
+  rank?: number;
+  small_category?: string;
+  rating?: number;
 }
 
 export interface SendMessageResponse {

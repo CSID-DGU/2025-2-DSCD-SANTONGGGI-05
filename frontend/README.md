@@ -1,8 +1,6 @@
 # 쇼핑 비서 서비스 - 프론트엔드
 
 > AI 기반 쇼핑 어시스턴트 대학교 졸업 프로젝트 - React 프론트엔드 애플리케이션
->
-> **백엔드 개발자를 위한 가이드**
 
 ---
 
@@ -16,29 +14,32 @@
 6. [핵심 개념](#핵심-개념)
 7. [API 통합 가이드](#api-통합-가이드)
 8. [개발 가이드](#개발-가이드)
-9. [알려진 제한사항](#알려진-제한사항)
+9. [배포 정보](#배포-정보)
 
 ---
 
 ## 프로젝트 개요
 
-**쇼핑 비서 서비스**는 OpenAI API와 추천 시스템을 활용한 AI 기반 쇼핑 어시스턴트 입니다.
+**쇼핑 비서 서비스**는 OpenAI API와 MCP(Model Context Protocol) 서버를 활용한 AI 기반 쇼핑 어시스턴트입니다.
 
 ### 주요 기능
 
 - 🤖 **AI 채팅 인터페이스**: OpenAI 기반 대화형 쇼핑 상담
 - 🛒 **스마트 장바구니**: 실시간 장바구니 관리 및 요약
-- 📊 **구매 통계 분석**: 주간/카테고리별 지출 분석
-- 🎯 **상품 추천 시스템**: 평점 및 리뷰 기반 3/3 추천
-- 📜 **구매 이력 관리**: 과거 구매 내역 조회
+- 📊 **AI 구매 통계 분석**: OpenAI 기반 지출 패턴 분석 및 절약 조언
+- 🎯 **MCP 기반 상품 추천**: 구매 이력 기반 맞춤 추천 시스템
+- 📜 **구매 이력 관리**: 과거 구매 내역 조회 및 구매 완료 기능
 - 🌐 **다중 플랫폼 통합**: 쿠팡, 네이버쇼핑, 11번가 등
+- 💳 **구매 완료 기능**: 장바구니 → 구매 이력 전환
 
 ### 현재 상태
 
 - ✅ 프론트엔드 UI 완성
 - ✅ 7개 Context 기반 상태 관리 구현
-- ⏳ Mock API 사용 중 (백엔드 연동 대기)
-- 🎯 목표: 배포 완료된 서비스
+- ✅ **백엔드 연동 완료** (FastAPI + PostgreSQL)
+- ✅ **MCP 서버 통합** (Recommendation, Shopping, Statistics)
+- ✅ **배포 완료** (Docker + Nginx + SSL)
+- 🎯 목표: **운영 중인 서비스**
 
 ---
 
@@ -47,9 +48,9 @@
 ### 코어 기술
 
 ```
-React 19.1.1        - UI 라이브러리
-TypeScript 5.x      - 타입 안전성
-Vite 7.1.7          - 빌드 도구 및 개발 서버
+React 19.0.0        - UI 라이브러리
+TypeScript 5.6.3    - 타입 안전성
+Vite 6.0.1          - 빌드 도구 및 개발 서버
 ```
 
 ### 개발 도구
@@ -62,8 +63,8 @@ CSS Modules         - 컴포넌트 스타일링 (camelCase)
 ### 프로젝트 규모
 
 ```
-총 코드 라인: ~7,107 lines
-주요 컴포넌트: 33개
+총 코드 라인: ~7,500+ lines
+주요 컴포넌트: 35개
 API 서비스: 6개 파일 (15개 엔드포인트)
 Context: 7개
 ```
@@ -114,6 +115,9 @@ npm run lint
 frontend/
 ├── src/
 │   ├── components/          # UI 컴포넌트
+│   │   ├── auth/           # 인증 관련 컴포넌트
+│   │   │   ├── LoginForm/        # 로그인 폼
+│   │   │   └── RegisterForm/     # 회원가입 폼
 │   │   ├── cart/           # 장바구니 관련 컴포넌트
 │   │   │   ├── CartSidebar/      # 우측 장바구니 사이드바
 │   │   │   ├── CartItem/         # 장바구니 아이템
@@ -125,25 +129,21 @@ frontend/
 │   │   ├── layout/         # 레이아웃 컴포넌트
 │   │   │   └── MainLayout/       # 메인 레이아웃 (3단 구조)
 │   │   ├── modals/         # 모달창
-│   │   │   ├── ProductDetailModal/       # 제품 상세 정보
+│   │   │   ├── ProductDetailModal/       # 상품 상세 정보 (간소화됨)
 │   │   │   └── ProductRecommendationModal/ # 상품 추천 모달
+│   │   ├── navigation/     # 네비게이션
+│   │   │   └── BottomNavigation/  # 하단 네비게이션 바
 │   │   ├── panels/         # 동적 패널 시스템
 │   │   │   ├── DynamicPanel/         # 패널 컨테이너
 │   │   │   ├── ProductListPanel/     # 상품 목록
-│   │   │   ├── ProductDetailPanel/   # 상품 상세
-│   │   │   ├── RecommendationsPanel/ # 추천 상품
-│   │   │   ├── SearchResultsPanel/   # 검색 결과
-│   │   │   └── CategoryPanel/        # 카테고리별 상품
+│   │   │   └── ...
 │   │   ├── purchaseHistory/ # 구매 이력 대시보드
 │   │   │   └── PurchaseHistoryDashboard/
 │   │   ├── statistics/     # 통계 대시보드
 │   │   │   ├── StatisticsDashboard/      # 통계 메인 화면
 │   │   │   ├── StatisticsNavigation/     # 통계 네비게이션
 │   │   │   ├── KPICards/                 # KPI 카드
-│   │   │   ├── Charts/                   # 차트 컴포넌트
-│   │   │   │   ├── WeeklyChart/          # 주간 차트
-│   │   │   │   └── CategoryChart/        # 카테고리 차트
-│   │   │   └── ProductRecommendations/   # 추천 상품
+│   │   │   └── Charts/                   # 차트 컴포넌트
 │   │   └── ui/             # 공통 UI 컴포넌트
 │   │       ├── LoadingSpinner/   # 로딩 스피너
 │   │       └── ErrorBoundary/    # 에러 경계
@@ -156,7 +156,7 @@ frontend/
 │   │   ├── ModalContext.tsx      # 모달 관리
 │   │   └── NavigationContext.tsx # 페이지 네비게이션
 │   ├── services/           # API 및 서비스 레이어
-│   │   ├── api/            # API 서비스 (Mock 구현)
+│   │   ├── api/            # API 서비스
 │   │   │   ├── auth.ts           # 로그인, 회원가입
 │   │   │   ├── chat.ts           # 채팅 메시지, 기록
 │   │   │   ├── cart.ts           # 장바구니 CRUD
@@ -166,13 +166,6 @@ frontend/
 │   │   └── storage/        # 로컬 스토리지 유틸
 │   │       └── localStorage.ts
 │   ├── types/              # TypeScript 타입 정의
-│   │   ├── index.ts        # 공통 타입
-│   │   ├── api.ts          # API 관련 타입
-│   │   ├── auth.ts         # 인증 타입
-│   │   ├── cart.ts         # 장바구니 타입
-│   │   ├── chat.ts         # 채팅 타입
-│   │   ├── modal.ts        # 모달 타입
-│   │   └── panel.ts        # 패널 타입
 │   ├── hooks/              # Custom React Hooks
 │   │   └── useWindowSize.ts # 반응형 브레이크포인트
 │   ├── styles/             # 전역 스타일
@@ -180,23 +173,11 @@ frontend/
 │   ├── main.tsx            # 엔트리 포인트
 │   └── index.css           # 전역 CSS
 ├── public/                 # 정적 파일
-├── CLAUDE.md               # 프로젝트 가이드 (AI 개발 참고)
-├── API_SPECIFICATION.md    # API 명세서 (이 문서 참고)
+├── CLAUDE.md               # 상세 개발 가이드 (AI 참고용)
 ├── package.json            # 의존성 관리
 ├── tsconfig.json           # TypeScript 설정
-├── vite.config.js          # Vite 설정
+├── vite.config.ts          # Vite 설정
 └── README.md               # 이 파일
-```
-
-### 파일 명명 규칙
-
-```
-컴포넌트:    ComponentName/ComponentName.tsx
-스타일:      ComponentName/ComponentName.module.css
-인덱스:      ComponentName/index.ts
-타입:        types/*.ts
-API:         services/api/*.ts
-Context:     contexts/*Context.tsx
 ```
 
 ---
@@ -212,10 +193,14 @@ AppProvider (7개 Context 통합)
   ↓
 App.tsx (초기화 및 에러 처리)
   ↓
-MainLayout (3단 레이아웃)
-  ├── ChatInterface (좌측 - 채팅)
-  ├── CartSidebar (우측 - 장바구니)
-  └── DynamicPanel (하단 - 동적 패널)
+Router (페이지 라우팅)
+  ├── LoginPage
+  ├── MainLayout (메인 페이지)
+  │   ├── ChatInterface (좌측 - 채팅)
+  │   ├── CartSidebar (우측 - 장바구니)
+  │   └── DynamicPanel (하단 - 동적 패널)
+  ├── StatisticsDashboard (통계 페이지)
+  └── PurchaseHistoryDashboard (구매이력 페이지)
 ```
 
 ### 2. Context 계층 구조
@@ -239,51 +224,15 @@ MainLayout (3단 레이아웃)
 </AppProvider>
 ```
 
-**Context 의존성 이유:**
-- ChatProvider는 CartContext를 사용 (AI가 장바구니 추가)
-- PanelProvider는 제품 정보 표시에 사용
-- AuthProvider가 최상위 (모든 기능이 인증 필요)
-
-### 3. 페이지 구조
-
-#### 메인 페이지 (채팅)
+### 3. 백엔드 연동 구조
 
 ```
-┌─────────────────────────────────────────┬────────────┐
-│                                         │            │
-│  ChatInterface                          │ CartSidebar│
-│  (AI 대화, 메시지 입력)                  │ (장바구니) │
-│                                         │            │
-│                                         │            │
-└─────────────────────────────────────────┴────────────┘
-┌───────────────────────────────────────────────────────┐
-│ DynamicPanel (동적 패널 - 상황에 따라 표시)            │
-│ - 상품 목록 / 상품 상세 / 추천 상품 등                │
-└───────────────────────────────────────────────────────┘
-```
-
-#### 통계 페이지
-
-```
-┌───────────────────┬─────────────────────────────────────┐
-│                   │                                     │
-│ StatisticsNav     │  통계 분석 결과                      │
-│ (선택지 목록)      │  - KPI 카드                         │
-│                   │  - 주간 차트                        │
-│                   │  - 카테고리 차트                     │
-│                   │                                     │
-└───────────────────┴─────────────────────────────────────┘
-```
-
-#### 구매이력 페이지
-
-```
-┌─────────────────────────────────────────────────────┐
-│  PurchaseHistoryDashboard                           │
-│  - 구매 내역 목록                                    │
-│  - 주문 상세 정보                                    │
-│  - 총 지출액, 평균 주문액 등                         │
-└─────────────────────────────────────────────────────┘
+Frontend → Backend API → OpenAI API
+                      ↓
+                   MCP Servers
+                   ├── Recommendation MCP (구매 기반 추천)
+                   ├── Shopping MCP (상품 검색)
+                   └── Statistics MCP (통계 분석)
 ```
 
 ---
@@ -312,15 +261,6 @@ interface AuthContextValue {
 }
 ```
 
-**사용 예시:**
-```typescript
-import { useAuth } from '@/contexts/AppProvider';
-
-const { user, isAuthenticated, login } = useAuth();
-
-await login({ phone_number: '010-1234-5678', password: 'pass' });
-```
-
 #### ChatContext - 채팅 세션 및 메시지 관리
 
 ```typescript
@@ -342,7 +282,7 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
-  type?: number;                  // 0: 일반, 1: 상품추천, 2: 통계
+  type?: number;                  // 0: 일반, 1: 상품추천, 2: 통계분석
   recommendationItems?: Product[]; // 추천 상품 데이터
 }
 ```
@@ -356,62 +296,12 @@ interface CartContextValue {
   itemCount: number;              // 총 아이템 수
   isLoading: boolean;
 
-  // 원본 API (권장)
   addItem: (productId, quantity?, variantId?) => Promise<void>;
   removeItem: (itemId) => Promise<void>;
   updateQuantity: (itemId, quantity) => Promise<void>;
   clearCart: () => Promise<void>;
-
-  // 호환성 API (간단한 컴포넌트용)
-  addToCart: (item) => Promise<void>;
+  refreshCart: () => Promise<void>;  // 장바구니 새로고침
 }
-```
-
-**사용 예시:**
-```typescript
-// 방법 1: 원본 API (권장)
-await addItem('product-123', 2);
-
-// 방법 2: 호환성 API
-await addToCart({
-  id: 'product-123',
-  name: '생수 2L',
-  price: 12000,
-  quantity: 2
-});
-```
-
-#### PanelContext - 동적 패널 제어
-
-```typescript
-type PanelType =
-  | 'product-list'      // 상품 목록
-  | 'product-detail'    // 상품 상세
-  | 'recommendations'   // 추천 상품
-  | 'search-results'    // 검색 결과
-  | 'category';         // 카테고리별 상품
-
-interface PanelContextValue {
-  currentPanel: PanelData | null; // 현재 표시 중인 패널
-  isExpanded: boolean;            // 패널 확장 여부
-  height: number;                 // 패널 높이
-
-  showPanel: (panelData) => void;  // 패널 표시
-  hidePanel: () => void;           // 패널 숨김
-  updatePanel: (updates) => void;  // 패널 업데이트
-}
-```
-
-**사용 예시:**
-```typescript
-const { showPanel } = usePanel();
-
-showPanel({
-  type: 'product-list',
-  data: { products: [...] },
-  title: '추천 상품',
-  height: 400
-});
 ```
 
 ### 2. Path Alias
@@ -437,48 +327,7 @@ import { useAuth } from '../../../contexts/AppProvider';
 @/services/*     → ./src/services/*
 ```
 
-### 3. TypeScript 엄격 모드
-
-#### exactOptionalPropertyTypes
-
-선택적 속성에 `undefined`를 명시할 수 없습니다:
-
-```typescript
-// ❌ 잘못됨
-const state = {
-  currentPage: 'chat',
-  previousPage: undefined  // Error!
-};
-
-// ✅ 올바름
-const state = {
-  currentPage: 'chat'  // previousPage 생략
-};
-```
-
-#### noImplicitReturns
-
-모든 코드 경로에서 반환값이 필요합니다:
-
-```typescript
-// ❌ 잘못됨
-function getStatus(code: number) {
-  if (code === 200) {
-    return 'success';
-  }
-  // Error: 다른 경로에서 반환값 없음
-}
-
-// ✅ 올바름
-function getStatus(code: number): string {
-  if (code === 200) {
-    return 'success';
-  }
-  return 'error';
-}
-```
-
-### 4. CSS Modules
+### 3. CSS Modules
 
 모든 컴포넌트는 CSS Modules를 사용합니다:
 
@@ -502,30 +351,13 @@ import styles from './ComponentName.module.css';
 </div>
 ```
 
-### 5. 반응형 디자인
-
-`useWindowSize` 훅으로 브레이크포인트 관리:
-
-```typescript
-const { width, height, breakpoint } = useWindowSize();
-
-// breakpoint 값
-// 'mobile'  : < 768px
-// 'tablet'  : 768px - 1024px
-// 'desktop' : 1024px - 1440px
-// 'wide'    : >= 1440px
-
-{breakpoint === 'mobile' && <MobileView />}
-{breakpoint === 'desktop' && <DesktopView />}
-```
-
 ---
 
 ## API 통합 가이드
 
-### 현재 상태: Mock API
+### 현재 상태: 백엔드 연동 완료
 
-모든 API는 현재 **Mock 데이터**를 반환합니다. 실제 백엔드 연동 시 아래 가이드를 따르세요.
+모든 API는 **실제 백엔드 서버**와 연동되어 있습니다.
 
 ### API 서비스 구조
 
@@ -536,105 +368,30 @@ src/services/api/
 ├── cart.ts           # 장바구니 API (3개 엔드포인트)
 ├── statistics.ts     # 통계 API (5개 엔드포인트)
 ├── purchaseHistory.ts # 구매이력 API (2개 엔드포인트)
-└── recommendations.ts # 추천 API (2개 엔드포인트)
+└── recommendations.ts # 추천 API (1개 엔드포인트)
 ```
 
-### 백엔드 연동 절차
+### 환경 변수 설정
 
-#### 1단계: 환경 변수 설정
-
-`.env` 파일 생성:
+`.env` 파일:
 
 ```bash
-VITE_API_BASE_URL=http://localhost:8000/api
-VITE_API_TIMEOUT=30000
+VITE_API_BASE_URL=https://csid-shopping.duckdns.org/api
 ```
 
-#### 2단계: API 클라이언트 설정
+### API 응답 타입
 
-`src/services/api/client.ts` 파일 생성:
+모든 API 응답은 CLAUDE.md에 정의된 ERD 기반 구조를 따릅니다.
 
+**채팅 응답 예시:**
 ```typescript
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-export const apiClient = {
-  async request(endpoint: string, options: RequestInit = {}) {
-    const token = localStorage.getItem('auth_token');
-
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` }),
-        ...options.headers,
-      },
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'API Error');
-    }
-
-    return response.json();
-  },
-};
-```
-
-#### 3단계: Mock 로직 제거
-
-각 API 파일 (`auth.ts`, `chat.ts` 등)에서:
-
-```typescript
-// ❌ Mock 코드 제거
-export const chatApi = {
-  sendMessage: async (user_id: number, message: string) => {
-    await new Promise(resolve => setTimeout(resolve, 1000));  // 제거
-    const mockProducts: Product[] = [...];  // 제거
-    return { success: true, data: mockProducts };  // 제거
-  }
-};
-
-// ✅ 실제 API 호출로 변경
-export const chatApi = {
-  sendMessage: async (user_id: number, message: string) => {
-    const data = await apiClient.request('/chat/messages', {
-      method: 'POST',
-      body: JSON.stringify({ user_id, message }),
-    });
-    return { success: true, data };
-  }
-};
-```
-
-#### 4단계: 타입 검증
-
-API 응답 타입이 CLAUDE.md 명세와 일치하는지 확인:
-
-```typescript
-// ERD 기반 타입 (변경 금지)
 interface SendMessageResponse {
   user_id: number;
   ai_message: string;
-  type: number;
-  recommendationItems: Product[];
+  type: number;  // 0: 일반, 1: 상품추천, 2: 통계분석
+  recommendationItems?: Product[];
 }
-
-// 백엔드 응답이 이 타입과 정확히 일치해야 함
 ```
-
-### 중요 사항
-
-**🚨 타입 변경 금지**
-
-API 응답 타입은 CLAUDE.md에 정의된 ERD 기반 구조를 따릅니다. 백엔드는 이 타입에 맞춰 응답해야 합니다.
-
-**🚨 LocalStorage 제거**
-
-실제 백엔드 연동 시 LocalStorage 기반 게스트 장바구니는 제거하고 서버 기반 장바구니로 대체해야 합니다.
-
-**🚨 인증 토큰**
-
-모든 인증이 필요한 API는 `Authorization: Bearer {token}` 헤더를 포함해야 합니다.
 
 ---
 
@@ -697,6 +454,41 @@ npx tsc --noEmit
 
 ---
 
+## 배포 정보
+
+### 배포 환경
+
+- **호스팅**: AWS EC2
+- **도메인**: https://csid-shopping.duckdns.org
+- **SSL**: Let's Encrypt
+- **Reverse Proxy**: Nginx
+- **컨테이너**: Docker Compose
+
+### 배포 구조
+
+```
+EC2 Instance
+├── Nginx (Port 80/443)
+│   ├── Frontend (/)
+│   ├── Backend API (/api)
+│   └── MCP Servers (/mcp-*)
+├── Frontend Container (Port 5173)
+├── Backend Container (Port 8000)
+├── PostgreSQL Container (Port 5432)
+└── MCP Server Containers (Port 5001-5003)
+```
+
+### 주요 기능 URL
+
+- **메인 페이지**: https://csid-shopping.duckdns.org
+- **API 엔드포인트**: https://csid-shopping.duckdns.org/api
+- **MCP 서버**:
+  - Recommendation: https://csid-shopping.duckdns.org/mcp-recommend
+  - Shopping: https://csid-shopping.duckdns.org/mcp-shopping
+  - Statistics: https://csid-shopping.duckdns.org/mcp-statistics
+
+---
+
 ## 알려진 제한사항
 
 ### 1. Fast Refresh 비활성화
@@ -705,76 +497,25 @@ npx tsc --noEmit
 
 **영향:** 코드 변경 시 전체 페이지 리로드 발생 (개발 경험 저하)
 
-**해결 방법:** 없음 (현재 아키텍처 유지)
+### 2. MCP 424 에러
 
-### 2. Mock API
+**증상:** OpenAI API가 MCP 서버 호출 시 간헐적 424 에러 발생
 
-**현재:** 모든 API 응답이 하드코딩된 Mock 데이터
+**원인:** FastMCP 2.13.0과 OpenAI Responses API 호환성 문제
 
-**영향:** 실제 서버 없이 UI 개발 및 테스트 가능
-
-**백엔드 연동 시:** API 서비스 파일의 Mock 로직만 제거하고 실제 fetch 호출로 변경
-
-### 3. ESLint 미설정
-
-**현재:** `eslint.config.js` 파일 존재하지만 실질적 규칙 없음
-
-**영향:** TypeScript 컴파일러만으로 타입 체크
-
-### 4. 테스트 없음
-
-**현재:** 테스트 프레임워크 미설정
-
-**영향:** 수동 테스트 필요
-
----
-
-## 문제 해결
-
-### 빌드 실패
-
-```bash
-# 캐시 삭제
-rm -rf node_modules dist
-
-# 재설치
-npm install
-
-# 빌드
-npm run build
-```
-
-### 타입 에러
-
-```bash
-# TypeScript 검사
-npx tsc --noEmit
-```
-
-### 개발 서버 포트 충돌
-
-`vite.config.js` 수정:
-
-```javascript
-export default defineConfig({
-  server: {
-    port: 3000,  // 다른 포트로 변경
-  }
-})
-```
+**해결:** Fallback 메커니즘 구현 (기본 추천 시스템으로 자동 전환)
 
 ---
 
 ## 추가 문서
 
 - **[CLAUDE.md](CLAUDE.md)** - AI 개발 가이드 및 상세 프로젝트 규칙
-- **[API_SPECIFICATION.md](API_SPECIFICATION.md)** - 전체 API 명세서 및 ERD
-- **[ARCHITECTURE_SUMMARY.md](ARCHITECTURE_SUMMARY.md)** - 아키텍처 개요
+- **[프로젝트 루트 README](../README.md)** - 전체 프로젝트 개요
+- **[MCP 아키텍처](../docs/MCP_ARCHITECTURE.md)** - MCP 서버 구조
+- **[프롬프트 전략](../docs/PROMPTS.md)** - AI 프롬프트 엔지니어링
 
 ---
 
 ## 라이선스
 
 대학교 졸업 프로젝트 - 교육 목적
-
----

@@ -24,6 +24,11 @@ export interface RecommendationProduct {
   review: number;
   image_url?: string;
   product_url?: string;
+  // New fields from updated recommendation system
+  unit_volume?: string;
+  unit_price?: number;
+  savings_ratio_pct?: number;
+  similarity?: number;
 }
 
 export interface ChatState {
@@ -33,15 +38,16 @@ export interface ChatState {
   isTyping: boolean;
   error: string | null;
   connectionStatus: 'connected' | 'connecting' | 'disconnected' | 'error';
-  // Recommendation modal state
   isRecommendationModalOpen: boolean;
   recommendationProducts: RecommendationProduct[];
 }
 
+// Callback for handling custom (맞춤) 추천 모달
+export type RecommendationHandler = (products: RecommendationProduct[]) => void;
+
 export interface ChatContextValue extends ChatState {
-  sendMessage: (message: string) => Promise<void>;
+  sendMessage: (message: string, onRecommendation?: RecommendationHandler) => Promise<void>;
   clearCurrentSession: () => void;
   loadHistory: () => Promise<void>;
-  openRecommendationModal: (products: RecommendationProduct[]) => void;
   closeRecommendationModal: () => void;
 }

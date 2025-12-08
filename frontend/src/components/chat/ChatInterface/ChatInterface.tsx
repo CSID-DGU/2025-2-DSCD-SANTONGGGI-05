@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import { useChat, useAuth } from '../../../contexts/AppProvider';
 import { ChatMessages } from '../ChatMessages/ChatMessages';
 import { TypingIndicator } from '../TypingIndicator/TypingIndicator';
-import { ChatRecommendationModal } from '@/components/modals/ChatRecommendationModal';
+import { CustomRecommendationModal } from '@/components/modals/CustomRecommendationModal';
 import { StatisticsImageModal } from '@/components/modals/StatisticsImageModal';
 import styles from './ChatInterface.module.css';
 
@@ -62,7 +62,11 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
     if (isLoading || isTyping) return;
 
     try {
-      await sendMessage(inputValue.trim());
+      await sendMessage(inputValue.trim(), (products) => {
+        // 추천 상품이 오면 모달 열기
+        setRecommendationProducts(products);
+        setRecommendationModalOpen(true);
+      });
       setInputValue('');
     } catch (error) {
       console.error('Failed to send message:', error);
@@ -82,7 +86,11 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
     setInputValue(suggestion);
     // Auto-send the suggestion
     try {
-      await sendMessage(suggestion);
+      await sendMessage(suggestion, (products) => {
+        // 추천 상품이 오면 모달 열기
+        setRecommendationProducts(products);
+        setRecommendationModalOpen(true);
+      });
       setInputValue('');
     } catch (error) {
       console.error('Failed to send suggestion:', error);
@@ -98,7 +106,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
         price: 12000,
         platform_name: '쿠팡',
         category: '생수',
-        review: 250
+        review: 250,
+        product_url: 'https://example.com/product1'
       },
       {
         product_id: 505,
@@ -106,7 +115,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
         name: '코카콜라 제로 355ml 24캔',
         platform_name: '11번가',
         category: '음료',
-        review: 320
+        review: 320,
+        product_url: 'https://example.com/product2'
       },
       {
         product_id: 502,
@@ -114,7 +124,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
         price: 15000,
         platform_name: '네이버쇼핑',
         category: '생수',
-        review: 180
+        review: 180,
+        product_url: 'https://example.com/product3'
       },
       {
         product_id: 506,
@@ -122,7 +133,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
         price: 22000,
         platform_name: '쿠팡',
         category: '청소용품',
-        review: 410
+        review: 410,
+        product_url: 'https://example.com/product4'
       },
       {
         product_id: 507,
@@ -130,7 +142,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
         price: 9500,
         platform_name: '네이버쇼핑',
         category: '생활용품',
-        review: 150
+        review: 150,
+        product_url: 'https://example.com/product5'
       },
       {
         product_id: 508,
@@ -138,7 +151,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
         price: 14500,
         platform_name: '11번가',
         category: '음료',
-        review: 290
+        review: 290,
+        product_url: 'https://example.com/product6'
       }
     ];
     setRecommendationProducts(mockProducts);
@@ -279,7 +293,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
       )}
 
       {/* Type 1 모달: 상품 추천 */}
-      <ChatRecommendationModal
+      <CustomRecommendationModal
         isOpen={recommendationModalOpen}
         onClose={() => setRecommendationModalOpen(false)}
         products={recommendationProducts}

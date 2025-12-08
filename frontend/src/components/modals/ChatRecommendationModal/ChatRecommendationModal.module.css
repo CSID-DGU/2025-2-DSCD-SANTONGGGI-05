@@ -227,6 +227,21 @@
   color: #111827;
 }
 
+/* Savings Info */
+.savingsInfo {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: linear-gradient(135deg, #a8e063 0%, #56ab2f 100%);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  width: fit-content;
+  box-shadow: 0 2px 4px rgba(86, 171, 47, 0.2);
+}
+
 /* Review Section */
 .reviewSection {
   display: flex;
@@ -318,6 +333,11 @@
 
   .price {
     font-size: 17px;
+  }
+
+  .savingsInfo {
+    font-size: 12px;
+    padding: 3px 8px;
   }
 
   .addToCartButton {

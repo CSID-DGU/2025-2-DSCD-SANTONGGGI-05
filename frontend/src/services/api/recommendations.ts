@@ -15,6 +15,15 @@ export interface RecommendedProduct {
   review: number;
   image_url: string;
   product_url: string;
+  small_category?: string;
+  unit_volume?: string;
+  unit_price?: number;
+  normalized_price?: number;
+  savings_ratio_pct?: number;
+  similarity?: number;
+  final_score?: number;
+  rating?: number;
+  rank?: number;
 }
 
 interface RecommendationsResponse {
@@ -38,6 +47,14 @@ export interface UIRecommendedProduct {
   reviewCount: number;
   url: string;
   reason: string;
+  // 추천 시스템 추가 정보
+  savingsRatio?: number;      // 절약률 (%)
+  similarity?: number;         // 유사도 (0-1)
+  finalScore?: number;         // 최종 점수
+  normalizedPrice?: number;    // 정규화 가격
+  unitVolume?: string;         // 단위 용량
+  unitPrice?: number;          // 단위 가격
+  rank?: number;               // 추천 순위
 }
 
 export interface UIRecommendationsData {
@@ -114,10 +131,18 @@ export const recommendationsApi = {
           price: basePrice,
           image: categoryEmojis[item.category] || '📦',
           category: item.category,
-          rating: 4.0 + Math.random(), // 4.0-5.0 범위의 랜덤 평점
+          rating: item.rating ?? (4.0 + Math.random()), // 백엔드 rating 우선, 없으면 랜덤
           reviewCount: item.review || (Math.floor(Math.random() * 500) + 50),
           url: item.product_url,
           reason: categoryReasons[item.category] || '추천 상품입니다',
+          // 추천 시스템 추가 정보
+          savingsRatio: item.savings_ratio_pct,
+          similarity: item.similarity,
+          finalScore: item.final_score,
+          normalizedPrice: item.normalized_price,
+          unitVolume: item.unit_volume,
+          unitPrice: item.unit_price,
+          rank: item.rank,
           ...(hasDiscount && discount !== undefined && originalPrice !== undefined && {
             originalPrice,
             discount

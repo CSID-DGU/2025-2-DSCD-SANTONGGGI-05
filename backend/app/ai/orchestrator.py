@@ -9,12 +9,13 @@ from app.models.recommendation import RecommendationItem
 from app.services.recommendation_service import RecommendationService
 
 from .config import AiConfig, get_ai_config
-from .mcp_client import build_purchase_toolset, build_search_toolset
+from .mcp_client import build_purchase_toolset, build_search_toolset, build_statistics_toolset
 from .openai_client import OpenAIChatClient, OpenAIErrorWrapper, safe_run
 from .prompt_templates import (
     build_platform_search_prompt,
     build_purchase_prompt,
     build_smalltalk_prompt,
+    build_statistics_prompt,
     build_tool_selection_prompt,
 )
 from .types import AiOrchestratorResult, ToolIntentPrediction
@@ -62,9 +63,21 @@ class AiOrchestrator:
 
         if selected_tool == "purchase_recommendation" and self._config.has_purchase_mcp:
             try:
-                return self._run_purchase_recommendation(user_id=user_id, limit=6)
+                return self._run_purchase_recommendation(user_id=user_id, limit=5)
             except OpenAIErrorWrapper as exc:
                 logger.warning("Purchase MCP failed: %s", exc)
+
+        if selected_tool == "statistics_analysis" and self._config.has_statistics_mcp:
+            try:
+                return self._run_statistics_analysis(message)
+            except OpenAIErrorWrapper as exc:
+                logger.warning("Statistics MCP failed: %s", exc)
+
+        if self._should_trigger_statistics(message) and self._config.has_statistics_mcp:
+            try:
+                return self._run_statistics_analysis(message)
+            except OpenAIErrorWrapper as exc:
+                logger.warning("Fallback statistics analysis failed: %s", exc)
 
         if self._should_trigger_platform_search(message) and self._config.has_search_mcp:
             try:
@@ -74,7 +87,7 @@ class AiOrchestrator:
 
         if self._config.has_purchase_mcp:
             try:
-                return self._run_purchase_recommendation(user_id=user_id, limit=6)
+                return self._run_purchase_recommendation(user_id=user_id, limit=5)
             except OpenAIErrorWrapper as exc:
                 logger.warning("Fallback purchase MCP failed: %s", exc)
 
@@ -132,6 +145,35 @@ class AiOrchestrator:
             ai_message=ai_message,
             response_type=1,
             recommendation_items=items[:6],
+        )
+
+    def _run_statistics_analysis(self, message: str) -> AiOrchestratorResult:
+        """Execute statistics analysis workflow using MCP tools."""
+        prompt = build_statistics_prompt()
+        tools = build_statistics_toolset(self._config)
+
+        # Build messages with system prompt and user query
+        messages = [
+            {"role": "system", "content": prompt},
+            {"role": "user", "content": message},
+        ]
+
+        # Call OpenAI with statistics MCP tools
+        text = safe_run(
+            self._client,
+            prompt=messages,  # Pass list of messages instead of string
+            tools=tools,
+            expect_json=False,  # Expecting text response, not JSON
+        )
+
+        ai_message = text if isinstance(text, str) else "구매 이력 분석 결과를 확인해보세요."
+
+        logger.info("Statistics analysis completed: %d chars", len(ai_message))
+
+        return AiOrchestratorResult(
+            ai_message=ai_message,
+            response_type=2,
+            recommendation_items=[],
         )
 
     @staticmethod
@@ -209,6 +251,26 @@ class AiOrchestrator:
         except (TypeError, ValueError):
             product_id = hash((platform_name, name, idx)) & 0xFFFFFFFF
 
+        # Extract additional recommendation fields
+        unit_volume = data.get("unit_volume")
+        unit_price_raw = data.get("unit_price")
+        try:
+            unit_price = float(unit_price_raw) if unit_price_raw is not None else None
+        except (TypeError, ValueError):
+            unit_price = None
+
+        savings_ratio_raw = data.get("savings_ratio_pct")
+        try:
+            savings_ratio_pct = float(savings_ratio_raw) if savings_ratio_raw is not None else None
+        except (TypeError, ValueError):
+            savings_ratio_pct = None
+
+        similarity_raw = data.get("similarity")
+        try:
+            similarity = float(similarity_raw) if similarity_raw is not None else None
+        except (TypeError, ValueError):
+            similarity = None
+
         return RecommendationItem(
             product_id=product_id,
             name=str(name),
@@ -218,6 +280,10 @@ class AiOrchestrator:
             review=review,
             image_url=str(image_url),
             product_url=str(product_url),
+            unit_volume=unit_volume,
+            unit_price=unit_price,
+            savings_ratio_pct=savings_ratio_pct,
+            similarity=similarity,
         )
 
     def generate_purchase_recommendations(self, *, user_id: int, limit: int = 5) -> list[RecommendationItem]:
@@ -254,12 +320,20 @@ class AiOrchestrator:
             options.append("platform_search")
         if self._config.has_purchase_mcp:
             options.append("purchase_recommendation")
+        if self._config.has_statistics_mcp:
+            options.append("statistics_analysis")
         return options
 
     @staticmethod
     def _should_trigger_platform_search(message: str) -> bool:
         lowered = message.lower()
         trigger_keywords = ("추천", "찾아줘", "어디서", "상품", "사고싶")
+        return any(keyword in lowered for keyword in trigger_keywords)
+
+    @staticmethod
+    def _should_trigger_statistics(message: str) -> bool:
+        lowered = message.lower()
+        trigger_keywords = ("통계", "분석", "소비", "지출", "카테고리", "플랫폼", "월별", "시간대", "얼마", "많이", "패턴")
         return any(keyword in lowered for keyword in trigger_keywords)
 
     def _fallback_response(self, *, message: str, user_id: int) -> AiOrchestratorResult:

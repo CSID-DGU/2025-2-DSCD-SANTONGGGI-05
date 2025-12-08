@@ -178,6 +178,13 @@ export const ProductRecommendations: React.FC<ProductRecommendationsProps> = ({
                   )}
                 </div>
 
+                {/* 절약률 표시 */}
+                {product.savingsRatio !== undefined && product.savingsRatio > 0 && (
+                  <div className={styles.savingsBadge}>
+                    💰 구매이력 대비 {product.savingsRatio.toFixed(1)}% 절약!
+                  </div>
+                )}
+
                 <div className={styles.recommendationReason}>
                   <span className={styles.reasonIcon}>💡</span>
                   <span className={styles.reasonText}>{product.reason}</span>

@@ -127,10 +127,11 @@ def search_naver_products(query: str, page_size: int = 3) -> list[dict]:
 
 def run_server():
     mcp.run(
-        transport="http",
+        transport="streamable-http",
         host="0.0.0.0",
         path="/mcp",
         port=8002,
+        stateless_http=True,
     )
 
 

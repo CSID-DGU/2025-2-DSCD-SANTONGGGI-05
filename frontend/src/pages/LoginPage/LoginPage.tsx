@@ -65,9 +65,33 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
     clearAuthError();
   };
 
+  // 전화번호 자동 포맷팅 (010-0000-0000)
+  const formatPhoneNumber = (value: string): string => {
+    const numbers = value.replace(/[^0-9]/g, '');
+    if (numbers.length <= 3) {
+      return numbers;
+    } else if (numbers.length <= 7) {
+      return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
+    } else {
+      return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`;
+    }
+  };
+
+  // 전화번호 형식 검증 (010-0000-0000)
+  const isValidPhoneNumber = (phone: string): boolean => {
+    const phoneRegex = /^010-\d{4}-\d{4}$/;
+    return phoneRegex.test(phone);
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+
+    if (name === 'phone_number') {
+      const formatted = formatPhoneNumber(value);
+      setFormData(prev => ({ ...prev, [name]: formatted }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
     setFormError('');
   };
 
@@ -82,6 +106,11 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose }) => {
 
     if (!formData.phone_number.trim()) {
       setFormError('전화번호를 입력해주세요');
+      return;
+    }
+
+    if (!isValidPhoneNumber(formData.phone_number)) {
+      setFormError('전화번호 형식이 올바르지 않습니다 (010-0000-0000)');
       return;
     }
 
@@ -252,6 +281,20 @@ export const LoginPage: React.FC = () => {
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
 
+  const formatLoginPhoneNumber = (value: string): string => {
+    const digitsOnly = value.replace(/[^\d]/g, '');
+
+    if (digitsOnly.length === 8) {
+      return `${digitsOnly.slice(0, 4)}-${digitsOnly.slice(4)}`;
+    }
+
+    if (digitsOnly.length === 11) {
+      return `${digitsOnly.slice(0, 3)}-${digitsOnly.slice(3, 7)}-${digitsOnly.slice(7)}`;
+    }
+
+    return value;
+  };
+
   const handleCloseErrorModal = () => {
     setErrorModalOpen(false);
     clearAuthError();
@@ -259,7 +302,10 @@ export const LoginPage: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
-    setCredentials(prev => ({ ...prev, [name]: value }));
+    const nextValue =
+      name === 'phone_number' ? formatLoginPhoneNumber(value) : value;
+
+    setCredentials(prev => ({ ...prev, [name]: nextValue }));
     setValidationError('');
   };
 
@@ -267,7 +313,8 @@ export const LoginPage: React.FC = () => {
     e.preventDefault();
     setValidationError('');
 
-    if (!credentials.phone_number.trim()) {
+    const trimmedPhoneNumber = credentials.phone_number.trim();
+    if (!trimmedPhoneNumber) {
       setValidationError('전화번호를 입력해주세요');
       return;
     }
@@ -277,9 +324,14 @@ export const LoginPage: React.FC = () => {
       return;
     }
 
+    const formattedPhoneNumber = formatLoginPhoneNumber(trimmedPhoneNumber);
+    if (formattedPhoneNumber !== credentials.phone_number) {
+      setCredentials(prev => ({ ...prev, phone_number: formattedPhoneNumber }));
+    }
+
     setIsLoading(true);
     const result = await login({
-      phone_number: credentials.phone_number,
+      phone_number: formattedPhoneNumber,
       password: credentials.password
     });
 
