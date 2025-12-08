@@ -1,0 +1,325 @@
+/* Dynamic Panel Layout */
+.dynamicPanel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Panel Header */
+.panelHeader {
+  flex-shrink: 0;
+  background: var(--color-background);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--spacing-md);
+}
+
+.headerContent {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+.titleSection {
+  flex: 1;
+  min-width: 0;
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+}
+
+.panelSubtitle {
+  margin: var(--spacing-xs) 0 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-normal);
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-shrink: 0;
+}
+
+.typeBadge {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-primary-background);
+  color: var(--color-primary);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.closeButton {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-radius: var(--border-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--animation-duration-fast) ease;
+}
+
+.closeButton:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
+.closeButton:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.closeIcon {
+  font-size: var(--font-size-md);
+  line-height: 1;
+}
+
+/* Progress Section */
+.progressSection {
+  margin-top: var(--spacing-md);
+}
+
+.progressBar {
+  width: 100%;
+  height: 4px;
+  background: var(--color-border);
+  border-radius: var(--border-radius-sm);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--color-primary);
+  transition: width var(--animation-duration-normal) ease;
+  border-radius: inherit;
+}
+
+/* Panel Content */
+.panelContent {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--spacing-md);
+  position: relative;
+}
+
+/* Panel Footer */
+.panelFooter {
+  flex-shrink: 0;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-background);
+  border-top: 1px solid var(--color-border);
+}
+
+.timestamp {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+/* Unknown Panel Type */
+.unknownPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-xl);
+  text-align: center;
+  min-height: 200px;
+}
+
+.unknownIcon {
+  font-size: 3rem;
+  opacity: 0.5;
+}
+
+.unknownTitle {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.unknownMessage {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+  max-width: 400px;
+}
+
+.debugInfo {
+  margin: var(--spacing-lg) 0 0 0;
+  padding: var(--spacing-md);
+  background: var(--color-code-background);
+  color: var(--color-code-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
+  white-space: pre-wrap;
+  overflow-x: auto;
+  max-width: 100%;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* Mobile Overlay */
+.mobileOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-index-modal);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: -1;
+  animation: fadeIn var(--animation-duration-fast) ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Panel Type Specific Styles */
+.productList .typeBadge {
+  background: var(--color-success-background);
+  color: var(--color-success);
+}
+
+.productDetail .typeBadge {
+  background: var(--color-info-background);
+  color: var(--color-info);
+}
+
+.recommendations .typeBadge {
+  background: var(--color-warning-background);
+  color: var(--color-warning);
+}
+
+.searchResults .typeBadge {
+  background: var(--color-primary-background);
+  color: var(--color-primary);
+}
+
+.category .typeBadge {
+  background: var(--color-secondary-background);
+  color: var(--color-secondary);
+}
+
+/* Animation States */
+.animating {
+  pointer-events: none;
+}
+
+.animating .panelContent {
+  opacity: 0.8;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .panelHeader {
+    padding: var(--spacing-sm);
+  }
+
+  .panelContent {
+    padding: var(--spacing-sm);
+  }
+
+  .headerContent {
+    gap: var(--spacing-sm);
+  }
+
+  .panelTitle {
+    font-size: var(--font-size-md);
+  }
+
+  .typeBadge {
+    display: none; /* Hide on mobile to save space */
+  }
+}
+
+@media (max-width: 480px) {
+  .headerContent {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-sm);
+  }
+
+  .headerActions {
+    justify-content: space-between;
+  }
+
+  .typeBadge {
+    display: inline-block;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .dynamicPanel {
+    border-top-width: 2px;
+  }
+
+  .panelHeader {
+    border-bottom-width: 2px;
+  }
+
+  .panelFooter {
+    border-top-width: 2px;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .closeButton,
+  .progressFill {
+    transition: none;
+  }
+
+  .backdrop {
+    animation: none;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .backdrop {
+    background: rgba(0, 0, 0, 0.7);
+  }
+}

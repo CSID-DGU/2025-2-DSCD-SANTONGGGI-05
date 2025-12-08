@@ -1,0 +1,181 @@
+/* Main App Styles */
+
+/* Reset some default styles */
+#root {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Main App Container */
+.app {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  font-family: var(--font-family-sans);
+  color: var(--color-text-primary);
+  background: var(--color-background);
+}
+
+/* App Loading State */
+.app-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+  background: var(--color-background);
+}
+
+/* App Error State */
+.app-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+  background: var(--color-background);
+  padding: var(--spacing-lg);
+}
+
+.error-container {
+  max-width: 500px;
+  text-align: center;
+  padding: var(--spacing-xl);
+  border: 1px solid var(--color-error);
+  border-radius: var(--border-radius-lg);
+  background: var(--color-error-background);
+}
+
+.error-container h1 {
+  margin: 0 0 var(--spacing-md) 0;
+  color: var(--color-error);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+}
+
+.error-container p {
+  margin: 0 0 var(--spacing-lg) 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-relaxed);
+}
+
+.retry-button {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-error);
+  background: var(--color-error);
+  color: white;
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--animation-duration-fast) ease;
+}
+
+.retry-button:hover {
+  background: var(--color-error);
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.retry-button:focus {
+  outline: 2px solid var(--color-error);
+  outline-offset: 2px;
+}
+
+/* Global Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--border-radius-sm);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-hover);
+}
+
+/* Focus Styles */
+:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Selection Styles */
+::selection {
+  background: var(--color-primary-background);
+  color: var(--color-primary);
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .app {
+    border: 2px solid currentColor;
+  }
+
+  .error-container {
+    border-width: 2px;
+  }
+}
+
+/* Print styles */
+@media print {
+  .app {
+    height: auto;
+    overflow: visible;
+  }
+
+  .app-loading,
+  .app-error {
+    display: none;
+  }
+}
+
+/* Dark mode styles */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: #1a1a1a;
+    --color-surface: #2d2d2d;
+    --color-surface-hover: #3a3a3a;
+    --color-text-primary: #f8f9fa;
+    --color-text-secondary: #ced4da;
+    --color-border: #495057;
+    --color-border-hover: #6c757d;
+    --color-code-background: #2d2d2d;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--color-background);
+  }
+
+  ::selection {
+    background: var(--color-primary);
+    color: white;
+  }
+}

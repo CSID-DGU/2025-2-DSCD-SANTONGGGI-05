@@ -1,0 +1,333 @@
+/* Modal Overlay */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--spacing-md);
+}
+
+/* Modal Content */
+.modalContent {
+  background: white;
+  border-radius: var(--border-radius-lg);
+  max-width: 680px;
+  width: 100%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-lg);
+}
+
+/* Modal Header */
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+
+.closeButton {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--border-radius-md);
+  transition: all var(--animation-duration-fast) ease;
+}
+
+.closeButton:hover {
+  background: var(--color-background);
+  color: var(--color-text-primary);
+}
+
+/* Modal Body */
+.modalBody {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl);
+  min-height: 200px;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-md);
+}
+
+/* Product List */
+.productList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Product Card */
+.productCard {
+  display: flex;
+  gap: 18px;
+  padding: 18px 20px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  background: white;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--animation-duration-fast) ease;
+  position: relative;
+}
+
+.productCard:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+
+/* Product Rank */
+.productRank {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  width: 26px;
+  height: 26px;
+  background: var(--color-primary);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: var(--font-weight-bold);
+  z-index: 2;
+}
+
+/* Product Image */
+.productImage {
+  position: relative;
+  flex-shrink: 0;
+  width: 110px;
+  height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-background);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--color-border);
+  z-index: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.productEmoji {
+  font-size: 44px;
+  line-height: 1;
+}
+
+.productThumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+/* Product Info */
+.productInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.productCategory {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.productName {
+  margin: 0;
+  font-size: 15px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  line-height: 1.3;
+}
+
+/* Pricing */
+.productPricing {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 1px;
+}
+
+.regularPrice {
+  font-size: 18px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.metricRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.metricBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  background: #f1f5f9;
+  border-radius: 999px;
+  font-size: 12px;
+  color: #0f172a;
+  font-weight: 500;
+}
+
+/* Grade Badge (상단 우측) */
+.gradeBadge {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.gradeIcon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.gradeLabel {
+  letter-spacing: 0.3px;
+}
+
+/* Grade Description (상품 정보 내부) */
+.gradeDescription {
+  padding: 8px 12px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(249, 250, 251, 0.9));
+  border-left: 3px solid;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  margin-top: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Platform Badge */
+.platformBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-sm);
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+  margin-top: 2px;
+  width: fit-content;
+}
+
+/* Product Actions */
+.productActions {
+  display: flex;
+  margin-top: auto;
+}
+
+.addToCartBtn {
+  align-self: flex-start;
+  min-width: 140px;
+  padding: 8px 16px;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  font-size: 13px;
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast) ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.addToCartBtn:hover {
+  background: var(--color-primary-hover);
+}
+
+.cartIcon {
+  font-size: 14px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .modalContent {
+    max-height: 90vh;
+  }
+
+  .productCard {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .productImage {
+    width: 90px;
+    height: 90px;
+  }
+
+  .productEmoji {
+    font-size: 34px;
+  }
+
+  .productName {
+    font-size: 14px;
+  }
+
+  .regularPrice {
+    font-size: 16px;
+  }
+
+  .addToCartBtn {
+    width: 100%;
+    min-width: 0;
+    font-size: 12px;
+  }
+}

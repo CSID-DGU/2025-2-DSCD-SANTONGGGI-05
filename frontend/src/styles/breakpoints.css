@@ -1,0 +1,230 @@
+/* Responsive Breakpoints and Media Queries */
+
+/* Breakpoint Variables */
+:root {
+  --breakpoint-mobile: 768px;
+  --breakpoint-tablet: 1024px;
+  --breakpoint-desktop: 1200px;
+  --breakpoint-wide: 1440px;
+}
+
+/* Media Query Mixins (Use with CSS Custom Properties) */
+
+/* Mobile First Approach */
+.responsive-grid {
+  /* Mobile (default) */
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr auto;
+  grid-template-areas:
+    "chat"
+    "panel";
+  gap: 0;
+}
+
+/* Tablet and up */
+@media (min-width: 768px) {
+  .responsive-grid {
+    grid-template-columns: 1fr 35%;
+    grid-template-areas:
+      "chat cart"
+      "panel panel";
+  }
+}
+
+/* Desktop and up */
+@media (min-width: 1024px) {
+  .responsive-grid {
+    grid-template-columns: 1fr 30%;
+    grid-template-areas:
+      "chat cart"
+      "panel panel";
+  }
+}
+
+/* Large desktop and up */
+@media (min-width: 1200px) {
+  .responsive-grid {
+    grid-template-columns: 1fr 320px;
+  }
+}
+
+/* Extra wide screens */
+@media (min-width: 1440px) {
+  .responsive-grid {
+    grid-template-columns: 1fr 350px;
+  }
+}
+
+/* Responsive Layout Utilities */
+
+/* Mobile-specific layouts */
+@media (max-width: 767px) {
+  .mobile-stack {
+    flex-direction: column;
+  }
+
+  .mobile-full-width {
+    width: 100%;
+  }
+
+  .mobile-hidden {
+    display: none;
+  }
+
+  .mobile-show {
+    display: block;
+  }
+
+  /* Panel overlays on mobile */
+  .panel-mobile-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: var(--z-modal);
+    background: var(--bg-primary);
+  }
+
+  /* Cart sidebar becomes modal on mobile */
+  .cart-mobile-modal {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 100%;
+    max-width: 400px;
+    height: 100vh;
+    background: var(--bg-primary);
+    border-left: 1px solid var(--border-color);
+    transform: translateX(100%);
+    transition: transform var(--duration-normal) var(--ease-out);
+    z-index: var(--z-modal);
+  }
+
+  .cart-mobile-modal.open {
+    transform: translateX(0);
+  }
+}
+
+/* Tablet-specific layouts */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .tablet-stack {
+    flex-direction: column;
+  }
+
+  .tablet-hidden {
+    display: none;
+  }
+
+  .tablet-show {
+    display: block;
+  }
+
+  /* Adjust panel height for tablet */
+  .panel-tablet-height {
+    max-height: 50vh;
+  }
+}
+
+/* Desktop-specific layouts */
+@media (min-width: 1024px) {
+  .desktop-flex {
+    display: flex;
+  }
+
+  .desktop-hidden {
+    display: none;
+  }
+
+  .desktop-show {
+    display: block;
+  }
+}
+
+/* Touch device considerations */
+@media (hover: none) and (pointer: coarse) {
+  .touch-device {
+    /* Larger touch targets */
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .touch-scroll {
+    /* Better scroll behavior on touch */
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .high-dpi {
+    /* Optimizations for retina displays */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .reduce-motion {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Dark mode preference */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    /* Apply dark theme when no explicit theme is set */
+    --bg-primary: var(--bg-primary-dark);
+    --bg-secondary: var(--bg-secondary-dark);
+    --bg-tertiary: var(--bg-tertiary-dark);
+    --bg-accent: var(--bg-accent-dark);
+
+    --text-primary: var(--text-primary-dark);
+    --text-secondary: var(--text-secondary-dark);
+    --text-muted: var(--text-muted-dark);
+
+    --border-color: var(--border-color-dark);
+  }
+}
+
+/* Container utilities for different breakpoints */
+.container {
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+}
+
+@media (min-width: 640px) {
+  .container {
+    max-width: 640px;
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: 768px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1024px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1280px;
+  }
+}
+
+@media (min-width: 1536px) {
+  .container {
+    max-width: 1536px;
+  }
+}

@@ -1,0 +1,1 @@
+export { StatisticsImageModal } from './StatisticsImageModal';
