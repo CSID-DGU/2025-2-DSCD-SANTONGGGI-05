@@ -220,9 +220,9 @@
 }
 
 .inputWrapper:focus-within {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 4px var(--color-primary-background), var(--shadow-md);
-  transform: translateY(-1px);
+  border-color: #e5e7eb;
+  box-shadow: none;
+  transform: none;
 }
 
 .textInput {
@@ -431,4 +431,3 @@
     opacity: 1;
   }
 }
-

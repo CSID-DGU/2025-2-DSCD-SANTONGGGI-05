@@ -11,10 +11,9 @@ interface ChatInterfaceProps {
 }
 
 const SUGGESTED_PROMPTS = [
-  "Find me wireless headphones under $100",
-  "What are the best laptops for students?",
-  "Show me trending fashion items",
-  "Help me plan a gift for my mom",
+  '10만 원 이하 무선 이어폰 추천해줘',
+  '학생용 가성비 노트북 찾아줘',
+  '이번 주 인기 패션 아이템 알려줘',
 ];
 
 // 개발용 디버그 버튼은 디폴트로 숨긴다.
@@ -55,6 +54,13 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
   }, [inputValue]);
+
+  // Show alert when an error occurs (e.g., request timeout)
+  useEffect(() => {
+    if (error) {
+      alert(error);
+    }
+  }, [error]);
 
   // Handle send message
   const handleSendMessage = async () => {
@@ -231,10 +237,9 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
             <div className={styles.emptyStateIcon}>
               💬
             </div>
-            <h2 className={styles.emptyStateTitle}>Welcome to Shopping Assistant</h2>
+            <h2 className={styles.emptyStateTitle}>쇼핑 어시스턴트에 오신 것을 환영합니다</h2>
             <p className={styles.emptyStateDescription}>
-              I'm here to help you find products, compare prices, and make informed shopping decisions.
-              Ask me anything about products you're looking for!
+              원하는 상품을 찾아드리고 가격 비교도 도와드릴게요. 궁금한 내용을 편하게 물어보세요!
             </p>
             <div className={styles.emptyStateSuggestions}>
               {SUGGESTED_PROMPTS.map((prompt, index) => (
@@ -284,13 +289,6 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className }) => {
         </div>
       </div>
 
-
-      {/* Error Display */}
-      {error && (
-        <div className={styles.errorMessage} role="alert">
-          {error}
-        </div>
-      )}
 
       {/* Type 1 모달: 상품 추천 */}
       <CustomRecommendationModal

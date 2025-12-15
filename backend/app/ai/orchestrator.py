@@ -88,37 +88,34 @@ class AiOrchestrator:
             try:
                 return self._run_platform_search(message)
             except OpenAIErrorWrapper as exc:
-                logger.warning("Platform search failed: %s", exc)
+                logger.error("Platform search MCP failed: %s", exc)
+                return AiOrchestratorResult(
+                    ai_message="상품 검색 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
+                    response_type=0,
+                    recommendation_items=[],
+                )
 
         if selected_tool == "purchase_recommendation" and self._config.has_purchase_mcp:
             try:
                 return self._run_purchase_recommendation(user_id=user_id, limit=5)
             except OpenAIErrorWrapper as exc:
-                logger.warning("Purchase MCP failed: %s", exc)
+                logger.error("Purchase recommendation MCP failed: %s", exc)
+                return AiOrchestratorResult(
+                    ai_message="개인화 추천 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
+                    response_type=0,
+                    recommendation_items=[],
+                )
 
         if selected_tool == "statistics_analysis" and self._config.has_statistics_mcp:
             try:
                 return self._run_statistics_analysis(message)
             except OpenAIErrorWrapper as exc:
-                logger.warning("Statistics MCP failed: %s", exc)
-
-        if self._should_trigger_statistics(message) and self._config.has_statistics_mcp:
-            try:
-                return self._run_statistics_analysis(message)
-            except OpenAIErrorWrapper as exc:
-                logger.warning("Fallback statistics analysis failed: %s", exc)
-
-        if self._should_trigger_platform_search(message) and self._config.has_search_mcp:
-            try:
-                return self._run_platform_search(message)
-            except OpenAIErrorWrapper as exc:
-                logger.warning("Fallback platform search failed: %s", exc)
-
-        if self._config.has_purchase_mcp:
-            try:
-                return self._run_purchase_recommendation(user_id=user_id, limit=5)
-            except OpenAIErrorWrapper as exc:
-                logger.warning("Fallback purchase MCP failed: %s", exc)
+                logger.error("Statistics analysis MCP failed: %s", exc)
+                return AiOrchestratorResult(
+                    ai_message="통계 분석 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
+                    response_type=0,
+                    recommendation_items=[],
+                )
 
         # Fallback to lightweight small talk.
         try:
