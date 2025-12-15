@@ -18,7 +18,7 @@ NAVER_CLIENT_SECRET = os.getenv("NAVER_CLIENT_SECRET", "")
 NAVER_SHOP_API_URL = os.getenv("NAVER_SHOP_API_URL", "https://openapi.naver.com/v1/search/shop.json")
 
 
-mcp = FastMCP("shopping_combined")
+mcp = FastMCP("shopping_combined", stateless_http=True)
 
 
 def _safe_text(elem: ET.Element, tag: str) -> str:
@@ -129,7 +129,7 @@ def run_server():
     mcp.run(
         transport="streamable-http",
         host="0.0.0.0",
-        path="/mcp",
+        path="/mcp/",
         port=8002,
         stateless_http=True,
     )

@@ -6,6 +6,7 @@ import json
 import logging
 from typing import Any, Dict, List, Optional
 
+import httpx
 from openai import OpenAI, OpenAIError
 
 from .config import AiConfig, get_ai_config
@@ -20,7 +21,17 @@ class OpenAIChatClient:
         self._config = config or get_ai_config()
         self._client: Optional[OpenAI] = None
         if self._config.openai_api_key:
-            self._client = OpenAI(api_key=self._config.openai_api_key)
+            # Configure timeout for MCP server connections
+            # Default 10min is too long, but 30s is too short for MCP
+            self._client = OpenAI(
+                api_key=self._config.openai_api_key,
+                timeout=httpx.Timeout(
+                    timeout=300.0,  # 5 minutes total timeout
+                    connect=10.0,   # 10 seconds to establish connection
+                    read=240.0,     # 4 minutes to read response
+                ),
+                max_retries=0,  # Disable retries for faster failure detection
+            )
 
     @property
     def is_configured(self) -> bool:

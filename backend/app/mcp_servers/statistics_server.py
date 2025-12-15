@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 load_dotenv()
-mcp = FastMCP("purchase_statistics")
+mcp = FastMCP("purchase_statistics", stateless_http=True)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
@@ -645,7 +645,7 @@ def run_server():
         transport="streamable-http",
         host="0.0.0.0",
         port=8003,
-        path="/mcp",
+        path="/mcp/",
         stateless_http=True,
     )
 
