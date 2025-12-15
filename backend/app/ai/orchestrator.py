@@ -23,6 +23,28 @@ from .types import AiOrchestratorResult, ToolIntentPrediction
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# 간단한 명사나 카테고리만 언급돼도 상품 검색 의도가 있다고 판단하기 위한 키워드 집합
+PRODUCT_SEARCH_KEYWORDS = (
+    "패딩",
+    "자켓",
+    "코트",
+    "외투",
+    "점퍼",
+    "데스크테리어",
+    "책상",
+    "꾸밀",
+    "소품",
+    "장식",
+    "가전",
+    "노트북",
+    "키보드",
+    "마우스",
+    "모니터",
+    "헤드폰",
+    "이어폰",
+    "의자",
+)
+
 
 class AiOrchestrator:
     """Entry point used by ChatService."""
@@ -50,6 +72,13 @@ class AiOrchestrator:
                 intent = self._classify_tool_intent(message, available_tools=available_tools)
                 if intent:
                     selected_tool = intent.selected_tool
+                    # 상품성 명사만 있어도 검색 우선하도록 한 번 더 보정
+                    if selected_tool == "purchase_recommendation" and self._looks_like_product_query(message):
+                        selected_tool = "platform_search"
+                        logger.info(
+                            "Tool intent corrected to platform_search due to product-like query: %s",
+                            message,
+                        )
                     if intent.reason:
                         logger.info("Tool intent selected=%s (%s)", intent.selected_tool, intent.reason)
             except OpenAIErrorWrapper as exc:
@@ -328,7 +357,15 @@ class AiOrchestrator:
     def _should_trigger_platform_search(message: str) -> bool:
         lowered = message.lower()
         trigger_keywords = ("추천", "찾아줘", "어디서", "상품", "사고싶")
-        return any(keyword in lowered for keyword in trigger_keywords)
+        if any(keyword in lowered for keyword in trigger_keywords):
+            return True
+        return AiOrchestrator._looks_like_product_query(lowered)
+
+    @staticmethod
+    def _looks_like_product_query(message: str) -> bool:
+        """간단한 명사/카테고리 언급만으로도 상품 검색 의도로 간주."""
+        lowered = message.lower()
+        return any(keyword in lowered for keyword in PRODUCT_SEARCH_KEYWORDS)
 
     @staticmethod
     def _should_trigger_statistics(message: str) -> bool:
