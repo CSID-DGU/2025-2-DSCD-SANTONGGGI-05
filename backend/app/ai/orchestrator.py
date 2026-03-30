@@ -175,21 +175,16 @@ class AiOrchestrator:
 
     def _run_statistics_analysis(self, message: str) -> AiOrchestratorResult:
         """Execute statistics analysis workflow using MCP tools."""
-        prompt = build_statistics_prompt()
+        system_prompt = build_statistics_prompt()
         tools = build_statistics_toolset(self._config)
 
-        # Build messages with system prompt and user query
-        messages = [
-            {"role": "system", "content": prompt},
-            {"role": "user", "content": message},
-        ]
-
-        # Call OpenAI with statistics MCP tools
+        # Responses API: system 지시사항은 instructions 파라미터로, 사용자 메시지는 input으로 전달
         text = safe_run(
             self._client,
-            prompt=messages,  # Pass list of messages instead of string
+            prompt=message,
+            instructions=system_prompt,
             tools=tools,
-            expect_json=False,  # Expecting text response, not JSON
+            expect_json=False,
         )
 
         ai_message = text if isinstance(text, str) else "구매 이력 분석 결과를 확인해보세요."
